@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      MSSQL_SA_PASSWORD: "Admin-181020"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - db_data:/var/opt/mssql
+      - /home/facurodrij/PycharmProjects/erp-complement/Datos_FullBackup_20240418_0803.bak:/var/opt/mssql/backup/Datos_FullBackup_20240418_0803.bak
+volumes:
+    db_data:
