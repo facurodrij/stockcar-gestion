@@ -10,6 +10,8 @@ class Venta(db.Model):
     numero = db.Column('DOV_NUMERO', db.Integer, nullable=False)
     fecha = db.Column('DOV_FECHA', db.DateTime, nullable=False)
     nombre_cliente = db.Column('DOV_CLINOMBRE', db.String, nullable=False)
+    gravado = db.Column('DOV_GRAVADO', db.Float, nullable=False)
+    total = db.Column('DOV_TOTAL', db.Float, nullable=False)
 
     def to_json(self):
         return {
@@ -21,7 +23,9 @@ class Venta(db.Model):
             # Sucursal y número de documento, en formato 0000-00000000
             'nro_doc': f'{self.sucursal:04d}-{self.numero:08d}',
             'fecha': self.fecha.strftime('%Y-%m-%d %H:%M:%S'),
-            'nombre_cliente': self.nombre_cliente
+            'nombre_cliente': self.nombre_cliente,
+            'gravado': self.gravado,
+            'total': self.total
         }
 
 
