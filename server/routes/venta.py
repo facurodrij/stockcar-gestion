@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
-from server.models import Venta
+from server.models import Venta, ItemVenta
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -29,4 +29,9 @@ def index():
 @venta_bp.route('/ventas/<id>', methods=['GET'])
 def detail(id):
     venta = Venta.query.get_or_404(id, 'Venta no encontrada')
-    return jsonify({'venta': venta.to_json()}), 200
+    # Obtener los items de la venta, con una query
+    items = ItemVenta.query.filter_by(tipo_doc=venta.tipo_doc,
+                                      letra=venta.letra,
+                                      sucursal=venta.sucursal,
+                                      numero=venta.numero).all()
+    return jsonify({'venta': venta.to_json(), 'items': list(map(lambda x: x.to_json(), items))}), 200

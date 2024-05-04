@@ -13,10 +13,11 @@ import dayjs from "dayjs";
 import {currencyFormatter} from "../../utils/formatters";
 import SaleDetailDialog from "./detail";
 
-const API = process.env.REACT_APP_API_URL;
+export const API = process.env.REACT_APP_API_URL;
 
 export default function Index() {
     const [salesList, setSalesList] = useState([]);
+    const [saleSelected, setSaleSelected] = useState(null)
     const [salesSelectedList, setSalesSelectedList] = useState([]);
     const [from, setFrom] = useState(null);
     const [to, setTo] = useState(null);
@@ -29,7 +30,7 @@ export default function Index() {
         const url = `${API}/ventas?desde=${fromStr}&hasta=${toStr}`;
 
         const res = await fetch(url);
-        const data = await res.json();
+        const data = await res.json()
         setSalesList(data.ventas)
     }
 
@@ -60,7 +61,7 @@ export default function Index() {
                 <GridActionsCellItem
                     icon={<VisibilityIcon/>}
                     label="Detalle"
-                    onClick={() => handleShowDetail()}
+                    onClick={() => handleShowDetail(params.row)}
                     showInMenu
                 />,
                 <GridActionsCellItem
@@ -84,13 +85,13 @@ export default function Index() {
         total: venta.total
     }));
 
-    const handleShowDetail = (venta) => {
-        setSalesSelectedList(venta);
+    const handleShowDetail = (sale) => {
+        setSaleSelected(sale)
         setShowDetail(true); // Abre el SaleDetailDialog
     }
 
     const handleCloseDetail = () => {
-        setSalesSelectedList(null);
+        setSaleSelected(null)
         setShowDetail(false); // Cierra el SaleDetailDialog
     }
 
@@ -150,7 +151,7 @@ export default function Index() {
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                 />
             </div>
-            <SaleDetailDialog open={showDetail} onClose={handleCloseDetail} venta={salesSelectedList}/>
+            <SaleDetailDialog open={showDetail} onClose={handleCloseDetail} sale={saleSelected}/>
         </>
     )
 }
