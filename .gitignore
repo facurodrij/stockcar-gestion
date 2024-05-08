@@ -299,7 +299,7 @@ db.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
-instance/
+server/instance/
 .webassets-cache
 
 # Scrapy stuff:
@@ -396,8 +396,10 @@ cython_debug/
 #.idea/
 
 ### Flask template
-instance/*
-!instance/.gitignore
+server/instance/*
+!server/instance/.gitignore
 
 ### Others
 *.bak
+dump/
+server_test/
