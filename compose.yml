@@ -9,6 +9,17 @@ services:
       ACCEPT_EULA: "Y"
     volumes:
       - db_data:/var/opt/mssql
-      - /home/facurodrij/PycharmProjects/erp-complement/Datos_FullBackup_20240418_0803.bak:/var/opt/mssql/backup/Datos_FullBackup_20240418_0803.bak
+  psql:
+    image: postgres:16.2
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "Admin-181020"
+      POSTGRES_DB: "erp"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 volumes:
-    db_data:
+  db_data:
+  pgdata:
