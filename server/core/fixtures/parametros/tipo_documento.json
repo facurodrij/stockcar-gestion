@@ -1,0 +1,30 @@
+[
+    {
+        "id": 1,
+        "nombre": "DNI"
+    },
+    {
+        "id": 2,
+        "nombre": "CUIT"
+    },
+    {
+        "id": 3,
+        "nombre": "CI"
+    },
+    {
+        "id": 4,
+        "nombre": "LE"
+    },
+    {
+        "id": 5,
+        "nombre": "LC"
+    },
+    {
+        "id": 6,
+        "nombre": "Pasaporte"
+    },
+    {
+        "id": 7,
+        "nombre": "CI Extranjera"
+    }
+]

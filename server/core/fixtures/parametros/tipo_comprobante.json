@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1,
+        "nombre": "Factura B",
+        "abreviatura": "B"
+    },
+    {
+        "id": 2,
+        "nombre": "Factura A",
+        "abreviatura": "A"
+    },
+    {
+        "id": 3,
+        "nombre": "Factura C",
+        "abreviatura": "C"
+    },
+    {
+        "id": 4,
+        "nombre": "Presupuesto",
+        "abreviatura": "P"
+    },
+    {
+        "id": 5,
+        "nombre": "Remito",
+        "abreviatura": "R"
+    },
+    {
+        "id": 6,
+        "nombre": "Nota de Crédito",
+        "abreviatura": "NC"
+    },
+    {
+        "id": 7,
+        "nombre": "Nota de Débito",
+        "abreviatura": "ND"
+    }
+]

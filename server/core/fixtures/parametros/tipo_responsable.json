@@ -1,0 +1,72 @@
+[
+    {
+        "id": 1,
+        "nombre": "Consumidor Final",
+        "abreviatura": "F"
+    },
+    {
+        "id": 2,
+        "nombre": "IVA Responsable Inscripto",
+        "abreviatura": "I"
+    },
+    {
+        "id": 3,
+        "nombre": "Monotributista",
+        "abreviatura": "M"
+    },
+    {
+        "id": 4,
+        "nombre": "IVA no Responsable",
+        "abreviatura": "N"
+    },
+    {
+        "id": 5,
+        "nombre": "IVA Sujeto Exento",
+        "abreviatura": "E"
+    },
+    {
+        "id": 6,
+        "nombre": "IVA Responsable No Inscripto",
+        "abreviatura": "R"
+    },
+    {
+        "id": 7,
+        "nombre": "Sujeto no Categorizado",
+        "abreviatura": "A"
+    },
+    {
+        "id": 8,
+        "nombre": "Proveedor del Exterior",
+        "abreviatura": "C"
+    },
+    {
+        "id": 9,
+        "nombre": "Cliente del Exterior",
+        "abreviatura": "T"
+    },
+    {
+        "id": 10,
+        "nombre": "IVA Liberado – Ley Nº 19.640",
+        "abreviatura": "L"
+    },
+    {
+        "id": 11,
+        "nombre": "IVA Responsable Inscripto – Agente de Percepción",
+        "abreviatura": "V"
+    },
+    {
+        "id": 12,
+        "nombre": "Pequeño Contribuyente Eventual",
+        "abreviatura": "B"
+    },
+    {
+        "id": 13,
+        "nombre": "Monotributista Social",
+        "abreviatura": "D"
+    },
+    {
+        "id": 14,
+        "nombre": "Pequeño Contribuyente Eventual Social",
+        "abreviatura": "S"
+    }
+]

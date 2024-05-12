@@ -1,17 +1,15 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, select
-from datetime import datetime
-from config import db, app
-from routes.venta import venta_bp
+from flask import jsonify
+from .config import db, app
+from server.core.routes.venta import venta_bp
+# noinspection PyUnresolvedReferences
+from server.core.commands import load_fixtures
 
 app.register_blueprint(venta_bp)
 
 
 @app.route('/')
 def index():
-    return 'Hello World!'
+    return jsonify({'message': 'Hello, World!'})
 
 
 if __name__ == '__main__':

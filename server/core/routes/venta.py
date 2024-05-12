@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
-from server.models import Venta, ItemVenta
+
+from server.core.models import Venta, ItemVenta
 
 venta_bp = Blueprint('venta_bp', __name__)
 
