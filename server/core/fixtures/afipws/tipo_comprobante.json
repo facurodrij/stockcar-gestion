@@ -1,0 +1,146 @@
+[
+    {
+        "codigo_afip": 1,
+        "descripcion": "Factura A"
+    },
+    {
+        "codigo_afip": 2,
+        "descripcion": "Nota de Débito A"
+    },
+    {
+        "codigo_afip": 3,
+        "descripcion": "Nota de Crédito A"
+    },
+    {
+        "codigo_afip": 6,
+        "descripcion": "Factura B"
+    },
+    {
+        "codigo_afip": 7,
+        "descripcion": "Nota de Débito B"
+    },
+    {
+        "codigo_afip": 8,
+        "descripcion": "Nota de Crédito B"
+    },
+    {
+        "codigo_afip": 4,
+        "descripcion": "Recibos A"
+    },
+    {
+        "codigo_afip": 5,
+        "descripcion": "Notas de Venta al contado A"
+    },
+    {
+        "codigo_afip": 9,
+        "descripcion": "Recibos B"
+    },
+    {
+        "codigo_afip": 10,
+        "descripcion": "Notas de Venta al contado B"
+    },
+    {
+        "codigo_afip": 63,
+        "descripcion": "Liquidacion A"
+    },
+    {
+        "codigo_afip": 64,
+        "descripcion": "Liquidacion B"
+    },
+    {
+        "codigo_afip": 34,
+        "descripcion": "Cbtes. A del Anexo I, Apartado A,inc.f),R.G.Nro. 1415"
+    },
+    {
+        "codigo_afip": 35,
+        "descripcion": "Cbtes. B del Anexo I,Apartado A,inc. f),R.G. Nro. 1415"
+    },
+    {
+        "codigo_afip": 39,
+        "descripcion": "Otros comprobantes A que cumplan con R.G.Nro. 1415"
+    },
+    {
+        "codigo_afip": 40,
+        "descripcion": "Otros comprobantes B que cumplan con R.G.Nro. 1415"
+    },
+    {
+        "codigo_afip": 60,
+        "descripcion": "Cta de Vta y Liquido prod. A"
+    },
+    {
+        "codigo_afip": 61,
+        "descripcion": "Cta de Vta y Liquido prod. B"
+    },
+    {
+        "codigo_afip": 11,
+        "descripcion": "Factura C"
+    },
+    {
+        "codigo_afip": 12,
+        "descripcion": "Nota de Débito C"
+    },
+    {
+        "codigo_afip": 13,
+        "descripcion": "Nota de Crédito C"
+    },
+    {
+        "codigo_afip": 15,
+        "descripcion": "Recibo C"
+    },
+    {
+        "codigo_afip": 49,
+        "descripcion": "Comprobante de Compra de Bienes Usados a Consumidor Final"
+    },
+    {
+        "codigo_afip": 51,
+        "descripcion": "Factura M"
+    },
+    {
+        "codigo_afip": 52,
+        "descripcion": "Nota de Débito M"
+    },
+    {
+        "codigo_afip": 53,
+        "descripcion": "Nota de Crédito M"
+    },
+    {
+        "codigo_afip": 54,
+        "descripcion": "Recibo M"
+    },
+    {
+        "codigo_afip": 201,
+        "descripcion": "Factura de Crédito electrónica MiPyMEs (FCE) A"
+    },
+    {
+        "codigo_afip": 202,
+        "descripcion": "Nota de Débito electrónica MiPyMEs (FCE) A"
+    },
+    {
+        "codigo_afip": 203,
+        "descripcion": "Nota de Crédito electrónica MiPyMEs (FCE) A"
+    },
+    {
+        "codigo_afip": 206,
+        "descripcion": "Factura de Crédito electrónica MiPyMEs (FCE) B"
+    },
+    {
+        "codigo_afip": 207,
+        "descripcion": "Nota de Débito electrónica MiPyMEs (FCE) B"
+    },
+    {
+        "codigo_afip": 208,
+        "descripcion": "Nota de Crédito electrónica MiPyMEs (FCE) B"
+    },
+    {
+        "codigo_afip": 211,
+        "descripcion": "Factura de Crédito electrónica MiPyMEs (FCE) C"
+    },
+    {
+        "codigo_afip": 212,
+        "descripcion": "Nota de Débito electrónica MiPyMEs (FCE) C"
+    },
+    {
+        "codigo_afip": 213,
+        "descripcion": "Nota de Crédito electrónica MiPyMEs (FCE) C"
+    }
+]

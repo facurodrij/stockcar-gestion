@@ -1,0 +1,46 @@
+[
+    {
+        "codigo_afip": 1,
+        "descripcion": "Impuestos nacionales"
+    },
+    {
+        "codigo_afip": 2,
+        "descripcion": "Impuestos provinciales"
+    },
+    {
+        "codigo_afip": 3,
+        "descripcion": "Impuestos municipales"
+    },
+    {
+        "codigo_afip": 4,
+        "descripcion": "Impuestos Internos"
+    },
+    {
+        "codigo_afip": 99,
+        "descripcion": "Otro"
+    },
+    {
+        "codigo_afip": 5,
+        "descripcion": "IIBB"
+    },
+    {
+        "codigo_afip": 6,
+        "descripcion": "Percepción de IVA"
+    },
+    {
+        "codigo_afip": 7,
+        "descripcion": "Percepción de IIBB"
+    },
+    {
+        "codigo_afip": 8,
+        "descripcion": "Percepciones por Impuestos Municipales"
+    },
+    {
+        "codigo_afip": 9,
+        "descripcion": "Otras Percepciones"
+    },
+    {
+        "codigo_afip": 13,
+        "descripcion": "Percepción de IVA a no Categorizado"
+    }
+]

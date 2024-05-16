@@ -1,0 +1,146 @@
+[
+    {
+        "codigo_afip": 80,
+        "descripcion": "CUIT"
+    },
+    {
+        "codigo_afip": 86,
+        "descripcion": "CUIL"
+    },
+    {
+        "codigo_afip": 87,
+        "descripcion": "CDI"
+    },
+    {
+        "codigo_afip": 89,
+        "descripcion": "LE"
+    },
+    {
+        "codigo_afip": 90,
+        "descripcion": "LC"
+    },
+    {
+        "codigo_afip": 91,
+        "descripcion": "CI Extranjera"
+    },
+    {
+        "codigo_afip": 92,
+        "descripcion": "en trámite"
+    },
+    {
+        "codigo_afip": 93,
+        "descripcion": "Acta Nacimiento"
+    },
+    {
+        "codigo_afip": 95,
+        "descripcion": "CI Bs. As. RNP"
+    },
+    {
+        "codigo_afip": 96,
+        "descripcion": "DNI"
+    },
+    {
+        "codigo_afip": 94,
+        "descripcion": "Pasaporte"
+    },
+    {
+        "codigo_afip": 0,
+        "descripcion": "CI Policía Federal"
+    },
+    {
+        "codigo_afip": 1,
+        "descripcion": "CI Buenos Aires"
+    },
+    {
+        "codigo_afip": 2,
+        "descripcion": "CI Catamarca"
+    },
+    {
+        "codigo_afip": 3,
+        "descripcion": "CI Córdoba"
+    },
+    {
+        "codigo_afip": 4,
+        "descripcion": "CI Corrientes"
+    },
+    {
+        "codigo_afip": 5,
+        "descripcion": "CI Entre Ríos"
+    },
+    {
+        "codigo_afip": 6,
+        "descripcion": "CI Jujuy"
+    },
+    {
+        "codigo_afip": 7,
+        "descripcion": "CI Mendoza"
+    },
+    {
+        "codigo_afip": 8,
+        "descripcion": "CI La Rioja"
+    },
+    {
+        "codigo_afip": 9,
+        "descripcion": "CI Salta"
+    },
+    {
+        "codigo_afip": 10,
+        "descripcion": "CI San Juan"
+    },
+    {
+        "codigo_afip": 11,
+        "descripcion": "CI San Luis"
+    },
+    {
+        "codigo_afip": 12,
+        "descripcion": "CI Santa Fe"
+    },
+    {
+        "codigo_afip": 13,
+        "descripcion": "CI Santiago del Estero"
+    },
+    {
+        "codigo_afip": 14,
+        "descripcion": "CI Tucumán"
+    },
+    {
+        "codigo_afip": 16,
+        "descripcion": "CI Chaco"
+    },
+    {
+        "codigo_afip": 17,
+        "descripcion": "CI Chubut"
+    },
+    {
+        "codigo_afip": 18,
+        "descripcion": "CI Formosa"
+    },
+    {
+        "codigo_afip": 19,
+        "descripcion": "CI Misiones"
+    },
+    {
+        "codigo_afip": 20,
+        "descripcion": "CI Neuquén"
+    },
+    {
+        "codigo_afip": 21,
+        "descripcion": "CI La Pampa"
+    },
+    {
+        "codigo_afip": 22,
+        "descripcion": "CI Río Negro"
+    },
+    {
+        "codigo_afip": 23,
+        "descripcion": "CI Santa Cruz"
+    },
+    {
+        "codigo_afip": 24,
+        "descripcion": "CI Tierra del Fuego"
+    },
+    {
+        "codigo_afip": 99,
+        "descripcion": "Doc. (Otro)"
+    }
+]

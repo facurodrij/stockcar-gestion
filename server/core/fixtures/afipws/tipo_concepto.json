@@ -1,0 +1,14 @@
+[
+    {
+        "codigo_afip": 1,
+        "descripcion": "Producto"
+    },
+    {
+        "codigo_afip": 2,
+        "descripcion": "Servicios"
+    },
+    {
+        "codigo_afip": 3,
+        "descripcion": "Productos y Servicios"
+    }
+]

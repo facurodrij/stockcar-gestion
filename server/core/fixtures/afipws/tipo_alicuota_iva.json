@@ -1,0 +1,32 @@
+[
+    {
+        "codigo_afip": 3,
+        "descripcion": "0%",
+        "porcentaje": 0.0
+    },
+    {
+        "codigo_afip": 4,
+        "descripcion": "10.5%",
+        "porcentaje": 10.5
+    },
+    {
+        "codigo_afip": 5,
+        "descripcion": "21%",
+        "porcentaje": 21.0
+    },
+    {
+        "codigo_afip": 6,
+        "descripcion": "27%",
+        "porcentaje": 27.0
+    },
+    {
+        "codigo_afip": 8,
+        "descripcion": "5%",
+        "porcentaje": 5.0
+    },
+    {
+        "codigo_afip": 9,
+        "descripcion": "2.5%",
+        "porcentaje": 2.5
+    }
+]
