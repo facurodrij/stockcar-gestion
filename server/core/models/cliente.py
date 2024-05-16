@@ -1,6 +1,8 @@
 from server.config import db
-from sqlalchemy import func, ForeignKey, Column, Integer, String, Numeric, DateTime, Float, Boolean
+from sqlalchemy import ForeignKey, Column, Integer, String, Numeric, DateTime, Boolean
 from sqlalchemy.orm import relationship
+
+from server.core.utils import DatosAuditoria
 
 
 class DatosPrincipales:
@@ -8,15 +10,9 @@ class DatosPrincipales:
     id = Column(Integer, primary_key=True, autoincrement=True)
     nro_doc = Column(String, nullable=False)
     nombre_1 = Column(String, nullable=False)
-    # --Foreign keys
-    tipo_doc_id = Column(Integer, ForeignKey('tipo_documento.id'), nullable=False)
-    tipo_responsable_id = Column(Integer, ForeignKey('tipo_responsable.id'), nullable=False)
-    # --Relationships
-    tipo_doc = relationship('TipoDocumento', backref='clientes')
-    tipo_responsable = relationship('TipoResponsable', backref='clientes')
 
 
-class DatosFacturacion:
+class DatosPredefinidos:
     """Datos de configuración para la creación de comprobantes de venta."""
     percepcion = Column(Numeric, default=0)
     descuento = Column(Numeric, default=0)
@@ -34,15 +30,15 @@ class DatosSecundarios:
     observacion = Column(String, nullable=True)
 
 
-class DatosAuditoria:
-    fecha_alta = Column(DateTime, default=func.now())
-    fecha_modificacion = Column(DateTime, onupdate=func.utc_timestamp())
-    baja = Column(Boolean, default=False)
-    fecha_baja = Column(DateTime, nullable=True)
-
-
-class Cliente(db.Model, DatosPrincipales, DatosFacturacion, DatosSecundarios, DatosAuditoria):
+class Cliente(db.Model, DatosPrincipales, DatosPredefinidos, DatosSecundarios, DatosAuditoria):
     __tablename__ = 'cliente'
+
+    # --Foreign keys
+    tipo_doc_id = Column(Integer, ForeignKey('tipo_documento.id'), nullable=False)
+    tipo_responsable_id = Column(Integer, ForeignKey('tipo_responsable.id'), nullable=False)
+    # --Relationships
+    tipo_doc = relationship('TipoDocumento', backref='clientes')
+    tipo_responsable = relationship('TipoResponsable', backref='clientes')
 
     localidad_id = Column(Integer, ForeignKey('localidad.id'), nullable=True)
     provincia_id = Column(Integer, ForeignKey('provincia.id'), nullable=True)

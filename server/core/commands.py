@@ -3,7 +3,7 @@ import importlib
 import click
 import pandas as pd
 from server.config import db, app
-from server.core.models.parametros import Localidad, Provincia, TipoDocumento, TipoContribuyente, TipoComprobante
+from server.core.models.parametros import Localidad, Provincia, TipoDocumento, TipoResponsable, TipoComprobante
 
 
 @app.cli.command("load_fixtures")
@@ -11,7 +11,7 @@ def load_fixtures():
     """Load data from JSON files into the database."""
     # Load data for each model
     for model, filename in [(Localidad, 'localidad.json'), (Provincia, 'provincia.json'),
-                            (TipoDocumento, 'tipo_documento.json'), (TipoContribuyente, 'tipo_contribuyente.json'),
+                            (TipoDocumento, 'tipo_documento.json'), (TipoResponsable, 'tipo_contribuyente.json'),
                             (TipoComprobante, 'tipo_comprobante.json')]:
         filepath = f"core/fixtures/parametros/{filename}"
         df = pd.read_json(filepath)
