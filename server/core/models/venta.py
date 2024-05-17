@@ -1,31 +1,63 @@
+from sqlalchemy import Column, String, Integer, Numeric, ForeignKey, DateTime, CHAR
+from sqlalchemy.orm import relationship
+
 from server.config import db
+from server.core.utils import DatosAuditoria
 
 
-class Venta(db.Model):
+class DatosFacturacion:
+    """
+    Clase para los datos de facturación de la venta.
+
+    Esta clase incluye campos para los datos de facturación de la venta.
+    """
+    nombre_cliente = Column(String, nullable=False)
+    descuento = Column(Numeric, default=0, nullable=False)
+    gravado = Column(Numeric, nullable=False)  # Total - IVA - Percepción
+    total = Column(Numeric, nullable=False)
+    cae = Column(String, nullable=True)  # Código de Autorización Electrónico
+    fecha_venc_cae = Column(DateTime, nullable=True)
+
+
+class Venta(db.Model, DatosFacturacion, DatosAuditoria):
+    """
+    Modelo de datos para las ventas.
+
+    Esta clase representa una venta en la base de datos. Incluye campos para los datos principales de la venta,
+    los datos de facturación y los datos de auditoría.
+    """
     __tablename__ = 'venta'
-    id = db.Column('ID', db.String, primary_key=True)
-    tipo_factura = db.Column('TIPO_FAC', db.String, nullable=False)  # TIPO_DOC
-    letra = db.Column('LETRA', db.String, nullable=False)
-    sucursal = db.Column('SUCURSAL', db.Integer, nullable=False)
-    numero = db.Column('NUMERO', db.Integer, nullable=False)
-    fecha = db.Column('FECHA', db.DateTime, nullable=False)
-    nombre_cliente = db.Column('CLINOMBRE', db.String, nullable=False)
-    gravado = db.Column('GRAVADO', db.Float, nullable=False)
-    total = db.Column('TOTAL', db.Float, nullable=False)
-    asociado = db.Column('ASOCIADO', db.Integer, nullable=False)
-    vendedor = db.Column('VENDEDOR', db.Integer, nullable=False)
-    operador = db.Column('OPERADOR', db.Integer, nullable=False)
-    movimiento = db.Column('MOVIMIENTO', db.Integer, nullable=False)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    sucursal = Column(Integer, nullable=False)
+    numero = Column(Integer, nullable=False)
+
+    # Relaciones con otras tablas
+    tipo_comprobante_id = Column(Integer, ForeignKey('tipo_comprobante.id'), nullable=False)
+    tipo_comprobantes = relationship('TipoComprobante', backref='ventas')
+
+    cliente_id = Column(Integer, ForeignKey('cliente.id'), nullable=False)
+    clientes = relationship('Cliente', backref='ventas')
+
+    tributos = relationship('Tributo', secondary='tributo_venta', backref='ventas')
+
+    def nro_comprobante(self):
+        """
+        Devuelve el número de documento en formato 0000-00000000.
+        """
+        return f'{self.sucursal:04d}-{self.numero:08d}'
 
     def to_json(self):
+        """
+        Convierte los datos de la venta a formato JSON.
+        """
         return {
             'id': self.id,
             'tipo_doc': self.tipo_doc,
             'letra': self.letra,
             'sucursal': self.sucursal,
             'numero': self.numero,
-            # Sucursal y número de documento, en formato 0000-00000000
-            'nro_doc': f'{self.sucursal:04d}-{self.numero:08d}',
+            'nro_doc': self.nro_comprobante(),
             'fecha': self.fecha.strftime('%Y-%m-%d %H:%M:%S'),
             'nombre_cliente': self.nombre_cliente,
             'gravado': self.gravado,

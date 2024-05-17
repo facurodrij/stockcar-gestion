@@ -39,6 +39,10 @@ class TipoResponsable(db.Model):
     descripcion = db.Column(db.String, nullable=False, unique=True)
     abreviatura = db.Column(db.String(5), nullable=False, unique=True)
 
+    # Relación muchos a muchos con TipoComprobante
+    comprobantes = db.relationship('TipoComprobante', secondary='responsable_comprobante', backref='responsables')
+    tributos = db.relationship('TipoTributo', secondary='tributo_tipo_responsable', backref='responsables')
+
 
 class TipoComprobante(db.Model):
     """
@@ -54,6 +58,10 @@ class TipoComprobante(db.Model):
     codigo_afip = db.Column(db.Integer, nullable=True)  # Código de AFIP, se obtiene del ID
     descripcion = db.Column(db.String, nullable=False)
     letra = db.Column(db.String(1), nullable=False)
+
+    # Relación muchos a muchos con TipoResponsable
+    responsables = db.relationship('TipoResponsable', secondary='responsable_comprobante', backref='comprobantes')
+    tributos = db.relationship('TipoTributo', secondary='tributo_tipo_comprobante', backref='comprobantes')
 
 
 class TipoConcepto(db.Model):

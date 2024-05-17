@@ -1,37 +1,68 @@
 [
     {
-        "id": 1,
-        "nombre": "Factura B",
-        "abreviatura": "B"
+        "codigo_afip": 1,
+        "descripcion": "Factura A",
+        "abreviatura": "A",
+        "letra": "A"
     },
     {
-        "id": 2,
-        "nombre": "Factura A",
-        "abreviatura": "A"
+        "codigo_afip": 2,
+        "descripcion": "Nota de Débito A",
+        "abreviatura": "NDA",
+        "letra": "A"
     },
     {
-        "id": 3,
-        "nombre": "Factura C",
-        "abreviatura": "C"
+        "codigo_afip": 3,
+        "descripcion": "Nota de Crédito A",
+        "abreviatura": "NCA",
+        "letra": "A"
     },
     {
-        "id": 4,
-        "nombre": "Presupuesto",
-        "abreviatura": "P"
+        "codigo_afip": 4,
+        "descripcion": "Recibo A",
+        "abreviatura": "RA",
+        "letra": "A"
     },
     {
-        "id": 5,
-        "nombre": "Remito",
-        "abreviatura": "R"
+        "codigo_afip": 6,
+        "descripcion": "Factura B",
+        "abreviatura": "B",
+        "letra": "B"
     },
     {
-        "id": 6,
-        "nombre": "Nota de Crédito",
-        "abreviatura": "NC"
+        "codigo_afip": 7,
+        "descripcion": "Nota de Débito B",
+        "abreviatura": "NDB",
+        "letra": "B"
     },
     {
-        "id": 7,
-        "nombre": "Nota de Débito",
-        "abreviatura": "ND"
+        "codigo_afip": 8,
+        "descripcion": "Nota de Crédito B",
+        "abreviatura": "NCB",
+        "letra": "B"
+    },
+    {
+        "codigo_afip": 9,
+        "descripcion": "Recibo B",
+        "abreviatura": "RB",
+        "letra": "B"
+    },
+    {
+        "codigo_afip": null,
+        "descripcion": "Remito",
+        "abreviatura": "X",
+        "letra": "X"
+    },
+    {
+        "codigo_afip": null,
+        "descripcion": "Remito",
+        "abreviatura": "R",
+        "letra": "R"
+    },
+    {
+        "codigo_afip": null,
+        "descripcion": "Presupuesto",
+        "abreviatura": "P",
+        "letra": "P"
     }
 ]

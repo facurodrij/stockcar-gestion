@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
-from server.core.models import Venta, ItemVenta
+from server.core.models import Venta, VentaItem
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -31,7 +31,7 @@ def index():
 def detail(id):
     venta = Venta.query.get_or_404(id, 'Venta no encontrada')
     # Obtener los items de la venta, con una query
-    items = ItemVenta.query.filter_by(tipo_doc=venta.tipo_doc,
+    items = VentaItem.query.filter_by(tipo_doc=venta.tipo_doc,
                                       letra=venta.letra,
                                       sucursal=venta.sucursal,
                                       numero=venta.numero).all()
