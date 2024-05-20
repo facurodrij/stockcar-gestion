@@ -40,8 +40,9 @@ class TipoResponsable(db.Model):
     abreviatura = db.Column(db.String(5), nullable=False, unique=True)
 
     # Relación muchos a muchos con TipoComprobante
-    comprobantes = db.relationship('TipoComprobante', secondary='responsable_comprobante', backref='responsables')
-    tributos = db.relationship('TipoTributo', secondary='tributo_tipo_responsable', backref='responsables')
+    comprobantes = db.relationship('TipoComprobante', secondary='responsable_comprobante',
+                                   back_populates='responsables')
+    tributos = db.relationship('Tributo', secondary='tributo_tipo_responsable', back_populates='tipo_responsables')
 
 
 class TipoComprobante(db.Model):
@@ -60,8 +61,9 @@ class TipoComprobante(db.Model):
     letra = db.Column(db.String(1), nullable=False)
 
     # Relación muchos a muchos con TipoResponsable
-    responsables = db.relationship('TipoResponsable', secondary='responsable_comprobante', backref='comprobantes')
-    tributos = db.relationship('TipoTributo', secondary='tributo_tipo_comprobante', backref='comprobantes')
+    responsables = db.relationship('TipoResponsable', secondary='responsable_comprobante',
+                                   back_populates='comprobantes')
+    tributos = db.relationship('Tributo', secondary='tributo_tipo_comprobante', back_populates='tipo_comprobantes')
 
 
 class TipoConcepto(db.Model):

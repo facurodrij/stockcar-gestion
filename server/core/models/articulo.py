@@ -40,7 +40,7 @@ class Articulo(db.Model, DatosAuditoria):
     # Relaciones con otras tablas
     alicuota_iva_id = Column(Integer, ForeignKey('alicuota_iva.id'), nullable=False)
     alicuota_iva = relationship('AlicuotaIVA', backref='articulo')
-    tributos = relationship('Tributo', secondary='tributo_articulo', backref='articulos')
+    tributos = relationship('Tributo', secondary='tributo_articulo', back_populates='articulos')
 
 
 class ArticuloCodigo(db.Model):

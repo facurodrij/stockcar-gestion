@@ -39,7 +39,7 @@ class Venta(db.Model, DatosFacturacion, DatosAuditoria):
     cliente_id = Column(Integer, ForeignKey('cliente.id'), nullable=False)
     clientes = relationship('Cliente', backref='ventas')
 
-    tributos = relationship('Tributo', secondary='tributo_venta', backref='ventas')
+    tributos = relationship('Tributo', secondary='tributo_venta', back_populates='ventas')
 
     def nro_comprobante(self):
         """
