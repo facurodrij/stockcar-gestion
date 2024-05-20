@@ -19,7 +19,7 @@ def import_data():
         # Datos Principales
         "CLI_NUMERO": "id",
         "CLI_NUMERO_DOC": "nro_doc",
-        "CLI_NOMBRE1": "nombre_1",
+        "CLI_NOMBRE1": "razon_social",
 
         # Datos Facturacion
         "CLI_PERCEPCION": "percepcion",
@@ -28,7 +28,6 @@ def import_data():
         "CLI_DUPLICADO_FACTURA": "duplicado_factura",
 
         # Datos Secundarios
-        "CLI_NOMBRE2": "nombre_2",
         "CLI_DIRECCION": "direccion",
         "CLI_CODIGO_POST": "CODIGO_POSTAL",
         "CLI_NACIMIENTO": "fecha_nacimiento",
@@ -62,11 +61,11 @@ def import_data():
     # Si coincide el nombre del tipo de documento, se asigna el id.
     # Si coincide la abrebiatura del tipo de contribuyente, se asigna el id.
     for index, row in df.iterrows():
-        tipo_doc = TipoDocumento.query.filter_by(nombre=row['tipo_doc_id']).first()
+        tipo_doc = TipoDocumento.query.filter_by(descripcion=row['tipo_doc_id']).first()
         if tipo_doc:
             df.at[index, 'tipo_doc_id'] = tipo_doc.id
         else:
-            df.at[index, 'tipo_doc_id'] = TipoDocumento.query.filter_by(nombre='DNI').first().id  # Default value
+            df.at[index, 'tipo_doc_id'] = TipoDocumento.query.filter_by(descripcion='DNI').first().id  # Default value
 
         tipo_responsable = TipoResponsable.query.filter_by(abreviatura=row['tipo_responsable_id']).first()
         if tipo_responsable:
@@ -80,7 +79,7 @@ def import_data():
         cliente = Cliente(
             id=row['id'],
             nro_doc=row['nro_doc'] if row['nro_doc'] else 0,
-            nombre_1=row['nombre_1'] if row['nombre_1'] else 'Nombre 1',
+            razon_social=row['razon_social'] if row['razon_social'] else 'SIN NOMBRE',
             tipo_doc_id=row['tipo_doc_id'],
             tipo_responsable_id=row['tipo_responsable_id'],
         )

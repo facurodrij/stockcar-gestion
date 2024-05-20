@@ -18,7 +18,6 @@ class DatosSecundarios:
     """
     Clase para los datos secundarios del cliente.
     """
-    nombre_2 = Column(String, nullable=True)
     direccion = Column(String, nullable=True)
     codigo_postal = Column(String, nullable=True)
     fecha_nacimiento = Column(DateTime, nullable=True)
@@ -38,7 +37,7 @@ class Cliente(db.Model, DatosPredefinidos, DatosSecundarios, DatosAuditoria):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     nro_doc = Column(String, nullable=False)
-    nombre_1 = Column(String, nullable=False)
+    razon_social = Column(String, nullable=False)
 
     # Relaciones con otras tablas
     tipo_doc_id = Column(Integer, ForeignKey('tipo_documento.id'), nullable=False)
@@ -60,15 +59,21 @@ class Cliente(db.Model, DatosPredefinidos, DatosSecundarios, DatosAuditoria):
         """
         return {
             'id': self.id,
-            'nombre_1': self.nombre_1,
-            'nombre_2': self.nombre_2,
+            'tipo_doc': self.tipo_doc.descripcion,
+            'nro_doc': self.nro_doc,
+            'tipo_responsable': self.tipo_responsable.descripcion,
+            'razon_social': self.razon_social,
             'direccion': self.direccion,
             'localidad': self.localidad,
             'provincia': self.provincia,
             'codigo_postal': self.codigo_postal,
             'telefono': self.telefono,
-            'tipo_doc': self.tipo_doc,
-            'nro_doc': self.nro_doc,
-            'tipo_contribuyente': self.tipo_contribuyente,
-            'observacion': self.observacion
+            'email': self.email,
+            'fecha_nacimiento': self.fecha_nacimiento,
+            'genero': self.genero,
+            'descuento': self.descuento,
+            'limite': self.limite,
+            'duplicado_factura': self.duplicado_factura,
+            'observacion': self.observacion,
+            'fecha_alta': self.fecha_alta
         }

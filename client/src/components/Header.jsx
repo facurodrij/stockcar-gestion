@@ -18,6 +18,7 @@ import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 import {Link} from "react-router-dom";
 import {Inventory2, LocalShipping, People, Person, PointOfSale, Settings} from "@mui/icons-material";
+import Box from "@mui/material/Box";
 
 const drawerWidth = 240;
 

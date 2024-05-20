@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
@@ -10,6 +11,7 @@ class Base(DeclarativeBase):
 
 
 app = Flask(__name__)
+CORS(app, origins='http://127.0.0.1:3000')  # Esto permitirá las solicitudes CORS solo desde donde se ejecuta React.
 
 convention = {
     "ix": "ix_%(column_0_label)s",
