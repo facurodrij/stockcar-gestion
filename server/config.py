@@ -24,7 +24,7 @@ convention = {
 metadata = MetaData(naming_convention=convention)
 
 app.config[
-    "SQLALCHEMY_DATABASE_URI"] = "sqlite:////home/facurodrij/PycharmProjects/erp-complement/server/instance/datos.db"
+    "SQLALCHEMY_DATABASE_URI"] = "sqlite:////home/facurodrij/PycharmProjects/stockcar-gestion/server/instance/datos.db"
 db = SQLAlchemy(model_class=Base, metadata=metadata)
 migrate = Migrate(app, db)
 # app.config['SQLALCHEMY_DATABASE_URI'] = ('mssql+pyodbc://sa:Admin-181020@localhost:1433/Datos?driver=ODBC+Driver+18+for'

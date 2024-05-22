@@ -28,7 +28,7 @@ const List = ({model, context}) => {
         const url = (from || to) ? `${API}/${model}?desde=${fromStr}&hasta=${toStr}` : `${API}/${model}`;
         const res = await fetch(url);
         const data = await res.json();
-        setList(data.model);
+        setList(data[model]);
     }
 
     let rows: GridRowsProp = list.map((item) => {
@@ -41,7 +41,7 @@ const List = ({model, context}) => {
 
     useEffect(() => {
         if (context.autoLoad) {
-            fetchData();
+            fetchData().then(r => console.log('Data fetched', list));
         }
     }, []);
 

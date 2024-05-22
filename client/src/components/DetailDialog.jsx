@@ -23,31 +23,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="left" ref={ref} {...props} timeout={1000}>{props.children}</Slide>
 });
 
-function TabPanel(props) {
-    const {children, value, index, ...other} = props;
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`vertical-tabpanel-${index}`}
-            aria-labelledby={`vertical-tab-${index}`}
-            {...other}
-        >
-            {value === index && (
-                <Box sx={{p: 3}}>
-                    <Typography>{children}</Typography>
-                </Box>
-            )}
-        </div>
-    );
-}
-
-TabPanel.propTypes = {
-    children: PropTypes.node,
-    index: PropTypes.number.isRequired,
-    value: PropTypes.number.isRequired,
-};
 
 function a11yProps(index) {
     return {
@@ -68,12 +43,15 @@ export default function DetailDialog({model, item, open, onClose, context}) {
         const url = `${API}/${model}/${item.id}`
         const res = await fetch(url);
         const data = await res.json();
-        setItemData(data);
+        // console.log(data[model]);
+        setItemData(data[model]);
     }
 
     useEffect(() => {
         if (open) {
-            fetchDetailData();
+            fetchDetailData().then(() =>
+                console.log('Data fetched', itemData),
+            )
         }
     }, [open]);
 
@@ -122,10 +100,10 @@ export default function DetailDialog({model, item, open, onClose, context}) {
                             <Tab label={tab} {...a11yProps(index)} key={index}/>
                         ))}
                     </Tabs>
-                    {context.tabsContent.map((tabContent, index) => (
-                        <TabPanel value={value} index={index} key={index} style={{width: '100%'}}>
-                            {tabContent}
-                        </TabPanel>
+                    {context.tabsPanel.map((TabPanelComponent, index) => (
+                        <React.Fragment key={index}>
+                            {TabPanelComponent(itemData, value, index)}
+                        </React.Fragment>
                     ))}
                 </Box>
             </Dialog>

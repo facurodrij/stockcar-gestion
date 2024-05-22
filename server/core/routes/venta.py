@@ -5,6 +5,8 @@ from server.core.models import Venta, VentaItem
 
 venta_bp = Blueprint('venta_bp', __name__)
 
+model = 'ventas'
+
 
 @venta_bp.route('/ventas', methods=['GET'])
 def index():
@@ -24,7 +26,7 @@ def index():
         ventas = Venta.query.all()
 
     ventas_json = list(map(lambda x: x.to_json(), ventas))
-    return jsonify({'ventas': ventas_json}), 200
+    return jsonify({model: ventas_json}), 200
 
 
 @venta_bp.route('/ventas/<id>', methods=['GET'])
@@ -35,4 +37,4 @@ def detail(id):
                                       letra=venta.letra,
                                       sucursal=venta.sucursal,
                                       numero=venta.numero).all()
-    return jsonify({'venta': venta.to_json(), 'items': list(map(lambda x: x.to_json(), items))}), 200
+    return jsonify({model: venta.to_json(), 'items': list(map(lambda x: x.to_json(), items))}), 200

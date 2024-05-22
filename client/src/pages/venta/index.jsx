@@ -1,12 +1,14 @@
-import React, {useState} from 'react';
+import React, {useState} from 'react'
 import Typography from '@mui/material/Typography';
-import {GridActionsCellItem, GridColDef, GridRowParams} from "@mui/x-data-grid";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import {GridActionsCellItem} from '@mui/x-data-grid';
+import {GridRowParams} from "@mui/x-data-grid";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import dayjs from "dayjs";
-import List from '../../components/List';
-import DetailDialog from "../../components/DetailDialog";
+import {currencyFormatter} from "../../utils/formatters";
 import GeneralTabPanel from "./detail/GeneralTabPanel";
 import InvoiceTabPanel from "./detail/InvoiceTabPanel";
+import List from "../../components/List";
+import DetailDialog from "../../components/DetailDialog";
 
 
 export default function Index() {
@@ -24,32 +26,26 @@ export default function Index() {
     }
 
     const listContext = {
-        // Campo para determinar si List debe mostrar los DatePickers para filtrar por rangos de fecha
-        showDatePickers: false,
-        // Campo para determinar si List debe cargarse al abrir la página con React.useEffect
-        autoLoad: true,
+        showDatePickers: true,
+        autoLoad: false,
         columns: [
             {field: 'id', headerName: 'ID', width: 100},
-            {field: 'tipo_responsable', headerName: 'Tipo Responsable', width: 200},
-            {field: 'razon_social', headerName: 'Razón Social', width: 300},
-            {field: 'tipo_doc', headerName: 'Tipo Documento', width: 150},
-            {field: 'nro_doc', headerName: 'Nro. Documento', width: 150},
             {
-                field: 'fecha_nacimiento', headerName: 'Fecha Nacimiento', type: 'dateTime', minWidth: 150,
-                valueGetter: (params) => {
-                    if (!params || params.value === null) {
-                        return ""; // o cualquier valor por defecto que quieras
-                    }
-                    // Convertir el valor a un formato de fecha
-                    return dayjs(params.value).format('DD/MM/YYYY HH:mm')
-                },
-                valueFormatter: (params) => {
-                    if (!params || params.value === null) {
-                        return ""; // o cualquier valor por defecto que quieras
-                    }
-                    // Formatear el valor para mostrarlo
-                    return params.value.toString();
-                }
+                field: 'fecha', headerName: 'Fecha', type: 'dateTime', width: 150,
+                valueGetter: (value) => value && new Date(value),
+                valueFormatter: (value) => dayjs(value).format('DD/MM/YYYY HH:mm')
+            },
+            {field: 'tipo_doc', headerName: 'Tipo', width: 50},
+            {field: 'letra', headerName: 'Letra', width: 50},
+            {field: 'nro_doc', headerName: 'Número', width: 150},
+            {field: 'cliente', headerName: 'Cliente', width: 200},
+            {
+                field: 'gravado', headerName: 'Gravado',
+                valueFormatter: (value) => currencyFormatter.format(value)
+            },
+            {
+                field: 'total', headerName: 'Total',
+                valueFormatter: (value) => currencyFormatter.format(value)
             },
             {
                 field: 'actions', type: 'actions', headerName: 'Acciones', width: 100,
@@ -72,8 +68,8 @@ export default function Index() {
     };
 
     const detailContext = {
-        title: 'Detalle de Cliente',
-        tabsName: ['General', 'Datos Facturación'],
+        title: 'Detalle de Venta',
+        tabsName: ['General', 'Items Facturados'],
         tabsPanel: [
             (item, value, index) => <GeneralTabPanel item={item} value={value} index={index}/>,
             (item, value, index) => <InvoiceTabPanel item={item} value={value} index={index}/>
@@ -86,15 +82,14 @@ export default function Index() {
                 variant="h4"
                 sx={{
                     mt: 2,
-                    mb: 2,
                     fontFamily: 'roboto',
                     color: 'inherit'
                 }}
             >
-                Clientes
+                Ventas
             </Typography>
-            <List model={"clientes"} context={listContext}/>
-            <DetailDialog model={"clientes"} item={itemSelected} open={showDetail} onClose={handleCloseDetail}
+            <List model={"ventas"} context={listContext}/>
+            <DetailDialog model={"ventas"} itemSelected={itemSelected} open={showDetail} onClose={handleCloseDetail}
                           context={detailContext}/>
         </>
     )
