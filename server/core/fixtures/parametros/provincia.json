@@ -1,6 +1,122 @@
 [
-    {
-        "id": 1,
-        "nombre": "Misiones"
-    }
+  {
+    "id": 1,
+    "nombre": "CABA",
+    "codigo_afip": null
+  },
+  {
+    "id": 2,
+    "nombre": "Buenos Aires",
+    "codigo_afip": null
+  },
+  {
+    "id": 3,
+    "nombre": "Catamarca",
+    "codigo_afip": null
+  },
+  {
+    "id": 4,
+    "nombre": "Cordoba",
+    "codigo_afip": null
+  },
+  {
+    "id": 5,
+    "nombre": "Corrientes",
+    "codigo_afip": null
+  },
+  {
+    "id": 6,
+    "nombre": "Entre Rios",
+    "codigo_afip": null
+  },
+  {
+    "id": 7,
+    "nombre": "Jujuy",
+    "codigo_afip": null
+  },
+  {
+    "id": 8,
+    "nombre": "Mendoza",
+    "codigo_afip": null
+  },
+  {
+    "id": 9,
+    "nombre": "La Rioja",
+    "codigo_afip": null
+  },
+  {
+    "id": 10,
+    "nombre": "Salta",
+    "codigo_afip": null
+  },
+  {
+    "id": 11,
+    "nombre": "San Juan",
+    "codigo_afip": null
+  },
+  {
+    "id": 12,
+    "nombre": "San Luis",
+    "codigo_afip": null
+  },
+  {
+    "id": 13,
+    "nombre": "Santa Fe",
+    "codigo_afip": null
+  },
+  {
+    "id": 14,
+    "nombre": "Santiago del Estero",
+    "codigo_afip": null
+  },
+  {
+    "id": 15,
+    "nombre": "Tucuman",
+    "codigo_afip": null
+  },
+  {
+    "id": 16,
+    "nombre": "Chaco",
+    "codigo_afip": null
+  },
+  {
+    "id": 17,
+    "nombre": "Chubut",
+    "codigo_afip": null
+  },
+  {
+    "id": 18,
+    "nombre": "Formosa",
+    "codigo_afip": null
+  },
+  {
+    "id": 19,
+    "nombre": "Misiones",
+    "codigo_afip": null
+  },
+  {
+    "id": 20,
+    "nombre": "Neuquén",
+    "codigo_afip": null
+  },
+  {
+    "id": 21,
+    "nombre": "La Pampa",
+    "codigo_afip": null
+  },
+  {
+    "id": 22,
+    "nombre": "Rio Negro",
+    "codigo_afip": null
+  },
+  {
+    "id": 23,
+    "nombre": "Santa Cruz",
+    "codigo_afip": null
+  },
+  {
+    "id": 24,
+    "nombre": "Tierra del Fuego",
+    "codigo_afip": null
+  }
 ]

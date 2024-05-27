@@ -1,30 +1,182 @@
 [
     {
         "id": 1,
-        "nombre": "DNI"
+        "codigo_afip": 80,
+        "descripcion": "CUIT"
     },
     {
         "id": 2,
-        "nombre": "CUIT"
+        "codigo_afip": 96,
+        "descripcion": "DNI"
     },
     {
         "id": 3,
-        "nombre": "CI"
+        "codigo_afip": 86,
+        "descripcion": "CUIL"
     },
     {
         "id": 4,
-        "nombre": "LE"
+        "codigo_afip": 87,
+        "descripcion": "CDI"
     },
     {
         "id": 5,
-        "nombre": "LC"
+        "codigo_afip": 89,
+        "descripcion": "LE"
     },
     {
         "id": 6,
-        "nombre": "Pasaporte"
+        "codigo_afip": 90,
+        "descripcion": "LC"
     },
     {
         "id": 7,
-        "nombre": "CI Extranjera"
+        "codigo_afip": 91,
+        "descripcion": "CI Extranjera"
+    },
+    {
+        "id": 8,
+        "codigo_afip": 92,
+        "descripcion": "en trámite"
+    },
+    {
+        "id": 9,
+        "codigo_afip": 93,
+        "descripcion": "Acta Nacimiento"
+    },
+    {
+        "id": 10,
+        "codigo_afip": 95,
+        "descripcion": "CI Bs. As. RNP"
+    },
+    {
+        "id": 11,
+        "codigo_afip": 94,
+        "descripcion": "Pasaporte"
+    },
+    {
+        "id": 12,
+        "codigo_afip": 0,
+        "descripcion": "CI Policía Federal"
+    },
+    {
+        "id": 13,
+        "codigo_afip": 1,
+        "descripcion": "CI Buenos Aires"
+    },
+    {
+        "id": 14,
+        "codigo_afip": 2,
+        "descripcion": "CI Catamarca"
+    },
+    {
+        "id": 15,
+        "codigo_afip": 3,
+        "descripcion": "CI Córdoba"
+    },
+    {
+        "id": 16,
+        "codigo_afip": 4,
+        "descripcion": "CI Corrientes"
+    },
+    {
+        "id": 17,
+        "codigo_afip": 5,
+        "descripcion": "CI Entre Ríos"
+    },
+    {
+        "id": 18,
+        "codigo_afip": 6,
+        "descripcion": "CI Jujuy"
+    },
+    {
+        "id": 19,
+        "codigo_afip": 7,
+        "descripcion": "CI Mendoza"
+    },
+    {
+        "id": 20,
+        "codigo_afip": 8,
+        "descripcion": "CI La Rioja"
+    },
+    {
+        "id": 21,
+        "codigo_afip": 9,
+        "descripcion": "CI Salta"
+    },
+    {
+        "id": 22,
+        "codigo_afip": 10,
+        "descripcion": "CI San Juan"
+    },
+    {
+        "id": 23,
+        "codigo_afip": 11,
+        "descripcion": "CI San Luis"
+    },
+    {
+        "id": 24,
+        "codigo_afip": 12,
+        "descripcion": "CI Santa Fe"
+    },
+    {
+        "id": 25,
+        "codigo_afip": 13,
+        "descripcion": "CI Santiago del Estero"
+    },
+    {
+        "id": 26,
+        "codigo_afip": 14,
+        "descripcion": "CI Tucumán"
+    },
+    {
+        "id": 27,
+        "codigo_afip": 16,
+        "descripcion": "CI Chaco"
+    },
+    {
+        "id": 28,
+        "codigo_afip": 17,
+        "descripcion": "CI Chubut"
+    },
+    {
+        "id": 29,
+        "codigo_afip": 18,
+        "descripcion": "CI Formosa"
+    },
+    {
+        "id": 30,
+        "codigo_afip": 19,
+        "descripcion": "CI Misiones"
+    },
+    {
+        "id": 31,
+        "codigo_afip": 20,
+        "descripcion": "CI Neuquén"
+    },
+    {
+        "id": 32,
+        "codigo_afip": 21,
+        "descripcion": "CI La Pampa"
+    },
+    {
+        "id": 33,
+        "codigo_afip": 22,
+        "descripcion": "CI Río Negro"
+    },
+    {
+        "id": 34,
+        "codigo_afip": 23,
+        "descripcion": "CI Santa Cruz"
+    },
+    {
+        "id": 35,
+        "codigo_afip": 24,
+        "descripcion": "CI Tierra del Fuego"
+    },
+    {
+        "id": 36,
+        "codigo_afip": 99,
+        "descripcion": "Doc. (Otro)"
     }
 ]

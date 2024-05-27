@@ -1,72 +1,72 @@
 [
     {
         "id": 1,
-        "nombre": "IVA Responsable Inscripto",
+        "descripcion": "IVA Responsable Inscripto",
         "abreviatura": "I"
     },
     {
         "id": 2,
-        "nombre": "IVA Responsable no Inscripto",
+        "descripcion": "IVA Responsable no Inscripto",
         "abreviatura": "R"
     },
     {
         "id": 3,
-        "nombre": "IVA no Responsable",
+        "descripcion": "IVA no Responsable",
         "abreviatura": "N"
     },
     {
         "id": 4,
-        "nombre": "IVA Sujeto Exento",
+        "descripcion": "IVA Sujeto Exento",
         "abreviatura": "E"
     },
     {
         "id": 5,
-        "nombre": "Consumidor Final",
+        "descripcion": "Consumidor Final",
         "abreviatura": "F"
     },
     {
         "id": 6,
-        "nombre": "Responsable Monotributo",
+        "descripcion": "Responsable Monotributo",
         "abreviatura": "M"
     },
     {
         "id": 7,
-        "nombre": "Sujeto no Categorizado",
+        "descripcion": "Sujeto no Categorizado",
         "abreviatura": "C"
     },
     {
         "id": 8,
-        "nombre": "Proveedor del Exterior",
+        "descripcion": "Proveedor del Exterior",
         "abreviatura": "P"
     },
     {
         "id": 9,
-        "nombre": "Cliente del Exterior",
+        "descripcion": "Cliente del Exterior",
         "abreviatura": "X"
     },
     {
         "id": 10,
-        "nombre": "IVA Liberado – Ley Nº 19.640",
+        "descripcion": "IVA Liberado – Ley Nº 19.640",
         "abreviatura": "L"
     },
     {
         "id": 11,
-        "nombre": "IVA Responsable Inscripto – Agente de Percepción",
+        "descripcion": "IVA Responsable Inscripto – Agente de Percepción",
         "abreviatura": "T"
     },
     {
         "id": 12,
-        "nombre": "Pequeño Contribuyente Eventual",
+        "descripcion": "Pequeño Contribuyente Eventual",
         "abreviatura": "V"
     },
     {
         "id": 13,
-        "nombre": "Monotributista Social",
+        "descripcion": "Monotributista Social",
         "abreviatura": "S"
     },
     {
         "id": 14,
-        "nombre": "Pequeño Contribuyente Eventual Social",
+        "descripcion": "Pequeño Contribuyente Eventual Social",
         "abreviatura": "U"
     }
 ]
