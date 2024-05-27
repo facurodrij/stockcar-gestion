@@ -1,22 +1,30 @@
 from server.config import db
 
 
-class Localidad(db.Model):
-    __tablename__ = 'localidad'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    nombre = db.Column(db.String, nullable=False)
-
-
 class Provincia(db.Model):
     __tablename__ = 'provincia'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String, nullable=False)
+    codigo_afip = db.Column(db.Integer, nullable=True)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'codigo_afip': self.codigo_afip
+        }
 
 
 class Genero(db.Model):
     __tablename__ = 'genero'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String, nullable=False, unique=True)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre
+        }
 
 
 class TipoDocumento(db.Model):
@@ -31,6 +39,13 @@ class TipoDocumento(db.Model):
     codigo_afip = db.Column(db.Integer, nullable=True)
     descripcion = db.Column(db.String, nullable=True)
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'codigo_afip': self.codigo_afip,
+            'descripcion': self.descripcion
+        }
+
 
 class TipoResponsable(db.Model):
     """Tipo de responsable de IVA"""
@@ -43,6 +58,13 @@ class TipoResponsable(db.Model):
     comprobantes = db.relationship('TipoComprobante', secondary='responsable_comprobante',
                                    back_populates='responsables')
     tributos = db.relationship('Tributo', secondary='tributo_tipo_responsable', back_populates='tipo_responsables')
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'descripcion': self.descripcion,
+            'abreviatura': self.abreviatura
+        }
 
 
 class TipoComprobante(db.Model):
@@ -59,6 +81,7 @@ class TipoComprobante(db.Model):
     codigo_afip = db.Column(db.Integer, nullable=True)  # Código de AFIP, se obtiene del ID
     descripcion = db.Column(db.String, nullable=False)
     letra = db.Column(db.String(1), nullable=False)
+    abreviatura = db.Column(db.String(5), nullable=True)
 
     # Relación muchos a muchos con TipoResponsable
     responsables = db.relationship('TipoResponsable', secondary='responsable_comprobante',
