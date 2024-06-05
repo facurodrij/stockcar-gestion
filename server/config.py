@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
 
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:3000"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 convention = {

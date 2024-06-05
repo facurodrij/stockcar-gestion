@@ -3,24 +3,24 @@ import Typography from '@mui/material/Typography';
 import {GridActionsCellItem, GridColDef, GridRowParams} from "@mui/x-data-grid";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import dayjs from "dayjs";
-import List from '../../components/List';
-import DetailDialog from "../../components/DetailDialog";
+import List from '../../components/shared/List';
+import DetailDialog from "../../components/shared/DetailDialog";
 import GeneralTabPanel from "./detail/GeneralTabPanel";
 import InvoiceTabPanel from "./detail/InvoiceTabPanel";
 
 
-export default function Index() {
+export default function ClientePage() {
     const [itemSelected, setItemSelected] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
 
     const handleShowDetail = (item) => {
         setItemSelected(item);
-        setShowDetail(true); // Abre el DetailDialog
+        setShowDetail(true);
     }
 
     const handleCloseDetail = () => {
         setItemSelected(null);
-        setShowDetail(false); // Cierra el DetailDialog
+        setShowDetail(false);
     }
 
     const listContext = {
@@ -51,6 +51,8 @@ export default function Index() {
                     return params.value.toString();
                 }
             },
+            {field: 'direccion', headerName: 'Dirección', width: 300},
+            {field: 'localidad', headerName: 'Localidad', width: 200},
             {
                 field: 'actions', type: 'actions', headerName: 'Acciones', width: 100,
                 getActions: (params: GridRowParams) => [

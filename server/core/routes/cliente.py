@@ -16,7 +16,7 @@ def index():
     return jsonify({model: clientes_json}), 200
 
 
-@cliente_bp.route('/clientes/create/', methods=['GET', 'POST'])
+@cliente_bp.route('/clientes/create', methods=['GET', 'POST'])
 def create():
     if request.method == 'GET':
         tipo_documento = TipoDocumento.query.all()
@@ -31,6 +31,12 @@ def create():
         }), 200
     if request.method == 'POST':
         data = request.json
+        for key, value in data.items():
+            if value == '':
+                data[key] = None
+        if data['fecha_nacimiento']:
+            data['fecha_nacimiento'] = datetime.strptime(data['fecha_nacimiento'], '%Y-%m-%d')
+
         cliente = Cliente(
             nro_doc=data['nro_documento'],
             razon_social=data['razon_social'],
@@ -40,11 +46,10 @@ def create():
             tipo_doc_id=data['tipo_documento'],
             tipo_responsable_id=data['tipo_responsable'],
             provincia_id=data['provincia'],
-            genero_id=data.get('genero'),
-            fecha_nacimiento=datetime.strptime(data.get('fecha_nacimiento'), '%Y-%m-%d') if data.get(
-                'fecha_nacimiento') else None,
-            telefono=data.get('telefono'),
-            email=data.get('email'),
+            genero_id=data['genero'],
+            fecha_nacimiento=data['fecha_nacimiento'],
+            telefono=data['telefono'],
+            email=data['email'],
         )
         try:
             db.session.add(cliente)
