@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Column, Integer, String, Numeric, DateTime, Boolean, func
+from sqlalchemy import ForeignKey, Column, Integer, String, Numeric, DateTime, Boolean, func, Date
 from sqlalchemy.orm import relationship
 
 from server.config import db
@@ -30,12 +30,12 @@ class Cliente(db.Model):
     provincia = relationship('Provincia', backref='clientes')
 
     # Datos de configuración para la creación de comprobantes de venta
-    descuento = Column(Numeric, default=0)
-    limite = Column(Numeric, default=0)
+    descuento = Column(Numeric(precision=5, scale=2), default=0)
+    limite = Column(Numeric(precision=10, scale=2), default=0)
     duplicado_factura = Column(Boolean, default=False)
 
     # Datos personales (opcionales)
-    fecha_nacimiento = Column(DateTime, nullable=True)
+    fecha_nacimiento = Column(Date, nullable=True)
     telefono = Column(String, nullable=True)
     email = Column(String, nullable=True)
     observacion = Column(String, nullable=True)
@@ -46,7 +46,7 @@ class Cliente(db.Model):
 
     # Datos de auditoría
     fecha_alta = Column(DateTime, default=func.now())
-    fecha_modificacion = Column(DateTime, onupdate=func.utc_timestamp())
+    fecha_modificacion = Column(DateTime, onupdate=func.now())
     baja = Column(Boolean, default=False)
     fecha_baja = Column(DateTime, nullable=True)
 
@@ -56,21 +56,21 @@ class Cliente(db.Model):
         """
         return {
             'id': self.id,
-            'tipo_doc': self.tipo_doc.descripcion,
-            'nro_doc': self.nro_doc,
-            'tipo_responsable': self.tipo_responsable.descripcion,
+            'tipo_documento': self.tipo_doc.to_json(),
+            'nro_documento': self.nro_doc,
+            'tipo_responsable': self.tipo_responsable.to_json(),
             'razon_social': self.razon_social,
             'direccion': self.direccion,
             'localidad': self.localidad,
-            'provincia': self.provincia.nombre,
+            'provincia': self.provincia.to_json(),
             'codigo_postal': self.codigo_postal,
             'telefono': self.telefono,
             'email': self.email,
-            'fecha_nacimiento': self.fecha_nacimiento,
-            'genero': self.genero.nombre if self.genero else None,
+            'fecha_nacimiento': self.fecha_nacimiento.isoformat() if self.fecha_nacimiento else None,
+            'genero': self.genero.to_json() if self.genero else None,
             'descuento': self.descuento,
             'limite': self.limite,
             'duplicado_factura': self.duplicado_factura,
             'observacion': self.observacion,
-            'fecha_alta': self.fecha_alta
+            'fecha_alta': self.fecha_alta.isoformat(),
         }

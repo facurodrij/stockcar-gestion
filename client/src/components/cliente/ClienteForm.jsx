@@ -14,15 +14,20 @@ import {
 } from "@mui/material";
 import {DatePicker, LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from "dayjs";
+import dayjs from 'dayjs';
 
 import {API} from "../../App";
 
 
-export default function ClienteForm(id) {
-    const [item, setItem] = useState(null);
-    const {register, handleSubmit, control, formState: {errors}} = useForm();
-    const [selectItems, setSelectItems] = useState({
+export default function ClienteForm(pk) {
+    const {
+        register,
+        handleSubmit,
+        control,
+        formState: {errors},
+        setValue
+    } = useForm();
+    const [selectOptions, setSelectOptions] = useState({
         tipo_documento: [],
         tipo_responsable: [],
         provincia: [],
@@ -30,24 +35,48 @@ export default function ClienteForm(id) {
     });
 
     const fetchData = async () => {
-        const res = await fetch(`${API}/clientes/create`);
-        return await res.json();
+        if (Boolean(pk.pk) === false) {
+            const res = await fetch(`${API}/clientes/create`);
+            return await res.json();
+        } else {
+            const res = await fetch(`${API}/clientes/${pk.pk}/update`);
+            return await res.json();
+        }
+
     }
 
     useEffect(() => {
         fetchData().then((data) => {
-            setSelectItems({
-                tipo_documento: data['tipo_documento'],
-                tipo_responsable: data['tipo_responsable'],
-                provincia: data['provincia'],
-                genero: data['genero']
+            const selectOptions = data['select_options'];
+            setSelectOptions({
+                tipo_documento: selectOptions.tipo_documento,
+                tipo_responsable: selectOptions.tipo_responsable,
+                provincia: selectOptions.provincia,
+                genero: selectOptions.genero
             });
+            if (Boolean(pk.pk)) {
+                console.log(data['cliente']);
+                const cliente = data['cliente'];
+                setValue('tipo_responsable', cliente.tipo_responsable.id);
+                setValue('razon_social', cliente.razon_social);
+                setValue('tipo_documento', cliente.tipo_documento.id);
+                setValue('nro_documento', cliente.nro_documento);
+                setValue('direccion', cliente.direccion);
+                setValue('localidad', cliente.localidad);
+                setValue('codigo_postal', cliente.codigo_postal);
+                setValue('provincia', cliente.provincia.id);
+                if (cliente.fecha_nacimiento) setValue('fecha_nacimiento', dayjs(cliente.fecha_nacimiento));
+                if (cliente.genero) setValue('genero', cliente.genero.id);
+                if (cliente.telefono) setValue('telefono', cliente.telefono);
+                if (cliente.email) setValue('email', cliente.email);
+            }
         });
     }, []);
 
 
     const onSubmit = (data) => {
-        if (Boolean(id.id) === false) {
+        console.log(data);
+        if (Boolean(pk.pk) === false) {
             fetch(`${API}/clientes/create`, {
                 method: 'POST',
                 headers: {
@@ -62,7 +91,7 @@ export default function ClienteForm(id) {
                 }
             });
         } else {
-            fetch(`${API}/clientes/${id.id}`, {
+            fetch(`${API}/clientes/${pk.pk}/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -99,7 +128,7 @@ export default function ClienteForm(id) {
                                         labelId="tipo_responsable_label"
                                         label="Tipo de Responsable IVA"
                                     >
-                                        {selectItems.tipo_responsable.map((item) => (
+                                        {selectOptions.tipo_responsable.map((item) => (
                                             <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
                                     </Select>
                                 )}
@@ -143,7 +172,7 @@ export default function ClienteForm(id) {
                                         labelId="tipo_documento_label"
                                         label="Tipo de Documento"
                                     >
-                                        {selectItems.tipo_documento.map((item) => (
+                                        {selectOptions.tipo_documento.map((item) => (
                                             <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
                                     </Select>
                                 )}
@@ -186,10 +215,9 @@ export default function ClienteForm(id) {
                                 defaultValue={null}
                                 rules={{
                                     validate: value => {
-                                        if (!value) return true; // Si no hay valor, la validación pasa
-                                        const selectedDate = new Date(value);
-                                        const currentDate = new Date();
-                                        // Si el valor es mayor que la fecha actual, la validación falla
+                                        if (!value) return true;
+                                        const selectedDate = dayjs(value);
+                                        const currentDate = dayjs();
                                         return selectedDate < currentDate || "La fecha de nacimiento no puede ser futura";
                                     }
                                 }}
@@ -221,7 +249,7 @@ export default function ClienteForm(id) {
                                         labelId="genero_label"
                                         label="Género"
                                     >
-                                        {selectItems.genero.map((item) => (
+                                        {selectOptions.genero.map((item) => (
                                             <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
                                     </Select>
                                 )}
@@ -309,7 +337,7 @@ export default function ClienteForm(id) {
                                         labelId="provincia_label"
                                         label="Provincia"
                                     >
-                                        {selectItems.provincia.map((item) => (
+                                        {selectOptions.provincia.map((item) => (
                                             <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
                                     </Select>
                                 )}

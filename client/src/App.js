@@ -23,7 +23,7 @@ function App() {
                         <Route path="/ventas/form/:id" element={<VentaForm/>}></Route>
                         <Route path="/clientes" element={<ClientePage/>}></Route>
                         <Route path="/clientes/form" element={<ClienteFormPage/>}></Route>
-                        <Route path="/clientes/form/:id" element={<ClienteFormPage/>}></Route>
+                        <Route path="/clientes/form/:pk" element={<ClienteFormPage/>}></Route>
                     </Routes>
                 </Container>
             </Box>

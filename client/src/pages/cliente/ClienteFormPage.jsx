@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 export default function ClienteFormPage() {
     // Obtener el id de la URL, si es undefined es porque se está agregando un nuevo cliente
     const routeParams = useParams();
-    const id = routeParams.id;
+    const pk = routeParams.pk;
 
     return (
         <>
@@ -19,9 +19,9 @@ export default function ClienteFormPage() {
                     color: 'inherit'
                 }}
             >
-                {id ? 'Editar' : 'Agregar'} Cliente
+                {pk ? 'Editar' : 'Agregar'} Cliente
             </Typography>
-            <ClienteForm id={id}/>
+            <ClienteForm pk={pk}/>
         </>
     );
 };
