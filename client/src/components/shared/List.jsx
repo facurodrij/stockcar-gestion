@@ -10,8 +10,8 @@ import Box from "@mui/material/Box";
 import {GridRowParams} from "@mui/x-data-grid";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import dayjs from "dayjs";
-import {currencyFormatter} from "../utils/formatters";
-import {API} from "../App";
+import {currencyFormatter} from "../../utils/formatters";
+import {API} from "../../App";
 
 
 const List = ({model, context}) => {

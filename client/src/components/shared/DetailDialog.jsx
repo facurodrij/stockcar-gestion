@@ -17,7 +17,7 @@ import {ReactNode} from "react";
 import PropTypes from "prop-types";
 import ListItem from "@mui/material/ListItem";
 import {styled} from "@mui/material/styles";
-import {API} from "../App";
+import {API} from "../../App";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="left" ref={ref} {...props} timeout={1000}>{props.children}</Slide>
@@ -39,7 +39,7 @@ export default function DetailDialog({model, item, open, onClose, context}) {
         setValue(newValue);
     };
 
-    const fetchDetailData = async () => {
+    const fetchData = async () => {
         const url = `${API}/${model}/${item.id}`
         const res = await fetch(url);
         const data = await res.json();
@@ -49,7 +49,7 @@ export default function DetailDialog({model, item, open, onClose, context}) {
 
     useEffect(() => {
         if (open) {
-            fetchDetailData().then(() =>
+            fetchData().then(() =>
                 console.log('Data fetched', itemData),
             )
         }

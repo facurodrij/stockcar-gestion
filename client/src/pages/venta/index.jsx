@@ -7,8 +7,8 @@ import dayjs from "dayjs";
 import {currencyFormatter} from "../../utils/formatters";
 import GeneralTabPanel from "./detail/GeneralTabPanel";
 import InvoiceTabPanel from "./detail/InvoiceTabPanel";
-import List from "../../components/List";
-import DetailDialog from "../../components/DetailDialog";
+import List from "../../components/shared/List";
+import DetailDialog from "../../components/shared/DetailDialog";
 
 
 export default function Index() {

@@ -1,6 +1,6 @@
 import Typography from "@mui/material/Typography";
 import React from "react";
-import TabPanel from "../../../components/TabPanel";
+import TabPanel from "../../../components/shared/TabPanel";
 
 
 export default function InvoiceTabPanel({item, value, index}) {
