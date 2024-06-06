@@ -1,11 +1,7 @@
-import React, {useState} from 'react';
+import React from 'react';
 import Typography from '@mui/material/Typography';
-import {GridActionsCellItem, GridColDef, GridRowParams} from "@mui/x-data-grid";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import dayjs from "dayjs";
-import GeneralTabPanel from "./detail/GeneralTabPanel";
-import InvoiceTabPanel from "./detail/InvoiceTabPanel";
-import ClienteList from "../../components/cliente/ClienteList";
+import {ClienteList} from "../../components/cliente";
+
 
 
 export default function ClientePage() {

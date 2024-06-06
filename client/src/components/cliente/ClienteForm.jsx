@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {
+    Alert,
+    Box,
     Button,
     FormControl,
     FormHelperText,
@@ -9,14 +11,18 @@ import {
     MenuItem,
     Paper,
     Select,
+    Snackbar,
     TextField,
     Typography
 } from "@mui/material";
 import {DatePicker, LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import SaveIcon from '@mui/icons-material/Save';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import {API} from "../../App";
+import Divider from "@mui/material/Divider";
 
 
 export default function ClienteForm(pk) {
@@ -32,6 +38,13 @@ export default function ClienteForm(pk) {
         tipo_responsable: [],
         provincia: [],
         genero: []
+    });
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+        onClose: () => handleCloseSnackbar(false)
     });
 
     const fetchData = async () => {
@@ -55,7 +68,6 @@ export default function ClienteForm(pk) {
                 genero: selectOptions.genero
             });
             if (Boolean(pk.pk)) {
-                console.log(data['cliente']);
                 const cliente = data['cliente'];
                 setValue('tipo_responsable', cliente.tipo_responsable.id);
                 setValue('razon_social', cliente.razon_social);
@@ -75,7 +87,6 @@ export default function ClienteForm(pk) {
 
 
     const onSubmit = (data) => {
-        console.log(data);
         if (Boolean(pk.pk) === false) {
             fetch(`${API}/clientes/create`, {
                 method: 'POST',
@@ -85,8 +96,14 @@ export default function ClienteForm(pk) {
                 body: JSON.stringify(data)
             }).then(response => {
                 if (response.ok) {
-                    alert('Cliente creado correctamente');
+                    setSnackbar({
+                        message: 'Cliente creado correctamente',
+                        severity: 'success',
+                        onClose: () => handleCloseSnackbar(true)
+                    });
+                    setOpenSnackbar(true);
                 } else {
+                    console.log(response);
                     alert('Error al crear el cliente');
                 }
             });
@@ -99,11 +116,24 @@ export default function ClienteForm(pk) {
                 body: JSON.stringify(data)
             }).then(response => {
                 if (response.ok) {
-                    alert('Cliente actualizado correctamente');
+                    setSnackbar({
+                        message: 'Cliente actualizado correctamente',
+                        severity: 'success',
+                        onClose: () => handleCloseSnackbar(true)
+                    });
+                    setOpenSnackbar(true);
                 } else {
+                    console.log(response);
                     alert('Error al actualizar el cliente');
                 }
             });
+        }
+    }
+
+    const handleCloseSnackbar = (redirect) => {
+        setOpenSnackbar(false);
+        if (redirect) {
+            window.location.href = '/clientes';
         }
     }
 
@@ -384,14 +414,21 @@ export default function ClienteForm(pk) {
                         </FormControl>
                     </Grid>
                 </Grid>
-                <Grid container spacing={2} sx={{mt: 2}}>
-                    <Grid item xs={6}>
-                        <Button type="submit" variant="contained" color="primary">
-                            Guardar
-                        </Button>
-                    </Grid>
-                </Grid>
+                <Divider sx={{mt: 2}}/>
+                <Box sx={{display: 'flex', justifyContent: 'space-between', mt: 2}}>
+                    <Button variant="outlined" startIcon={<ArrowBackIcon/>} onClick={() => window.history.back()}>
+                        Cancelar
+                    </Button>
+                    <Button variant="contained" startIcon={<SaveIcon/>} type="submit">
+                        Guardar
+                    </Button>
+                </Box>
             </Paper>
+            <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={snackbar.onClose}>
+                <Alert onClose={snackbar.onClose} severity={snackbar.severity} sx={{width: '100%'}}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </>
     );
 }

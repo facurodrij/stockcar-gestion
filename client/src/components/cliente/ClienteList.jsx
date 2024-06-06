@@ -1,19 +1,11 @@
-import React, {useState, useEffect} from 'react'
-import Typography from '@mui/material/Typography';
-import {DataGrid, GridRowsProp, GridColDef, useGridApiRef, GridActionsCellItem} from '@mui/x-data-grid';
-import {esES} from '@mui/x-data-grid/locales';
-import {Button, TextField} from '@mui/material';
-import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
-import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
-import {DatePicker} from '@mui/x-date-pickers/DatePicker';
-import Box from "@mui/material/Box";
-import {GridRowParams} from "@mui/x-data-grid";
+import React, {useEffect, useState} from 'react'
+import {DataGrid, GridActionsCellItem, GridRowParams, GridRowsProp} from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
-import {currencyFormatter} from "../../utils/formatters";
 import {API} from "../../App";
-import DetailDialog from "../shared/DetailDialog";
 import ClienteDetailDialog from "./ClienteDetailDialog";
+import {Link} from "react-router-dom";
 
 
 export default function ClienteList() {
@@ -60,9 +52,10 @@ export default function ClienteList() {
                     showInMenu
                 />,
                 <GridActionsCellItem
-                    icon={<VisibilityIcon/>}
-                    label="Otra..."
-                    onClick={() => console.log(params.row)}
+                    icon={<EditIcon/>}
+                    label="Editar"
+                    component={Link}
+                    to={`/clientes/form/${params.row.id}`}
                     showInMenu
                 />
             ]
