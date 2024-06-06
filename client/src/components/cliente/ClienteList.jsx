@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import {API} from "../../App";
 import ClienteDetailDialog from "./ClienteDetailDialog";
 import {Link} from "react-router-dom";
+import {esES} from "@mui/x-data-grid/locales";
 
 
 export default function ClienteList() {
@@ -26,7 +27,7 @@ export default function ClienteList() {
     }, []);
 
     const columns = [
-        {field: 'id', headerName: 'ID', width: 50},
+        {field: 'id', headerName: 'ID', width: 75},
         {field: 'tipo_responsable', headerName: 'Tipo Responsable', width: 200},
         {field: 'razon_social', headerName: 'Razón Social', width: 250},
         {field: 'tipo_documento', headerName: 'Tipo Documento', width: 100},
@@ -95,6 +96,8 @@ export default function ClienteList() {
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     checkboxSelection
+                    initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
+                    localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                 />
             </div>
             <ClienteDetailDialog item={itemSelected} open={showDetail} onClose={handleCloseDetail}/>

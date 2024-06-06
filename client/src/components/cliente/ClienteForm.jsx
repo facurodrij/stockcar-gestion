@@ -41,7 +41,6 @@ export default function ClienteForm(pk) {
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
-        open: false,
         message: '',
         severity: 'success',
         onClose: () => handleCloseSnackbar(false)
@@ -53,34 +52,54 @@ export default function ClienteForm(pk) {
             return await res.json();
         } else {
             const res = await fetch(`${API}/clientes/${pk.pk}/update`);
+            if (res.status === 404) {
+                setSnackbar({
+                    message: 'Cliente no encontrado',
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(true)
+                });
+                setOpenSnackbar(true);
+                return;
+            }
+            if (!res.ok) {
+                setSnackbar({
+                    message: 'Error al obtener los datos del cliente',
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(true)
+                });
+                setOpenSnackbar(true);
+                console.log(res);
+                return;
+            }
             return await res.json();
         }
-
     }
 
     useEffect(() => {
         fetchData().then((data) => {
-            const selectOptions = data['select_options'];
-            setSelectOptions({
-                tipo_documento: selectOptions.tipo_documento,
-                tipo_responsable: selectOptions.tipo_responsable,
-                provincia: selectOptions.provincia,
-                genero: selectOptions.genero
-            });
-            if (Boolean(pk.pk)) {
-                const cliente = data['cliente'];
-                setValue('tipo_responsable', cliente.tipo_responsable.id);
-                setValue('razon_social', cliente.razon_social);
-                setValue('tipo_documento', cliente.tipo_documento.id);
-                setValue('nro_documento', cliente.nro_documento);
-                setValue('direccion', cliente.direccion);
-                setValue('localidad', cliente.localidad);
-                setValue('codigo_postal', cliente.codigo_postal);
-                setValue('provincia', cliente.provincia.id);
-                if (cliente.fecha_nacimiento) setValue('fecha_nacimiento', dayjs(cliente.fecha_nacimiento));
-                if (cliente.genero) setValue('genero', cliente.genero.id);
-                if (cliente.telefono) setValue('telefono', cliente.telefono);
-                if (cliente.email) setValue('email', cliente.email);
+            if (data) {
+                const selectOptions = data['select_options'];
+                setSelectOptions({
+                    tipo_documento: selectOptions.tipo_documento,
+                    tipo_responsable: selectOptions.tipo_responsable,
+                    provincia: selectOptions.provincia,
+                    genero: selectOptions.genero
+                });
+                if (Boolean(pk.pk)) {
+                    const cliente = data['cliente'];
+                    setValue('tipo_responsable', cliente.tipo_responsable.id);
+                    setValue('razon_social', cliente.razon_social);
+                    setValue('tipo_documento', cliente.tipo_documento.id);
+                    setValue('nro_documento', cliente.nro_documento);
+                    setValue('direccion', cliente.direccion);
+                    setValue('localidad', cliente.localidad);
+                    setValue('codigo_postal', cliente.codigo_postal);
+                    setValue('provincia', cliente.provincia.id);
+                    if (cliente.fecha_nacimiento) setValue('fecha_nacimiento', dayjs(cliente.fecha_nacimiento));
+                    if (cliente.genero) setValue('genero', cliente.genero.id);
+                    if (cliente.telefono) setValue('telefono', cliente.telefono);
+                    if (cliente.email) setValue('email', cliente.email);
+                }
             }
         });
     }, []);
@@ -104,7 +123,12 @@ export default function ClienteForm(pk) {
                     setOpenSnackbar(true);
                 } else {
                     console.log(response);
-                    alert('Error al crear el cliente');
+                    setSnackbar({
+                        message: 'Error al crear el cliente',
+                        severity: 'error',
+                        onClose: () => handleCloseSnackbar(false)
+                    });
+                    setOpenSnackbar(true);
                 }
             });
         } else {
@@ -124,7 +148,12 @@ export default function ClienteForm(pk) {
                     setOpenSnackbar(true);
                 } else {
                     console.log(response);
-                    alert('Error al actualizar el cliente');
+                    setSnackbar({
+                        message: 'Error al actualizar el cliente',
+                        severity: 'error',
+                        onClose: () => handleCloseSnackbar(false)
+                    });
+                    setOpenSnackbar(true);
                 }
             });
         }
