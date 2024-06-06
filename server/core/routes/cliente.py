@@ -26,7 +26,7 @@ def get_select_options():
 def index():
     clientes = Cliente.query.all()
     clientes_json = list(map(lambda x: x.to_json(), clientes))
-    return jsonify({model: clientes_json}), 200
+    return jsonify({'clientes': clientes_json}), 200
 
 
 @cliente_bp.route('/clientes/create', methods=['GET', 'POST'])
@@ -67,15 +67,13 @@ def create():
 @cliente_bp.route('/clientes/<int:pk>', methods=['GET'])
 def detail(pk):
     cliente = Cliente.query.get_or_404(pk, 'Cliente no encontrado')
-    return jsonify({model: cliente.to_json()}), 200
+    return jsonify({'cliente': cliente.to_json()}), 200
 
 
 @cliente_bp.route('/clientes/<int:pk>/update', methods=['GET', 'PUT'])
 def update(pk):
     cliente = Cliente.query.get_or_404(pk, 'Cliente no encontrado')
     if request.method == 'GET':
-        # Retornar un json con los datos de los select dentro de "select_options" usando jsonify
-        # Retornar un json con los datos del cliente dentro de "cliente" usando jsonify
         return jsonify({
             'select_options': get_select_options(),
             'cliente': cliente.to_json()
@@ -106,4 +104,4 @@ def update(pk):
             db.session.rollback()
             print(e)
             return jsonify({'error': str(e)}), 400
-        return jsonify({model: cliente.to_json()}), 200
+        return jsonify({'cliente': cliente.to_json()}), 200

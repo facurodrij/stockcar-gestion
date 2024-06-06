@@ -1,6 +1,4 @@
-import codecs
 import os
-import unicodedata
 import numpy as np
 import pandas as pd
 from server.config import db, app
@@ -16,7 +14,6 @@ def import_data():
     df = pd.read_json(os.path.join(basedir, '../../../dump/Cliente.json'))
     df_localidad = pd.read_json(os.path.join(basedir, '../../../dump/Localida.json'))
 
-    # Renombrar las columnas para que coincidan con los nombres de las columnas de la tabla
     df = df.rename(columns={
         # Datos Principales
         "CLI_NUMERO": "id",
@@ -47,23 +44,14 @@ def import_data():
         "CLI_GENERO": "genero_id",
     })
 
-    # Recorrer todas las columnas y eliminar los espacios en blanco, si es un string
     df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
-    # Reemplazar los valores NaN por Null
-    # df = df.where(pd.notnull(df), None)
-    # df = df.astype(object).replace(np.nan, 'None')
     df = df.replace({np.nan: None})
-    # Convertir los valores '' a None
     df = df.replace({'': None})
-    # Convertir los valores None a NaT
     df['fecha_nacimiento'] = df['fecha_nacimiento'].replace({None: pd.NaT})
     df['fecha_baja'] = df['fecha_baja'].replace({None: pd.NaT})
-    # Conventir el valor de provincia_id a int
     df['provincia_id'] = df['provincia_id'].astype(int)
+    df['provincia_id'] = df['provincia_id'].replace({1: 19})
 
-    # Recorrer el dataframe y asignar el tipo de documento y tipo de contribuyente
-    # Si coincide el nombre del tipo de documento, se asigna el id.
-    # Si coincide la abrebiatura del tipo de contribuyente, se asigna el id.
     for index, row in df.iterrows():
         tipo_doc = TipoDocumento.query.filter_by(descripcion=row['tipo_doc_id']).first()
         if tipo_doc:
