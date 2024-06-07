@@ -34,11 +34,11 @@ export default function ClienteList() {
         {field: 'nro_documento', headerName: 'Nro. Documento', width: 150},
         {
             field: 'fecha_nacimiento', headerName: 'Fecha Nacimiento', minWidth: 150, type: 'date',
-            valueFormatter: (params) => {
-                if (!params) {
+            valueFormatter: (value) => {
+                if (!value) {
                     return "";
                 }
-                return dayjs(params, 'YYYY-MM-DD').format('DD/MM/YYYY')
+                return dayjs(value, 'YYYY-MM-DD').format('DD/MM/YYYY')
             }
         },
         {field: 'direccion', headerName: 'Dirección', width: 300},

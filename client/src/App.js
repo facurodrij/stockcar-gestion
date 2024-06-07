@@ -3,8 +3,8 @@ import Container from "@mui/material/Container";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Header from "./components/shared/Header";
-import VentaIndex from './pages/venta';
-import VentaForm from './pages/venta/Form';
+import VentaPage from './pages/venta/VentaPage';
+import VentaFormPage from './pages/venta/VentaFormPage';
 import ClientePage from './pages/cliente/ClientePage';
 import ClienteFormPage from './pages/cliente/ClienteFormPage';
 
@@ -18,9 +18,9 @@ function App() {
                 <Header/>
                 <Container sx={{mt: 8}}>
                     <Routes>
-                        <Route path="/ventas" element={<VentaIndex/>}></Route>
-                        <Route path="/ventas/form" element={<VentaForm/>}></Route>
-                        <Route path="/ventas/form/:id" element={<VentaForm/>}></Route>
+                        <Route path="/ventas" element={<VentaPage/>}></Route>
+                        <Route path="/ventas/form" element={<VentaFormPage/>}></Route>
+                        <Route path="/ventas/form/:pk" element={<VentaFormPage/>}></Route>
                         <Route path="/clientes" element={<ClientePage/>}></Route>
                         <Route path="/clientes/form" element={<ClienteFormPage/>}></Route>
                         <Route path="/clientes/form/:pk" element={<ClienteFormPage/>}></Route>

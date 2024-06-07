@@ -4,7 +4,7 @@ import React from "react";
 import PropTypes from "prop-types";
 
 
-export default function TabPanel(props) {
+export default function VerticalTabPanel(props) {
     const {children, value, index, ...other} = props;
 
     return (
@@ -24,7 +24,7 @@ export default function TabPanel(props) {
     );
 }
 
-TabPanel.propTypes = {
+VerticalTabPanel.propTypes = {
     children: PropTypes.node,
     index: PropTypes.number.isRequired,
     value: PropTypes.number.isRequired,

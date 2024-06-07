@@ -1,11 +1,23 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
-from server.core.models import Venta, VentaItem
+from server.core.models import Venta, VentaItem, TipoDocumento, TipoResponsable, Provincia
 
 venta_bp = Blueprint('venta_bp', __name__)
 
 model = 'ventas'
+
+
+def get_select_options():
+    tipo_documento = TipoDocumento.query.all()
+    tipo_responsable = TipoResponsable.query.all()
+    provincia = Provincia.query.all()
+
+    return {
+        'tipo_documento': list(map(lambda x: x.to_json(), tipo_documento)),
+        'tipo_responsable': list(map(lambda x: x.to_json(), tipo_responsable)),
+        'provincia': list(map(lambda x: x.to_json(), provincia))
+    }
 
 
 @venta_bp.route('/ventas', methods=['GET'])
@@ -26,15 +38,40 @@ def index():
         ventas = Venta.query.all()
 
     ventas_json = list(map(lambda x: x.to_json(), ventas))
-    return jsonify({model: ventas_json}), 200
+    return jsonify({'ventas': ventas_json}), 200
 
 
-@venta_bp.route('/ventas/<id>', methods=['GET'])
-def detail(id):
-    venta = Venta.query.get_or_404(id, 'Venta no encontrada')
+@venta_bp.route('/ventas/create', methods=['GET', 'POST'])
+def create():
+    if request.method == 'GET':
+        return jsonify({'select_options': get_select_options()}), 200
+    if request.method == 'POST':
+        data = request.json
+        for key, value in data.items():
+            if value == '':
+                data[key] = None
+        return jsonify({'message': 'Venta creada'}), 201
+
+
+@venta_bp.route('/ventas/<int:pk>', methods=['GET'])
+def detail(pk):
+    venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     # Obtener los items de la venta, con una query
     items = VentaItem.query.filter_by(tipo_doc=venta.tipo_doc,
                                       letra=venta.letra,
                                       sucursal=venta.sucursal,
                                       numero=venta.numero).all()
-    return jsonify({model: venta.to_json(), 'items': list(map(lambda x: x.to_json(), items))}), 200
+    return jsonify({'venta': venta.to_json(), 'items': list(map(lambda x: x.to_json(), items))}), 200
+
+
+@venta_bp.route('/ventas/<int:pk>/update', methods=['GET', 'PUT'])
+def update(pk):
+    venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
+    if request.method == 'GET':
+        return jsonify({'select_options': get_select_options(), model: venta.to_json()}), 200
+    if request.method == 'PUT':
+        data = request.json
+        for key, value in data.items():
+            if value == '':
+                data[key] = None
+        return jsonify({'message': 'Venta actualizada'}), 200

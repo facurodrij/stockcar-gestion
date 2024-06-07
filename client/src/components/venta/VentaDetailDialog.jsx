@@ -1,10 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemButton from '@mui/material/ListItemButton';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
@@ -12,12 +8,11 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import Box from "@mui/material/Box";
-import {Grid, Paper, Tab, Tabs} from "@mui/material";
-import {ReactNode} from "react";
-import PropTypes from "prop-types";
-import ListItem from "@mui/material/ListItem";
-import {styled} from "@mui/material/styles";
+import {Tab, Tabs} from "@mui/material";
 import {API} from "../../App";
+import GeneralTabPanel from "../../pages/cliente/detail/GeneralTabPanel";
+import InvoiceTabPanel from "../../pages/cliente/detail/InvoiceTabPanel";
+import {Link} from "react-router-dom";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="left" ref={ref} {...props} timeout={1000}>{props.children}</Slide>
@@ -31,7 +26,7 @@ function a11yProps(index) {
     };
 }
 
-export default function DetailDialog({model, item, open, onClose, context}) {
+export default function VentaDetailDialog({item, open, onClose}) {
     const [itemData, setItemData] = useState(null);
     const [value, setValue] = useState(0);
 
@@ -40,20 +35,23 @@ export default function DetailDialog({model, item, open, onClose, context}) {
     };
 
     const fetchData = async () => {
-        const url = `${API}/${model}/${item.id}`
-        const res = await fetch(url);
-        const data = await res.json();
-        // console.log(data[model]);
-        setItemData(data[model]);
+        const res = await fetch(`${API}/ventas/${item.id}`);
+        return await res.json();
     }
 
     useEffect(() => {
         if (open) {
-            fetchData().then(() =>
-                console.log('Data fetched', itemData),
-            )
+            fetchData().then((data) => {
+                setItemData(data['venta']);
+            });
         }
     }, [open]);
+
+    const tabsName = ['General', 'Datos Facturación'];
+    const tabsPanel = [
+        (item, value, index) => <GeneralTabPanel item={item} value={value} index={index}/>,
+        (item, value, index) => <InvoiceTabPanel item={item} value={value} index={index}/>
+    ];
 
     return (
         <React.Fragment>
@@ -74,12 +72,12 @@ export default function DetailDialog({model, item, open, onClose, context}) {
                             <CloseIcon/>
                         </IconButton>
                         <Typography sx={{ml: 2, flex: 1}} variant="h6" component="div">
-                            {context.title}
+                            Detalle de Cliente
                         </Typography>
-                        {/* Button for Edit */}
                         <Button
                             color="inherit"
-                            onClick={() => console.log('Edit')}
+                            component={Link}
+                            to={`/clientes/form/${itemData?.id}`}
                         >
                             Editar
                         </Button>
@@ -93,14 +91,13 @@ export default function DetailDialog({model, item, open, onClose, context}) {
                         variant="scrollable"
                         value={value}
                         onChange={handleChange}
-                        aria-label="Vertical tabs example"
                         sx={{borderRight: 1, borderColor: 'divider', pt: 2}}
                     >
-                        {context.tabsName.map((tab, index) => (
+                        {tabsName.map((tab, index) => (
                             <Tab label={tab} {...a11yProps(index)} key={index}/>
                         ))}
                     </Tabs>
-                    {context.tabsPanel.map((TabPanelComponent, index) => (
+                    {tabsPanel.map((TabPanelComponent, index) => (
                         <React.Fragment key={index}>
                             {TabPanelComponent(itemData, value, index)}
                         </React.Fragment>
