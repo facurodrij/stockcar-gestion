@@ -4,6 +4,12 @@ from sqlalchemy import Integer
 
 from server.config import db
 
+tributo_cliente = db.Table(
+    'tributo_cliente',
+    Column('tributo_id', Integer, ForeignKey('tributo.id'), primary_key=True),
+    Column('cliente_id', Integer, ForeignKey('cliente.id'), primary_key=True),
+)
+
 # Tabla de asociación entre tributos y tipos de comprobante
 tributo_tipo_comprobante = db.Table(
     'tributo_tipo_comprobante',

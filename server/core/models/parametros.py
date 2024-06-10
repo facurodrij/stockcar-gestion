@@ -123,12 +123,29 @@ class TipoPago(db.Model):
     interes = db.Column(db.Numeric, default=0)
     cuotas = db.Column(db.Integer, default=0)
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'interes': self.interes,
+            'cuotas': self.cuotas
+        }
 
-class TipoMoneda(db.Model):
-    __tablename__ = 'tipo_moneda'
+
+class Moneda(db.Model):
+    __tablename__ = 'moneda'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String, nullable=False, unique=True)
     simbolo = db.Column(db.String(5), nullable=False, unique=True)
+    codigo_iso = db.Column(db.String(3), nullable=False, unique=True)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'simbolo': self.simbolo,
+            'codigo_iso': self.codigo_iso
+        }
 
 
 class AlicuotaIVA(db.Model):

@@ -13,17 +13,15 @@ class Cliente(db.Model):
     """
     __tablename__ = 'cliente'
 
-    # Datos principales del cliente
+    # Datos principales
     id = Column(Integer, primary_key=True, autoincrement=True)
-    nro_doc = Column(String, nullable=False)
+    nro_documento = Column(String, nullable=False)
     razon_social = Column(String, nullable=False)
     direccion = Column(String, nullable=False)
     localidad = Column(String, nullable=False)
     codigo_postal = Column(String, nullable=False)
-
-    # Relaciones con otras tablas
-    tipo_doc_id = Column(Integer, ForeignKey('tipo_documento.id'), nullable=False)
-    tipo_doc = relationship('TipoDocumento', backref='clientes')
+    tipo_documento_id = Column(Integer, ForeignKey('tipo_documento.id'), nullable=False)
+    tipo_documento = relationship('TipoDocumento', backref='clientes')
     tipo_responsable_id = Column(Integer, ForeignKey('tipo_responsable.id'), nullable=False)
     tipo_responsable = relationship('TipoResponsable', backref='clientes')
     provincia_id = Column(Integer, ForeignKey('provincia.id'), nullable=False)
@@ -31,18 +29,23 @@ class Cliente(db.Model):
 
     # Datos de configuración para la creación de comprobantes de venta
     descuento = Column(Numeric(precision=5, scale=2), default=0)
-    limite = Column(Numeric(precision=10, scale=2), default=0)
+    recargo = Column(Numeric(precision=5, scale=2), default=0)
+    limite_credito = Column(Numeric(precision=10, scale=2), default=0)
     duplicado_factura = Column(Boolean, default=False)
+    exento_iva = Column(Boolean, default=False)
+    tipo_pago_id = Column(Integer, ForeignKey('tipo_pago.id'), default=1)
+    tipo_pago = relationship('TipoPago', backref='clientes')
+    moneda_id = Column(Integer, ForeignKey('moneda.id'), default=1)
+    moneda = relationship('Moneda', backref='clientes')
+    tributos = db.relationship('Tributo', secondary='tributo_cliente', back_populates='clientes')
 
     # Datos personales (opcionales)
     fecha_nacimiento = Column(Date, nullable=True)
     telefono = Column(String, nullable=True)
     email = Column(String, nullable=True)
-    observacion = Column(String, nullable=True)
-
-    # Relaciones con otras tablas (opcionales)
     genero_id = Column(Integer, ForeignKey('genero.id'), nullable=True)
     genero = relationship('Genero', backref='clientes')
+    observacion = Column(String, nullable=True)
 
     # Datos de auditoría
     fecha_alta = Column(DateTime, default=func.now())
@@ -56,8 +59,8 @@ class Cliente(db.Model):
         """
         return {
             'id': self.id,
-            'tipo_documento': self.tipo_doc.to_json(),
-            'nro_documento': self.nro_doc,
+            'tipo_documento': self.tipo_documento.to_json(),
+            'nro_documento': self.nro_documento,
             'tipo_responsable': self.tipo_responsable.to_json(),
             'razon_social': self.razon_social,
             'direccion': self.direccion,
@@ -69,8 +72,12 @@ class Cliente(db.Model):
             'fecha_nacimiento': self.fecha_nacimiento.isoformat() if self.fecha_nacimiento else None,
             'genero': self.genero.to_json() if self.genero else None,
             'descuento': self.descuento,
-            'limite': self.limite,
+            'recargo': self.recargo,
+            'limite_credito': self.limite_credito,
             'duplicado_factura': self.duplicado_factura,
+            'exento_iva': self.exento_iva,
+            'tipo_pago': self.tipo_pago.to_json(),
+            'moneda': self.moneda.to_json(),
             'observacion': self.observacion,
             'fecha_alta': self.fecha_alta.isoformat(),
         }

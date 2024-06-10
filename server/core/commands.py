@@ -3,7 +3,8 @@ import importlib
 import click
 import pandas as pd
 from server.config import db, app
-from server.core.models.parametros import Genero, Provincia, TipoDocumento, TipoResponsable, TipoComprobante
+from server.core.models.parametros import Genero, Provincia, TipoDocumento, TipoResponsable, TipoComprobante, Moneda, \
+    TipoPago
 
 
 @app.cli.command("load_fixtures")
@@ -12,7 +13,8 @@ def load_fixtures():
     # Load data for each model
     for model, filename in [(Genero, 'genero.json'), (Provincia, 'provincia.json'),
                             (TipoDocumento, 'tipo_documento.json'), (TipoResponsable, 'tipo_responsable.json'),
-                            (TipoComprobante, 'tipo_comprobante.json')]:
+                            (TipoComprobante, 'tipo_comprobante.json'), (Moneda, 'moneda.json'),
+                            (TipoPago, 'tipo_pago.json')]:
         filepath = f"core/fixtures/parametros/{filename}"
         df = pd.read_json(filepath)
         for _, row in df.iterrows():

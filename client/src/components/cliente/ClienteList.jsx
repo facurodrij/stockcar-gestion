@@ -1,5 +1,12 @@
 import React, {useEffect, useState} from 'react'
-import {DataGrid, GridActionsCellItem, GridRowParams, GridRowsProp} from '@mui/x-data-grid';
+import {
+    DataGrid,
+    GridActionsCellItem,
+    GridRowParams,
+    GridRowsProp,
+    GridToolbar, GridToolbarColumnsButton,
+    GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton
+} from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
@@ -7,6 +14,26 @@ import {API} from "../../App";
 import ClienteDetailDialog from "./ClienteDetailDialog";
 import {Link} from "react-router-dom";
 import {esES} from "@mui/x-data-grid/locales";
+import {Button} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+
+function CustomToolbar() {
+    return (
+        <GridToolbarContainer>
+            <Button
+                startIcon={<AddIcon />}
+                component={Link}
+                to="/clientes/form"
+                size="small"
+            >Nuevo Cliente
+            </Button>
+            <GridToolbarColumnsButton/>
+            <GridToolbarFilterButton/>
+            <GridToolbarDensitySelector/>
+            <GridToolbarExport/>
+        </GridToolbarContainer>
+    );
+}
 
 
 export default function ClienteList() {
@@ -98,6 +125,11 @@ export default function ClienteList() {
                     checkboxSelection
                     initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                    slots={{
+                        toolbar: () => (
+                            <CustomToolbar/>
+                        )
+                    }}
                 />
             </div>
             <ClienteDetailDialog item={itemSelected} open={showDetail} onClose={handleCloseDetail}/>

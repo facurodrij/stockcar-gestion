@@ -17,7 +17,7 @@ def import_data():
     df = df.rename(columns={
         # Datos Principales
         "CLI_NUMERO": "id",
-        "CLI_NUMERO_DOC": "nro_doc",
+        "CLI_NUMERO_DOC": "nro_documento",
         "CLI_NOMBRE1": "razon_social",
 
         # Datos Facturacion
@@ -37,7 +37,7 @@ def import_data():
         "CLI_FECHA_BAJA": "fecha_baja",
 
         # Foreign keys
-        "CLI_TIPO_DOC": "tipo_doc_id",
+        "CLI_TIPO_DOC": "tipo_documento_id",
         "CLI_TIPO_CONT": "tipo_responsable_id",
         "CLI_LOCALIDAD": "localidad",
         "CLI_PROVINCIA": "provincia_id",
@@ -53,11 +53,11 @@ def import_data():
     df['provincia_id'] = df['provincia_id'].replace({1: 19})
 
     for index, row in df.iterrows():
-        tipo_doc = TipoDocumento.query.filter_by(descripcion=row['tipo_doc_id']).first()
+        tipo_doc = TipoDocumento.query.filter_by(descripcion=row['tipo_documento_id']).first()
         if tipo_doc:
-            df.at[index, 'tipo_doc_id'] = tipo_doc.id
+            df.at[index, 'tipo_documento_id'] = tipo_doc.id
         else:
-            df.at[index, 'tipo_doc_id'] = TipoDocumento.query.filter_by(descripcion='DNI').first().id  # Default value
+            df.at[index, 'tipo_documento_id'] = TipoDocumento.query.filter_by(descripcion='DNI').first().id  # Default value
 
         tipo_responsable = TipoResponsable.query.filter_by(abreviatura=row['tipo_responsable_id']).first()
         if tipo_responsable:
@@ -75,9 +75,9 @@ def import_data():
     cliente_list = []
     for index, row in df.iterrows():
         cliente = Cliente(
-            nro_doc=row['nro_doc'] if row['nro_doc'] else 0,
+            nro_documento=row['nro_documento'] if row['nro_documento'] else 0,
             razon_social=row['razon_social'] if row['razon_social'] else 'SIN NOMBRE',
-            tipo_doc_id=row['tipo_doc_id'],
+            tipo_documento_id=row['tipo_documento_id'],
             tipo_responsable_id=row['tipo_responsable_id'],
             direccion=row['direccion'] if row['direccion'] else 'SIN DIRECCION',
             localidad=row['localidad'],

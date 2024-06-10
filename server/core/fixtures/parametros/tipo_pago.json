@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "nombre": "Efectivo",
+        "interes": 0,
+        "cuotas": 1
+    },
+    {
+        "id": 2,
+        "nombre": "Tarjeta de Crédito",
+        "interes": 0,
+        "cuotas": 12
+    },
+    {
+        "id": 3,
+        "nombre": "Tarjeta de Débito",
+        "interes": 0,
+        "cuotas": 1
+    }
+]

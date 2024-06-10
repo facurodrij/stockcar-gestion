@@ -23,6 +23,7 @@ class Tributo(db.Model):
     # Relaciones con otras tablas
     tipo_tributo_id = Column(Integer, ForeignKey('tipo_tributo.id'), nullable=False)
     tipo_tributo = db.relationship('TipoTributo', backref='tributos')
+    clientes = relationship('Cliente', secondary='tributo_cliente', back_populates='tributos')
     tipo_comprobantes = relationship('TipoComprobante', secondary='tributo_tipo_comprobante', back_populates='tributos')
     tipo_responsables = relationship('TipoResponsable', secondary='tributo_tipo_responsable', back_populates='tributos')
     ventas = relationship('Venta', secondary='tributo_venta', back_populates='tributos')

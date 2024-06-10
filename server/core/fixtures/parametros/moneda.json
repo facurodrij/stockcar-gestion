@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "nombre": "Peso Argentino",
+        "simbolo": "$",
+        "codigo_iso": "ARS"
+    },
+    {
+        "id": 2,
+        "nombre": "Dólar Estadounidense",
+        "simbolo": "U$S",
+        "codigo_iso": "USD"
+    },
+    {
+        "id": 3,
+        "nombre": "Euro",
+        "simbolo": "€",
+        "codigo_iso": "EUR"
+    },
+    {
+        "id": 4,
+        "nombre": "Real",
+        "simbolo": "R$",
+        "codigo_iso": "BRL"
+    }
+]
