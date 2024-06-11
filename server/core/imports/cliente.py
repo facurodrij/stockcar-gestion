@@ -2,8 +2,8 @@ import os
 import numpy as np
 import pandas as pd
 from server.config import db, app
-from server.core.models.cliente import Cliente
-from server.core.models.parametros import TipoDocumento, Provincia, Genero, \
+from server.core.models import Cliente
+from server.core.models import TipoDocumento, Provincia, Genero, \
     TipoResponsable
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -57,7 +57,8 @@ def import_data():
         if tipo_doc:
             df.at[index, 'tipo_documento_id'] = tipo_doc.id
         else:
-            df.at[index, 'tipo_documento_id'] = TipoDocumento.query.filter_by(descripcion='DNI').first().id  # Default value
+            df.at[index, 'tipo_documento_id'] = TipoDocumento.query.filter_by(
+                descripcion='DNI').first().id  # Default value
 
         tipo_responsable = TipoResponsable.query.filter_by(abreviatura=row['tipo_responsable_id']).first()
         if tipo_responsable:
@@ -86,6 +87,10 @@ def import_data():
         )
         cliente_list.append(cliente)
 
-    db.session.add_all(cliente_list)
-    db.session.commit()
-    print("Data imported for Cliente model")
+    try:
+        db.session.add_all(cliente_list)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(str(e))
+    print("Data imported successfully!")

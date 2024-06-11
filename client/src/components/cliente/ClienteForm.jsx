@@ -191,9 +191,8 @@ export default function ClienteForm(pk) {
             setTabValue(0);
             return;
         }
-        if (errors.descuento || errors.recargo || errors.tipo_pago_id || errors.moneda_id) {
+        if (errors.descuento || errors.recargo || errors.tipo_pago_id || errors.moneda_id || errors.limite_credito) {
             setTabValue(1);
-            return;
         }
     }
 

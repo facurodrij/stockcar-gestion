@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "codigo_afip": 5,
+        "descripcion": "21%",
+        "porcentaje": 21.0
+    },
+    {
+        "id": 2,
+        "codigo_afip": 4,
+        "descripcion": "10.5%",
+        "porcentaje": 10.5
+    },
+    {
+        "id": 3,
+        "codigo_afip": 6,
+        "descripcion": "27%",
+        "porcentaje": 27.0
+    },
+    {
+        "id": 4,
+        "codigo_afip": 8,
+        "descripcion": "5%",
+        "porcentaje": 5.0
+    },
+    {
+        "id": 5,
+        "codigo_afip": 9,
+        "descripcion": "2.5%",
+        "porcentaje": 2.5
+    },
+    {
+        "id": 6,
+        "codigo_afip": 3,
+        "descripcion": "0%",
+        "porcentaje": 0.0
+    }
+]

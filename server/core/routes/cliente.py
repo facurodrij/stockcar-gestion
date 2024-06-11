@@ -52,7 +52,7 @@ def create():
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
-        return jsonify({model: cliente.to_json()}), 201
+        return 201
 
 
 @cliente_bp.route('/clientes/<int:pk>', methods=['GET'])
@@ -79,11 +79,9 @@ def update(pk):
 
         for key, value in data.items():
             setattr(cliente, key, value)
-
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            print(e)
             return jsonify({'error': str(e)}), 400
-        return jsonify({'cliente': cliente.to_json()}), 200
+        return 200
