@@ -10,8 +10,8 @@ import Slide from '@mui/material/Slide';
 import Box from "@mui/material/Box";
 import {Tab, Tabs} from "@mui/material";
 import {API} from "../../App";
-import GeneralTabPanel from "../../pages/cliente/detail/GeneralTabPanel";
-import InvoiceTabPanel from "../../pages/cliente/detail/InvoiceTabPanel";
+import GeneralTabPanel from "./DetailDialogTabs/GeneralTabPanel";
+import InvoiceTabPanel from "./DetailDialogTabs/InvoiceTabPanel";
 import {Link} from "react-router-dom";
 
 const Transition = React.forwardRef(function Transition(props, ref) {

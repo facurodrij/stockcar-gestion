@@ -1,0 +1,27 @@
+[
+    {
+        "id": 1,
+        "nombre": "Unidad",
+        "abreviatura": "Ud."
+    },
+    {
+        "id": 2,
+        "nombre": "Litro",
+        "abreviatura": "Lt."
+    },
+    {
+        "id": 3,
+        "nombre": "Kilogramo",
+        "abreviatura": "Kg."
+    },
+    {
+        "id": 4,
+        "nombre": "Gramo",
+        "abreviatura": "Gr."
+    },
+    {
+        "id": 5,
+        "nombre": "Mililitro",
+        "abreviatura": "Ml."
+    }
+]

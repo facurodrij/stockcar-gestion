@@ -95,9 +95,9 @@ const pagesList = [
         path: '/ventas',
     },
     {
-        title: 'Productos',
+        title: 'Articulos',
         icon: <Inventory2/>,
-        path: '/productos',
+        path: '/articulos',
     },
     {
         title: 'Clientes',

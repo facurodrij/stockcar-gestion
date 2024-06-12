@@ -8,13 +8,13 @@ articulo_bp = Blueprint('articulo_bp', __name__)
 
 
 def get_select_options():
-    tipo_articulo = TipoArticulo
-    tipo_unidad = TipoUnidad
+    tipo_articulo = TipoArticulo.query.all()
+    tipo_unidad = TipoUnidad.query.all()
     alicuota_iva = AlicuotaIVA.query.all()
     tributo = Tributo.query.all()
     return {
-        'tipo_articulo': list(map(lambda x: x.name, tipo_articulo)),
-        'tipo_unidad': list(map(lambda x: x.name, tipo_unidad)),
+        'tipo_articulo': list(map(lambda x: x.to_json(), tipo_articulo)),
+        'tipo_unidad': list(map(lambda x: x.to_json(), tipo_unidad)),
         'alicuota_iva': list(map(lambda x: x.to_json(), alicuota_iva)),
         'tributo': list(map(lambda x: x.to_json(), tributo)),
     }
@@ -44,7 +44,7 @@ def create():
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
-        return 201
+        return 'ok', 201
 
 
 @articulo_bp.route('/articulos/<int:pk>', methods=['GET'])
@@ -71,4 +71,4 @@ def update(pk):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
-        return 200
+        return 'ok', 200

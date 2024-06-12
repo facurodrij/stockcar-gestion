@@ -52,7 +52,7 @@ def create():
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
-        return 201
+        return 'ok', 201
 
 
 @cliente_bp.route('/clientes/<int:pk>', methods=['GET'])
@@ -84,4 +84,4 @@ def update(pk):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
-        return 200
+        return 'ok', 200

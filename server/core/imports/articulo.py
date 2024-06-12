@@ -20,14 +20,10 @@ def import_data():
 
     df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
     df = df.replace({np.nan: None})
-    # df = df.replace({'': None})
 
     df['descripcion'] += ' ' + df['PRO_LINEA1'].map(str) + ' ' + df['PRO_LINEA2'].map(str) + ' ' + df['PRO_LINEA3'].map(
         str) + df['PRO_LINEA4'].map(str) + ' ' + df['PRO_LINEA5'].map(str) + ' ' + df['PRO_LINEA6'].map(
         str) + ' ' + df['PRO_LINEA7'].map(str)
-
-    # Imprimir solo las columnas modificadas
-    print(df[['id', 'codigo_barras', 'descripcion']])
 
     articulo_list = []
     for index, row in df.iterrows():

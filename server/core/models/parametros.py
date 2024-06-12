@@ -154,3 +154,37 @@ class AlicuotaIVA(db.Model):
     codigo_afip = db.Column(db.Integer, nullable=True)
     descripcion = db.Column(db.String, nullable=False)  # Nombre de la alícuota ("21%", "10.5%", etc)
     porcentaje = db.Column(db.Numeric, nullable=False)  # (21, 10.5, etc)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'codigo_afip': self.codigo_afip,
+            'descripcion': self.descripcion,
+            'porcentaje': self.porcentaje
+        }
+
+
+class TipoArticulo(db.Model):
+    __tablename__ = 'tipo_articulo'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nombre = db.Column(db.String, nullable=False, unique=True)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre
+        }
+
+
+class TipoUnidad(db.Model):
+    __tablename__ = 'tipo_unidad'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nombre = db.Column(db.String, nullable=False, unique=True)
+    abreviatura = db.Column(db.String, nullable=False, unique=True)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'nombre': self.nombre,
+            'abreviatura': self.abreviatura
+        }

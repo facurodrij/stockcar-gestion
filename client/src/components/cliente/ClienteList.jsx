@@ -21,7 +21,7 @@ function CustomToolbar() {
     return (
         <GridToolbarContainer>
             <Button
-                startIcon={<AddIcon />}
+                startIcon={<AddIcon/>}
                 component={Link}
                 to="/clientes/form"
                 size="small"
@@ -125,11 +125,7 @@ export default function ClienteList() {
                     checkboxSelection
                     initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                    slots={{
-                        toolbar: () => (
-                            <CustomToolbar/>
-                        )
-                    }}
+                    slots={{toolbar: CustomToolbar}}
                 />
             </div>
             <ClienteDetailDialog item={itemSelected} open={showDetail} onClose={handleCloseDetail}/>

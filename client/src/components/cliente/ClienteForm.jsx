@@ -51,7 +51,7 @@ export default function ClienteForm(pk) {
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
 
-    const handleChangeTab = (event, newValue) => {
+    const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
     }
 
@@ -185,13 +185,13 @@ export default function ClienteForm(pk) {
     }
 
     const onError = (errors) => {
-        if (errors.tipo_responsable_id || errors.razon_social || errors.tipo_documento_id || errors.nro_documento ||
-            errors.direccion || errors.localidad || errors.codigo_postal || errors.provincia_id || errors.fecha_nacimiento ||
-            errors.genero_id || errors.email) {
+        if (errors['tipo_responsable_id'] || errors['razon_social'] || errors['tipo_documento_id'] || errors['nro_documento'] ||
+            errors['direccion'] || errors['localidad'] || errors['codigo_postal'] || errors['provincia_id'] || errors['fecha_nacimiento'] ||
+            errors['genero_id'] || errors['email']) {
             setTabValue(0);
             return;
         }
-        if (errors.descuento || errors.recargo || errors.tipo_pago_id || errors.moneda_id || errors.limite_credito) {
+        if (errors['descuento'] || errors['recargo'] || errors['tipo_pago_id'] || errors['moneda_id'] || errors['limite_credito']) {
             setTabValue(1);
         }
     }
@@ -201,7 +201,7 @@ export default function ClienteForm(pk) {
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
                    sx={{mt: 2, padding: 2}}>
                 <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
-                    <Tabs value={tabValue} onChange={handleChangeTab} centered>
+                    <Tabs value={tabValue} onChange={handleTabChange} centered>
                         <Tab label="Principal"/>
                         <Tab label="Facturación"/>
                         <Tab label="Observaciones"/>

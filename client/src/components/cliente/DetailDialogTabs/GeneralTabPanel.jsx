@@ -1,6 +1,6 @@
 import Typography from "@mui/material/Typography";
 import React from "react";
-import VerticalTabPanel from "../../../components/shared/VerticalTabPanel";
+import VerticalTabPanel from "../../shared/VerticalTabPanel";
 
 export default function GeneralTabPanel({item, value, index}) {
     return (
