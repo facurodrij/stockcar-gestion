@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 from flask import Blueprint, jsonify, request
 
 from server.config import db
-from server.core.models import Cliente, TipoDocumento, TipoResponsable, Provincia, Genero, TipoPago, Moneda
+from server.core.models import Cliente, TipoDocumento, TipoResponsable, Provincia, Genero, TipoPago, Moneda, Tributo
 
 cliente_bp = Blueprint('cliente_bp', __name__)
 
@@ -16,6 +16,7 @@ def get_select_options():
     genero = Genero.query.all()
     tipo_pago = TipoPago.query.all()
     moneda = Moneda.query.all()
+    tributo = Tributo.query.all()
     return {
         'tipo_documento': list(map(lambda x: x.to_json(), tipo_documento)),
         'tipo_responsable': list(map(lambda x: x.to_json(), tipo_responsable)),
@@ -23,6 +24,7 @@ def get_select_options():
         'genero': list(map(lambda x: x.to_json(), genero)),
         'tipo_pago': list(map(lambda x: x.to_json(), tipo_pago)),
         'moneda': list(map(lambda x: x.to_json(), moneda)),
+        'tributo': list(map(lambda x: x.to_json(), tributo))
     }
 
 
@@ -39,15 +41,20 @@ def create():
         return jsonify({'select_options': get_select_options()}), 200
     if request.method == 'POST':
         data = request.json
-        for key, value in data.items():
+        cliente_json = data['cliente']
+        for key, value in cliente_json.items():
             if value == '':
-                data[key] = None
-        if data['fecha_nacimiento']:
-            data['fecha_nacimiento'] = datetime.fromisoformat(data['fecha_nacimiento'])
+                cliente_json[key] = None
+        if cliente_json['fecha_nacimiento']:
+            cliente_json['fecha_nacimiento'] = datetime.fromisoformat(cliente_json['fecha_nacimiento'])
 
-        cliente = Cliente(**data)
+        cliente = Cliente(**cliente_json)
+
         try:
             db.session.add(cliente)
+            for tributo_id in data['tributos']:
+                tributo = Tributo.query.get_or_404(tributo_id)
+                cliente.tributos.append(tributo)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -71,14 +78,21 @@ def update(pk):
         }), 200
     if request.method == 'PUT':
         data = request.json
-        for key, value in data.items():
+        cliente_json = data['cliente']
+        for key, value in cliente_json.items():
             if value == '':
-                data[key] = None
-        if data['fecha_nacimiento']:
-            data['fecha_nacimiento'] = datetime.fromisoformat(data['fecha_nacimiento'])
+                cliente_json[key] = None
+        if cliente_json['fecha_nacimiento']:
+            cliente_json['fecha_nacimiento'] = datetime.fromisoformat(cliente_json['fecha_nacimiento'])
 
-        for key, value in data.items():
+        for key, value in cliente_json.items():
             setattr(cliente, key, value)
+
+        cliente.tributos = []
+        nuevos_tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
+        for tributo in nuevos_tributos:
+            cliente.tributos.append(tributo)
+
         try:
             db.session.commit()
         except Exception as e:

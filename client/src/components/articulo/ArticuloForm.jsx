@@ -3,28 +3,22 @@ import {Controller, useForm} from 'react-hook-form';
 import {
     Alert,
     Box,
-    Button, Checkbox,
-    FormControl, FormControlLabel, FormGroup,
-    FormHelperText, FormLabel,
-    Grid, InputAdornment,
+    Button,
+    FormControl,
+    FormHelperText,
+    Grid,
     InputLabel,
-    MenuItem, OutlinedInput,
+    MenuItem,
     Paper,
     Select,
-    Snackbar, Tab, Tabs,
-    TextField,
-    Typography
+    Snackbar,
+    Tab,
+    Tabs,
+    TextField
 } from "@mui/material";
-import {DatePicker, LocalizationProvider} from '@mui/x-date-pickers';
-import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
 import SaveIcon from '@mui/icons-material/Save';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import Divider from "@mui/material/Divider";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import {API} from "../../App";
-import IconButton from "@mui/material/IconButton";
-import AddIcon from '@mui/icons-material/Add';
 
 
 export default function ArticuloForm(pk) {

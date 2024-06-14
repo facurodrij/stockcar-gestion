@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {Link} from "react-router-dom";
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
@@ -12,7 +13,7 @@ import {Tab, Tabs} from "@mui/material";
 import {API} from "../../App";
 import GeneralTabPanel from "./DetailDialogTabs/GeneralTabPanel";
 import InvoiceTabPanel from "./DetailDialogTabs/InvoiceTabPanel";
-import {Link} from "react-router-dom";
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="left" ref={ref} {...props} timeout={1000}>{props.children}</Slide>

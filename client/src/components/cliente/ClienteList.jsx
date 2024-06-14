@@ -4,8 +4,11 @@ import {
     GridActionsCellItem,
     GridRowParams,
     GridRowsProp,
-    GridToolbar, GridToolbarColumnsButton,
-    GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton
+    GridToolbarColumnsButton,
+    GridToolbarContainer,
+    GridToolbarDensitySelector,
+    GridToolbarExport,
+    GridToolbarFilterButton
 } from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
@@ -123,6 +126,7 @@ export default function ClienteList() {
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     checkboxSelection
+                    disableRowSelectionOnClick
                     initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{toolbar: CustomToolbar}}

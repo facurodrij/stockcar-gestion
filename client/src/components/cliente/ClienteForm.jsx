@@ -3,15 +3,22 @@ import {Controller, useForm} from 'react-hook-form';
 import {
     Alert,
     Box,
-    Button, Checkbox,
-    FormControl, FormControlLabel, FormGroup,
-    FormHelperText, FormLabel,
-    Grid, InputAdornment,
+    Button,
+    Checkbox,
+    FormControl,
+    FormControlLabel,
+    FormGroup,
+    FormHelperText,
+    FormLabel,
+    Grid,
+    InputAdornment,
     InputLabel,
-    MenuItem, OutlinedInput,
+    MenuItem,
     Paper,
     Select,
-    Snackbar, Tab, Tabs,
+    Snackbar,
+    Tab,
+    Tabs,
     TextField,
     Typography
 } from "@mui/material";
@@ -19,17 +26,14 @@ import {DatePicker, LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import SaveIcon from '@mui/icons-material/Save';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import Divider from "@mui/material/Divider";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import {API} from "../../App";
-import IconButton from "@mui/material/IconButton";
-import AddIcon from '@mui/icons-material/Add';
+import {esES} from "@mui/x-data-grid/locales";
+import {DataGrid} from "@mui/x-data-grid";
 
 
 export default function ClienteForm(pk) {
     const {
-        register,
         handleSubmit,
         control,
         formState: {errors},
@@ -41,7 +45,8 @@ export default function ClienteForm(pk) {
         provincia: [],
         genero: [],
         tipo_pago: [],
-        moneda: []
+        moneda: [],
+        tributo: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -50,6 +55,7 @@ export default function ClienteForm(pk) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [selectedTributo, setSelectedTributo] = useState([]);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -101,10 +107,12 @@ export default function ClienteForm(pk) {
                     provincia: selectOptions.provincia,
                     genero: selectOptions.genero,
                     tipo_pago: selectOptions.tipo_pago,
-                    moneda: selectOptions.moneda
+                    moneda: selectOptions.moneda,
+                    tributo: selectOptions.tributo
                 });
                 if (Boolean(pk.pk)) {
                     const cliente = data['cliente'];
+                    const tributos = cliente['tributos'];
                     setValue('tipo_responsable_id', cliente.tipo_responsable.id);
                     setValue('razon_social', cliente.razon_social);
                     setValue('tipo_documento_id', cliente.tipo_documento.id);
@@ -125,6 +133,10 @@ export default function ClienteForm(pk) {
                     setValue('exento_iva', cliente.exento_iva);
                     setValue('duplicado_factura', cliente.duplicado_factura);
                     if (cliente.observacion) setValue('observacion', cliente.observacion);
+                    setSelectedTributo([])
+                    tributos.map((t) => {
+                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
+                    });
                 }
             }
         });
@@ -137,7 +149,7 @@ export default function ClienteForm(pk) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({cliente: data, tributos: selectedTributo})
             }).then(response => {
                 if (response.ok) {
                     setSnackbar({
@@ -157,12 +169,13 @@ export default function ClienteForm(pk) {
                 }
             });
         } else {
+            console.log(selectedTributo);
             fetch(`${API}/clientes/${pk.pk}/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({cliente: data, tributos: selectedTributo})
             }).then(response => {
                 if (response.ok) {
                     setSnackbar({
@@ -446,11 +459,18 @@ export default function ClienteForm(pk) {
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
                             <FormControl fullWidth>
-                                <TextField
-                                    {...register("telefono")}
-                                    id="telefono"
-                                    label="Teléfono"
-                                    variant="outlined"
+                                <Controller
+                                    name="telefono"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({field}) => (
+                                        <TextField
+                                            {...field}
+                                            id="telefono"
+                                            label="Teléfono"
+                                            variant="outlined"
+                                        />
+                                    )}
                                 />
                             </FormControl>
                         </Grid>
@@ -615,11 +635,33 @@ export default function ClienteForm(pk) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{mt: 3}}>Tributos adicionales</Typography>
+                    <Typography variant="h6" gutterBottom sx={{mt: 2}}>Tributos adicionales</Typography>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
-                            <FormControl fullWidth>
-                            </FormControl>
+                            <div style={{width: '100%'}}>
+                                <DataGrid
+                                    autoHeight
+                                    checkboxSelection
+                                    disableRowSelectionOnClick
+                                    localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                                    columns={[
+                                        {field: 'id', headerName: 'ID', width: 75},
+                                        {field: 'descripcion', headerName: 'Descripción', width: 250},
+                                        {field: 'alicuota', headerName: 'Alícuota', width: 250},
+                                    ]}
+                                    rows={selectOptions.tributo.map((item) => {
+                                        return {
+                                            id: item.id,
+                                            descripcion: item.descripcion,
+                                            alicuota: item.alicuota,
+                                        }
+                                    })}
+                                    rowSelectionModel={selectedTributo}
+                                    onRowSelectionModelChange={(newRowSelectionModel) => {
+                                        setSelectedTributo(newRowSelectionModel);
+                                    }}
+                                />
+                            </div>
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>

@@ -88,6 +88,15 @@ class TipoComprobante(db.Model):
                                    back_populates='comprobantes')
     tributos = db.relationship('Tributo', secondary='tributo_tipo_comprobante', back_populates='tipo_comprobantes')
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'codigo_afip': self.codigo_afip,
+            'descripcion': self.descripcion,
+            'letra': self.letra,
+            'abreviatura': self.abreviatura
+        }
+
 
 class TipoConcepto(db.Model):
     """
@@ -114,6 +123,13 @@ class TipoTributo(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     codigo_afip = db.Column(db.Integer, nullable=True)
     descripcion = db.Column(db.String, nullable=False)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'codigo_afip': self.codigo_afip,
+            'descripcion': self.descripcion
+        }
 
 
 class TipoPago(db.Model):

@@ -4,7 +4,6 @@ import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -18,7 +17,6 @@ import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 import {Link} from "react-router-dom";
 import {Inventory2, LocalShipping, People, Person, PointOfSale, Settings} from "@mui/icons-material";
-import Box from "@mui/material/Box";
 
 const drawerWidth = 240;
 

@@ -4,12 +4,13 @@ import {
     GridActionsCellItem,
     GridRowParams,
     GridRowsProp,
-    GridToolbar, GridToolbarColumnsButton,
-    GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton
+    GridToolbarColumnsButton,
+    GridToolbarContainer,
+    GridToolbarDensitySelector,
+    GridToolbarExport,
+    GridToolbarFilterButton
 } from '@mui/x-data-grid';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
-import dayjs from "dayjs";
 import {API} from "../../App";
 import {Link} from "react-router-dom";
 import {esES} from "@mui/x-data-grid/locales";

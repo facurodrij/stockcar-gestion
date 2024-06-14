@@ -37,7 +37,7 @@ class Cliente(db.Model):
     tipo_pago = relationship('TipoPago', backref='clientes')
     moneda_id = Column(Integer, ForeignKey('moneda.id'), default=1)
     moneda = relationship('Moneda', backref='clientes')
-    tributos = db.relationship('Tributo', secondary='tributo_cliente', back_populates='clientes')
+    tributos = relationship('Tributo', secondary='tributo_cliente', back_populates='clientes')
 
     # Datos personales (opcionales)
     fecha_nacimiento = Column(Date, nullable=True)
@@ -57,6 +57,10 @@ class Cliente(db.Model):
         """
         Convierte los datos del cliente a formato JSON.
         """
+        tributos = []
+        for tributo in self.tributos:
+            tributos.append(tributo.to_json())
+
         return {
             'id': self.id,
             'tipo_documento': self.tipo_documento.to_json(),
@@ -78,6 +82,7 @@ class Cliente(db.Model):
             'exento_iva': self.exento_iva,
             'tipo_pago': self.tipo_pago.to_json(),
             'moneda': self.moneda.to_json(),
+            'tributos': tributos,
             'observacion': self.observacion,
             'fecha_alta': self.fecha_alta.isoformat(),
         }
