@@ -29,6 +29,7 @@ class Articulo(db.Model):
     tipo_unidad = relationship('TipoUnidad', backref='articulos')
     alicuota_iva_id = Column(Integer, ForeignKey('alicuota_iva.id'), default=1, nullable=False)
     alicuota_iva = relationship('AlicuotaIVA', backref='articulo')
+
     tributos = relationship('Tributo', secondary='tributo_articulo', back_populates='articulos')
 
     # Datos de auditoría
@@ -38,6 +39,13 @@ class Articulo(db.Model):
     fecha_baja = Column(DateTime, nullable=True)
 
     def to_json(self):
+        """
+        Convierte los datos del artículo a formato JSON.
+        """
+        tributos = []
+        for tributo in self.tributos:
+            tributos.append(tributo.to_json())
+
         return {
             'id': self.id,
             'codigo_barras': self.codigo_barras,
@@ -51,7 +59,7 @@ class Articulo(db.Model):
             'tipo_articulo': self.tipo_articulo.to_json(),
             'tipo_unidad': self.tipo_unidad.to_json(),
             'alicuota_iva': self.alicuota_iva.to_json(),
-            # 'tributos': list(map(lambda x: x.to_json(), self.tributos)),
+            'tributos': tributos,
             'fecha_alta': self.fecha_alta,
             'fecha_modificacion': self.fecha_modificacion,
             'baja': self.baja,

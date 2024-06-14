@@ -14,11 +14,13 @@ import {
     Snackbar,
     Tab,
     Tabs,
-    TextField
+    TextField,
+    Typography
 } from "@mui/material";
 import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import {API} from "../../App";
+import TributoDataGrid from "../tributo/TributoDataGrid";
 
 
 export default function ArticuloForm(pk) {
@@ -41,6 +43,7 @@ export default function ArticuloForm(pk) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [selectedTributo, setSelectedTributo] = useState([]);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -94,6 +97,7 @@ export default function ArticuloForm(pk) {
                 });
                 if (Boolean(pk.pk)) {
                     const articulo = data['articulo'];
+                    const tributos = articulo['tributos'];
                     setValue('codigo_barras', articulo.codigo_barras);
                     if (articulo.codigo_fabricante) setValue('codigo_fabricante', articulo.codigo_fabricante);
                     if (articulo.codigo_proveedor) setValue('codigo_proveedor', articulo.codigo_proveedor);
@@ -103,6 +107,10 @@ export default function ArticuloForm(pk) {
                     setValue('tipo_unidad_id', articulo.tipo_unidad.id);
                     setValue('alicuota_iva_id', articulo.alicuota_iva.id);
                     setValue('observacion', articulo.observacion);
+                    setSelectedTributo([])
+                    tributos.map((t) => {
+                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
+                    });
                 }
             }
         });
@@ -115,7 +123,7 @@ export default function ArticuloForm(pk) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({articulo: data, tributos: selectedTributo})
             }).then(response => {
                 if (response.ok) {
                     setSnackbar({
@@ -140,7 +148,7 @@ export default function ArticuloForm(pk) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({articulo: data, tributos: selectedTributo})
             }).then(response => {
                 if (response.ok) {
                     setSnackbar({
@@ -356,6 +364,16 @@ export default function ArticuloForm(pk) {
                                 />
                                 <FormHelperText>{errors.alicuota_iva && errors.alicuota_iva.message}</FormHelperText>
                             </FormControl>
+                        </Grid>
+                    </Grid>
+                    <Typography variant="h6" gutterBottom sx={{mt: 2}}>Tributos adicionales</Typography>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <TributoDataGrid
+                                tributos={selectOptions.tributo}
+                                selectedTributo={selectedTributo}
+                                setSelectedTributo={setSelectedTributo}
+                            />
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>

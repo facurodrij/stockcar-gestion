@@ -28,8 +28,7 @@ import dayjs from 'dayjs';
 import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import {API} from "../../App";
-import {esES} from "@mui/x-data-grid/locales";
-import {DataGrid} from "@mui/x-data-grid";
+import TributoDataGrid from "../tributo/TributoDataGrid";
 
 
 export default function ClienteForm(pk) {
@@ -638,30 +637,11 @@ export default function ClienteForm(pk) {
                     <Typography variant="h6" gutterBottom sx={{mt: 2}}>Tributos adicionales</Typography>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
-                            <div style={{width: '100%'}}>
-                                <DataGrid
-                                    autoHeight
-                                    checkboxSelection
-                                    disableRowSelectionOnClick
-                                    localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                                    columns={[
-                                        {field: 'id', headerName: 'ID', width: 75},
-                                        {field: 'descripcion', headerName: 'Descripción', width: 250},
-                                        {field: 'alicuota', headerName: 'Alícuota', width: 250},
-                                    ]}
-                                    rows={selectOptions.tributo.map((item) => {
-                                        return {
-                                            id: item.id,
-                                            descripcion: item.descripcion,
-                                            alicuota: item.alicuota,
-                                        }
-                                    })}
-                                    rowSelectionModel={selectedTributo}
-                                    onRowSelectionModelChange={(newRowSelectionModel) => {
-                                        setSelectedTributo(newRowSelectionModel);
-                                    }}
-                                />
-                            </div>
+                            <TributoDataGrid
+                                tributos={selectOptions.tributo}
+                                selectedTributo={selectedTributo}
+                                setSelectedTributo={setSelectedTributo}
+                            />
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>

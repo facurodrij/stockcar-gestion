@@ -33,13 +33,18 @@ def create():
         return jsonify({'select_options': get_select_options()}), 200
     if request.method == 'POST':
         data = request.json
-        for key, value in data.items():
+        articulo_json = data['articulo']
+        for key, value in articulo_json.items():
             if value == '':
-                data[key] = None
+                articulo_json[key] = None
 
-        articulo = Articulo(**data)
+        articulo = Articulo(**articulo_json)
+
         try:
             db.session.add(articulo)
+            for tributo_id in data['tributos']:
+                tributo = Tributo.query.get_or_404(tributo_id)
+                articulo.tributos.append(tributo)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -57,15 +62,25 @@ def detail(pk):
 def update(pk):
     articulo = Articulo.query.get_or_404(pk, 'Artículo no encontrado')
     if request.method == 'GET':
-        return jsonify({'select_options': get_select_options(), 'articulo': articulo.to_json()}), 200
+        return jsonify({
+            'select_options': get_select_options(),
+            'articulo': articulo.to_json()
+        }), 200
     if request.method == 'PUT':
         data = request.json
-        for key, value in data.items():
+        articulo_json = data['articulo']
+        for key, value in articulo_json.items():
             if value == '':
-                data[key] = None
+                articulo_json[key] = None
 
-        for key, value in data.items():
+        for key, value in articulo_json.items():
             setattr(articulo, key, value)
+
+        articulo.tributos = []
+        nuevos_tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
+        for tributo in nuevos_tributos:
+            articulo.tributos.append(tributo)
+
         try:
             db.session.commit()
         except Exception as e:
