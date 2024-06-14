@@ -5,37 +5,35 @@ from server.config import db
 
 
 class VentaItem(db.Model):
+    """
+    Modelo de datos para los items de una venta.
+
+    Esta clase representa un renglón de venta en la base de datos. Incluye campos para los datos principales del
+    renglón y las relaciones con otras tablas.
+    """
     __tablename__ = 'venta_item'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    # tipo_comprobante = Column(String, nullable=False)
-    # letra = Column(String, nullable=False)
-    # sucursal = Column(Integer, nullable=False)
-    # numero = Column(Integer, nullable=False)
-    codigo = Column(String, nullable=False)
-    descripcion = Column(String, nullable=False)
-    unidad_medida = Column(String, nullable=False)  # Obtener de la tabla de Producto
-    cantidad = Column(Numeric, nullable=False)
-    precio = Column(Numeric, nullable=False)
-    descuento = Column(Numeric, default=0, nullable=False)
-    alicuota_iva = Column(Numeric, default=21, nullable=False)
-    subtotal_iva = Column(Numeric, nullable=False)
-    subtotal_gravado = Column(Numeric, nullable=False)
-    subtotal = Column(Numeric, nullable=False)
+    codigo_barras = Column(String, nullable=False)
+    codigo_fabricante = Column(String, nullable=True)
+    codigo_proveedor = Column(String, nullable=True)
+    codigo_interno = Column(String, nullable=True)  # Obtener de la tabla de Producto
+    descripcion = Column(String, nullable=False)  # Obtener de la tabla de Producto
+    tipo_unidad = Column(String, nullable=False)  # Obtener de la tabla de Producto
+    cantidad = Column(Numeric(precision=10, scale=2), nullable=False)
+    precio_unidad = Column(Numeric(precision=10, scale=2), nullable=False)
+    alicuota_iva = Column(Numeric(precision=5, scale=2), default=21, nullable=False)
+    subtotal_iva = Column(Numeric(precision=10, scale=2), nullable=False)
+    subtotal_gravado = Column(Numeric(precision=10, scale=2), nullable=False)
+    subtotal = Column(Numeric(precision=10, scale=2), nullable=False)
 
-    # --Foreign keys
+    # Relaciones con otras tablas
     venta_id = Column(Integer, ForeignKey('venta.id'), nullable=False)
-    # --Relationships
     venta = relationship('Venta', backref='items')
 
     def to_json(self):
         return {
             'id': self.id,
-            'fecha': self.fecha.strftime('%Y-%m-%d %H:%M:%S'),
-            'tipo_doc': self.tipo_doc,
-            'letra': self.letra,
-            'sucursal': self.sucursal,
-            'numero': self.numero,
             'codigo': self.codigo,
             'producto': self.producto,
             'cantidad': self.cantidad
