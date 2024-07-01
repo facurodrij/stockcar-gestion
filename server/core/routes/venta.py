@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
 from server.config import db
-from server.core.models import Venta, VentaItem, TipoDocumento, TipoResponsable, Provincia, Cliente
+from server.core.models import Venta, VentaItem, Provincia, Cliente, TipoComprobante
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -11,9 +11,11 @@ model = 'ventas'
 
 def get_select_options():
     cliente = Cliente.query.all()
+    tipo_comprobante = TipoComprobante.query.all()
 
     return {
-        'cliente': list(map(lambda x: x.to_json_min(), cliente))
+        'cliente': list(map(lambda x: x.to_json_min(), cliente)),
+        'tipo_comprobante': list(map(lambda x: x.to_json(), tipo_comprobante)),
     }
 
 

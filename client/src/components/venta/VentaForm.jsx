@@ -17,7 +17,7 @@ import {
     Tabs,
     Tab, Autocomplete
 } from "@mui/material";
-import {DatePicker, LocalizationProvider} from '@mui/x-date-pickers';
+import {DatePicker, DateTimePicker, LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import SaveIcon from '@mui/icons-material/Save';
@@ -37,10 +37,8 @@ export default function VentaForm({pk}) {
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
         cliente: [],
+        tipo_comprobante: [],
     });
-    const [autocompleteOptions, setAutocompleteOptions] = useState({
-        cliente: [],
-    })
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
         message: '',
@@ -96,10 +94,8 @@ export default function VentaForm({pk}) {
                 const selectOptions = data['select_options'];
                 setSelectOptions({
                     cliente: selectOptions.cliente,
+                    tipo_comprobante: selectOptions.tipo_comprobante,
                 });
-
-                console.log(selectOptions.cliente);
-
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     const tributos = venta['tributos'];
@@ -167,9 +163,51 @@ export default function VentaForm({pk}) {
                                 />
                             </FormControl>
                         </Grid>
-                        <br/>
+                    </Grid>
+                    <br/>
+                    <Grid container spacing={2}>
                         <Grid item xs={6}>
-
+                            <FormControl fullWidth required error={Boolean(errors.tipo_comprobante_id)}>
+                                <InputLabel id="tipo_comprobante_label">Tipo de Comprobante</InputLabel>
+                                <Controller
+                                    name="tipo_comprobante_id"
+                                    control={control}
+                                    defaultValue=""
+                                    rules={{required: "Este campo es requerido"}}
+                                    render={({field}) => (
+                                        <Select
+                                            {...field}
+                                            id="tipo_comprobante"
+                                            labelId="tipo_comprobante_label"
+                                            label="Tipo de Comprobante"
+                                        >
+                                            {selectOptions.tipo_comprobante.map((item) => (
+                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                        </Select>
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth error={Boolean(errors.fecha_hora)}>
+                                <Controller
+                                    name="fecha_hora"
+                                    control={control}
+                                    defaultValue={null}
+                                    render={({field}) => (
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <DateTimePicker
+                                                {...field}
+                                                label="Fecha de Emisión"
+                                                value={field.value ? dayjs(field.value) : null}
+                                                onChange={(value) => field.onChange(value)}
+                                                renderInput={(params) => <TextField {...params} required/>}
+                                            />
+                                        </LocalizationProvider>
+                                    )}
+                                />
+                                <FormHelperText>{errors.fecha_hora && errors.fecha_hora.message}</FormHelperText>
+                            </FormControl>
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
