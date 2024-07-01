@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
-from server.core.models import Venta, VentaItem, TipoDocumento, TipoResponsable, Provincia
+from server.config import db
+from server.core.models import Venta, VentaItem, TipoDocumento, TipoResponsable, Provincia, Cliente
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -9,14 +10,10 @@ model = 'ventas'
 
 
 def get_select_options():
-    tipo_documento = TipoDocumento.query.all()
-    tipo_responsable = TipoResponsable.query.all()
-    provincia = Provincia.query.all()
+    cliente = Cliente.query.all()
 
     return {
-        'tipo_documento': list(map(lambda x: x.to_json(), tipo_documento)),
-        'tipo_responsable': list(map(lambda x: x.to_json(), tipo_responsable)),
-        'provincia': list(map(lambda x: x.to_json(), provincia))
+        'cliente': list(map(lambda x: x.to_json_min(), cliente))
     }
 
 
@@ -47,9 +44,14 @@ def create():
         return jsonify({'select_options': get_select_options()}), 200
     if request.method == 'POST':
         data = request.json
-        for key, value in data.items():
+        venta_json = data['venta']
+        for key, value in venta_json.items():
             if value == '':
-                data[key] = None
+                venta_json[key] = None
+        venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora'])
+
+        venta = Venta(**venta_json)
+
         return jsonify({'message': 'Venta creada'}), 201
 
 

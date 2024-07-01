@@ -15,7 +15,7 @@ import {
     TextField,
     Typography,
     Tabs,
-    Tab
+    Tab, Autocomplete
 } from "@mui/material";
 import {DatePicker, LocalizationProvider} from '@mui/x-date-pickers';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
@@ -27,44 +27,46 @@ import {API} from "../../App";
 import Divider from "@mui/material/Divider";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 
-function a11yProps(index) {
-    return {
-        id: `simple-tab-${index}`,
-        'aria-controls': `simple-tabpanel-${index}`,
-    };
-}
 
-export default function VentaForm(pk) {
+export default function VentaForm({pk}) {
     const {
         handleSubmit,
         control,
         formState: {errors},
-        setValue,
-        trigger
+        setValue
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
-        tipo_responsable: [],
-        provincia: []
+        cliente: [],
     });
-    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [autocompleteOptions, setAutocompleteOptions] = useState({
+        cliente: [],
+    })
+    const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
         onClose: () => handleCloseSnackbar(false)
     });
-    // Constantes para el manejo de Tabs
-    const [tabValue, setTabValue] = useState(0);
-    const handleChangeTab = (event, newValue) => {
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [selectedTributo, setSelectedTributo] = useState([]);
+
+    const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
     }
 
+    const handleCloseSnackbar = (redirect) => {
+        setOpenSnackbar(false);
+        if (redirect) {
+            window.location.href = '/ventas';
+        }
+    }
 
     const fetchData = async () => {
-        if (Boolean(pk.pk) === false) {
+        if (Boolean(pk) === false) {
             const res = await fetch(`${API}/ventas/create`);
             return await res.json();
         } else {
-            const res = await fetch(`${API}/ventas/${pk.pk}/update`);
+            const res = await fetch(`${API}/ventas/${pk}/update`);
             if (res.status === 404) {
                 setSnackbar({
                     message: 'Venta no encontrada',
@@ -88,106 +90,34 @@ export default function VentaForm(pk) {
         }
     }
 
-
     useEffect(() => {
         fetchData().then((data) => {
             if (data) {
                 const selectOptions = data['select_options'];
                 setSelectOptions({
-                    tipo_responsable: selectOptions.tipo_responsable,
-                    provincia: selectOptions.provincia
+                    cliente: selectOptions.cliente,
                 });
-                if (Boolean(pk.pk)) {
+
+                console.log(selectOptions.cliente);
+
+                if (Boolean(pk)) {
                     const venta = data['venta'];
-                    setValue('tipo_responsable', venta.tipo_responsable.id);
-                    setValue('razon_social', venta.razon_social);
+                    const tributos = venta['tributos'];
+                    setValue('cliente', venta.cliente);
+                    setSelectedTributo([])
+                    tributos.map((t) => {
+                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
+                    });
                 }
             }
         });
     }, []);
 
-
-    const onSubmit = async (data) => {
-        // const result = await trigger(['tipo_responsable', 'razon_social', 'direccion', 'localidad', 'codigo_postal', 'provincia']);
-        // console.log(result);
-        // if (!result) {
-        //     if (errors.tipo_responsable || errors.razon_social) {
-        //         // setTabValue(0);
-        //         alert('Error en la pestaña 1');
-        //     } else if (errors.direccion || errors.localidad || errors.codigo_postal || errors.provincia) {
-        //         // setTabValue(1);
-        //         alert('Error en la pestaña 2');
-        //     }
-        //     return;
-        // }
-        if (Boolean(pk.pk) === false) {
-            fetch(`${API}/ventas/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(response => {
-                if (response.ok) {
-                    setSnackbar({
-                        message: 'Venta creada correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    console.log(response);
-                    setSnackbar({
-                        message: 'Error al crear la venta',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
-            });
-        } else {
-            fetch(`${API}/ventas/${pk.pk}/update`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(response => {
-                if (response.ok) {
-                    setSnackbar({
-                        message: 'Venta actualizada correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(true)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    console.log(response);
-                    setSnackbar({
-                        message: 'Error al actualizar la venta',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
-            });
-        }
+    const onSubmit = (data) => {
+        alert(JSON.stringify(data));
     }
 
     const onError = (errors) => {
-        if (errors.tipo_responsable || errors.razon_social) {
-            setTabValue(0);
-            return;
-        }
-        if (errors.direccion || errors.localidad || errors.codigo_postal || errors.provincia) {
-            setTabValue(1);
-        }
-    }
-
-    const handleCloseSnackbar = (redirect) => {
-        setOpenSnackbar(false);
-        if (redirect) {
-            window.location.href = '/ventas';
-        }
     }
 
     return (
@@ -195,153 +125,59 @@ export default function VentaForm(pk) {
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
                    sx={{mt: 2, padding: 2}}>
                 <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
-                    <Tabs value={tabValue} onChange={handleChangeTab} centered>
-                        <Tab label="Identidad"/>
+                    <Tabs value={tabValue} onChange={handleTabChange} centered>
+                        <Tab label="Principal"/>
                         <Tab label="Dirección"/>
                     </Tabs>
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
                     <Grid container spacing={2}>
-                        <Grid item xs={4}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_responsable)}>
-                                <InputLabel id="tipo_responsable_label">Tipo de Responsable IVA</InputLabel>
-                                <Controller
-                                    name="tipo_responsable"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
-                                        <Select
-                                            {...field}
-                                            id="tipo_responsable"
-                                            labelId="tipo_responsable_label"
-                                            label="Tipo de Responsable IVA"
-                                        >
-                                            {selectOptions.tipo_responsable.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
-                                        </Select>
-                                    )}
-                                />
-                                <FormHelperText>{errors.tipo_responsable && errors.tipo_responsable.message}</FormHelperText>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={8}>
+                        <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <Controller
-                                    name="razon_social"
+                                    name="cliente_id"
                                     control={control}
                                     defaultValue=""
                                     rules={{required: "Este campo es requerido"}}
                                     render={({field}) => (
-                                        <TextField
+                                        <Autocomplete
                                             {...field}
-                                            required
-                                            id="razon_social"
-                                            label="Razón Social"
-                                            variant="outlined"
-                                            error={Boolean(errors.razon_social)}
-                                            helperText={errors.razon_social && errors.razon_social.message}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    required
+                                                    label="Seleccionar Cliente"
+                                                    variant="outlined"
+                                                    error={Boolean(errors.cliente_id)}
+                                                    helperText={errors.cliente_id && errors.cliente_id.message}
+                                                />
+                                            )}
+                                            options={selectOptions.cliente}
+                                            getOptionLabel={(option) => option.razon_social ? option.razon_social : ''}
+                                            getOptionKey={(option) => option.id}
+                                            value={selectOptions.cliente.find((c) => c.id === field.value) || {}}
+                                            isOptionEqualToValue={(option, value) =>
+                                                value === undefined || value === "" || option.id === value.id
+                                            }
+                                            onChange={(event, value) => {
+                                                field.onChange(value ? value.id : null);
+                                            }}
                                         />
                                     )}
                                 />
                             </FormControl>
+                        </Grid>
+                        <br/>
+                        <Grid item xs={6}>
+
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
                     <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="direccion"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
-                                        <TextField
-                                            {...field}
-                                            required
-                                            id="direccion"
-                                            label="Dirección"
-                                            variant="outlined"
-                                            error={Boolean(errors.direccion)}
-                                            helperText={errors.direccion && errors.direccion.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={4}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="localidad"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
-                                        <TextField
-                                            {...field}
-                                            required
-                                            id="localidad"
-                                            label="Localidad"
-                                            variant="outlined"
-                                            error={Boolean(errors.localidad)}
-                                            helperText={errors.localidad && errors.localidad.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={4}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="codigo_postal"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
-                                        <TextField
-                                            {...field}
-                                            required
-                                            id="codigo_postal"
-                                            label="Código Postal"
-                                            variant="outlined"
-                                            error={Boolean(errors.codigo_postal)}
-                                            helperText={errors.codigo_postal && errors.codigo_postal.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={4}>
-                            <FormControl fullWidth required error={Boolean(errors.provincia)}>
-                                <InputLabel id="provincia_label">Provincia</InputLabel>
-                                <Controller
-                                    name="provincia"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
-                                        <Select
-                                            {...field}
-                                            id="provincia"
-                                            labelId="provincia_label"
-                                            label="Provincia"
-                                        >
-                                            {selectOptions.provincia.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
-                                        </Select>
-                                    )}
-                                />
-                                <FormHelperText>{errors.provincia && errors.provincia.message}</FormHelperText>
-                            </FormControl>
-                        </Grid>
                     </Grid>
                 </SimpleTabPanel>
-                <Box sx={{display: 'flex', justifyContent: 'space-between', mt: 2}}>
-                    <Button variant="outlined" startIcon={<ArrowBackIcon/>} onClick={() => window.history.back()}>
-                        Cancelar
-                    </Button>
+                <Box sx={{display: 'flex', justifyContent: 'right', mt: 2}}>
                     <Button variant="contained" startIcon={<SaveIcon/>} type="submit">
                         Guardar
                     </Button>

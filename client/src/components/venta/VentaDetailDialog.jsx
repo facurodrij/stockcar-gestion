@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {Link} from "react-router-dom";
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
@@ -10,9 +11,9 @@ import Slide from '@mui/material/Slide';
 import Box from "@mui/material/Box";
 import {Tab, Tabs} from "@mui/material";
 import {API} from "../../App";
-import GeneralTabPanel from "../../pages/cliente/detail/GeneralTabPanel";
-import InvoiceTabPanel from "../../pages/cliente/detail/InvoiceTabPanel";
-import {Link} from "react-router-dom";
+import GeneralTabPanel from "./DetailDialogTabs/GeneralTabPanel";
+import InvoiceTabPanel from "./DetailDialogTabs/InvoiceTabPanel";
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="left" ref={ref} {...props} timeout={1000}>{props.children}</Slide>
@@ -72,12 +73,12 @@ export default function VentaDetailDialog({item, open, onClose}) {
                             <CloseIcon/>
                         </IconButton>
                         <Typography sx={{ml: 2, flex: 1}} variant="h6" component="div">
-                            Detalle de Cliente
+                            Detalle de Venta
                         </Typography>
                         <Button
                             color="inherit"
                             component={Link}
-                            to={`/clientes/form/${itemData?.id}`}
+                            to={`/ventas/form/${itemData?.id}`}
                         >
                             Editar
                         </Button>

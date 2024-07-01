@@ -53,6 +53,15 @@ class Cliente(db.Model):
     baja = Column(Boolean, default=False)
     fecha_baja = Column(DateTime, nullable=True)
 
+    def to_json_min(self):
+        """
+        Convierte los datos mínimos del cliente a formato JSON.
+        """
+        return {
+            'id': self.id,
+            'razon_social': self.razon_social,
+        }
+
     def to_json(self):
         """
         Convierte los datos del cliente a formato JSON.
