@@ -3,7 +3,6 @@ import Typography from '@mui/material/Typography';
 import {ClienteList} from "../../components/cliente";
 
 
-
 export default function ClientePage() {
     return (
         <>

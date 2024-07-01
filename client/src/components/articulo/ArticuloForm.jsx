@@ -23,7 +23,7 @@ import {API} from "../../App";
 import TributoDataGrid from "../tributo/TributoDataGrid";
 
 
-export default function ArticuloForm(pk) {
+export default function ArticuloForm({pk}) {
     const {
         handleSubmit,
         control,
@@ -57,11 +57,11 @@ export default function ArticuloForm(pk) {
     }
 
     const fetchData = async () => {
-        if (Boolean(pk.pk) === false) {
+        if (Boolean(pk) === false) {
             const res = await fetch(`${API}/articulos/create`);
             return await res.json();
         } else {
-            const res = await fetch(`${API}/articulos/${pk.pk}/update`);
+            const res = await fetch(`${API}/articulos/${pk}/update`);
             if (res.status === 404) {
                 setSnackbar({
                     message: 'Artículo no encontrado',
@@ -95,7 +95,7 @@ export default function ArticuloForm(pk) {
                     alicuota_iva: selectOptions.alicuota_iva,
                     tributo: selectOptions.tributo
                 });
-                if (Boolean(pk.pk)) {
+                if (Boolean(pk)) {
                     const articulo = data['articulo'];
                     const tributos = articulo['tributos'];
                     setValue('codigo_barras', articulo.codigo_barras);
@@ -117,15 +117,15 @@ export default function ArticuloForm(pk) {
     }, []);
 
     const onSubmit = (data) => {
-        if (Boolean(pk.pk) === false) {
+        if (Boolean(pk) === false) {
             fetch(`${API}/articulos/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({articulo: data, tributos: selectedTributo})
-            }).then(response => {
-                if (response.ok) {
+            }).then(res => {
+                if (res.ok) {
                     setSnackbar({
                         message: 'Artículo creado correctamente',
                         severity: 'success',
@@ -133,7 +133,7 @@ export default function ArticuloForm(pk) {
                     });
                     setOpenSnackbar(true);
                 } else {
-                    console.log(response);
+                    console.log(res);
                     setSnackbar({
                         message: 'Error al crear el artículo',
                         severity: 'error',
@@ -143,14 +143,14 @@ export default function ArticuloForm(pk) {
                 }
             });
         } else {
-            fetch(`${API}/articulos/${pk.pk}/update`, {
+            fetch(`${API}/articulos/${pk}/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({articulo: data, tributos: selectedTributo})
-            }).then(response => {
-                if (response.ok) {
+            }).then(res => {
+                if (res.ok) {
                     setSnackbar({
                         message: 'Artículo actualizado correctamente',
                         severity: 'success',
@@ -158,7 +158,7 @@ export default function ArticuloForm(pk) {
                     });
                     setOpenSnackbar(true);
                 } else {
-                    console.log(response);
+                    console.log(res);
                     setSnackbar({
                         message: 'Error al actualizar el artículo',
                         severity: 'error',

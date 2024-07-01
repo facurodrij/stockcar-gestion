@@ -31,7 +31,7 @@ import {API} from "../../App";
 import TributoDataGrid from "../tributo/TributoDataGrid";
 
 
-export default function ClienteForm(pk) {
+export default function ClienteForm({pk}) {
     const {
         handleSubmit,
         control,
@@ -68,11 +68,11 @@ export default function ClienteForm(pk) {
     }
 
     const fetchData = async () => {
-        if (Boolean(pk.pk) === false) {
+        if (Boolean(pk) === false) {
             const res = await fetch(`${API}/clientes/create`);
             return await res.json();
         } else {
-            const res = await fetch(`${API}/clientes/${pk.pk}/update`);
+            const res = await fetch(`${API}/clientes/${pk}/update`);
             if (res.status === 404) {
                 setSnackbar({
                     message: 'Cliente no encontrado',
@@ -109,7 +109,7 @@ export default function ClienteForm(pk) {
                     moneda: selectOptions.moneda,
                     tributo: selectOptions.tributo
                 });
-                if (Boolean(pk.pk)) {
+                if (Boolean(pk)) {
                     const cliente = data['cliente'];
                     const tributos = cliente['tributos'];
                     setValue('tipo_responsable_id', cliente.tipo_responsable.id);
@@ -142,15 +142,15 @@ export default function ClienteForm(pk) {
     }, []);
 
     const onSubmit = (data) => {
-        if (Boolean(pk.pk) === false) {
+        if (Boolean(pk) === false) {
             fetch(`${API}/clientes/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({cliente: data, tributos: selectedTributo})
-            }).then(response => {
-                if (response.ok) {
+            }).then(res => {
+                if (res.ok) {
                     setSnackbar({
                         message: 'Cliente creado correctamente',
                         severity: 'success',
@@ -158,7 +158,7 @@ export default function ClienteForm(pk) {
                     });
                     setOpenSnackbar(true);
                 } else {
-                    console.log(response);
+                    console.log(res);
                     setSnackbar({
                         message: 'Error al crear el cliente',
                         severity: 'error',
@@ -168,15 +168,14 @@ export default function ClienteForm(pk) {
                 }
             });
         } else {
-            console.log(selectedTributo);
-            fetch(`${API}/clientes/${pk.pk}/update`, {
+            fetch(`${API}/clientes/${pk}/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({cliente: data, tributos: selectedTributo})
-            }).then(response => {
-                if (response.ok) {
+            }).then(res => {
+                if (res.ok) {
                     setSnackbar({
                         message: 'Cliente actualizado correctamente',
                         severity: 'success',
@@ -184,7 +183,7 @@ export default function ClienteForm(pk) {
                     });
                     setOpenSnackbar(true);
                 } else {
-                    console.log(response);
+                    console.log(res);
                     setSnackbar({
                         message: 'Error al actualizar el cliente',
                         severity: 'error',
