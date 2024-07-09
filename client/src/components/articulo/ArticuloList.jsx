@@ -8,7 +8,7 @@ import {
     GridToolbarContainer,
     GridToolbarDensitySelector,
     GridToolbarExport,
-    GridToolbarFilterButton
+    GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import {API} from "../../App";
@@ -16,22 +16,26 @@ import {Link} from "react-router-dom";
 import {esES} from "@mui/x-data-grid/locales";
 import {Button} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import Box from "@mui/material/Box";
 
 
 function CustomToolbar() {
     return (
         <GridToolbarContainer>
+            <GridToolbarQuickFilter size={'small'}/>
+            <GridToolbarColumnsButton/>
+            <GridToolbarFilterButton/>
+            <GridToolbarDensitySelector/>
+            <GridToolbarExport/>
+            <Box sx={{ flexGrow: 1 }} />
             <Button
                 startIcon={<AddIcon/>}
                 component={Link}
                 to="/articulos/form"
                 size="small"
+                variant="contained"
             >Nuevo Artículo
             </Button>
-            <GridToolbarColumnsButton/>
-            <GridToolbarFilterButton/>
-            <GridToolbarDensitySelector/>
-            <GridToolbarExport/>
         </GridToolbarContainer>
     );
 }
@@ -65,12 +69,6 @@ export default function ArticuloList() {
         {
             field: 'actions', type: 'actions', headerName: 'Acciones', width: 100,
             getActions: (params: GridRowParams) => [
-                // <GridActionsCellItem
-                //     icon={<VisibilityIcon/>}
-                //     label="Detalle"
-                //     onClick={() => handleShowDetail(params.row)}
-                //     showInMenu
-                // />,
                 <GridActionsCellItem
                     icon={<EditIcon/>}
                     label="Editar"
@@ -106,6 +104,7 @@ export default function ArticuloList() {
                 initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                 localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                 slots={{toolbar: CustomToolbar}}
+                ignoreDiacritics // Para ignorar acentos en la búsqueda
             />
         </div>
     );

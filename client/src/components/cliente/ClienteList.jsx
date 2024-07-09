@@ -8,7 +8,7 @@ import {
     GridToolbarContainer,
     GridToolbarDensitySelector,
     GridToolbarExport,
-    GridToolbarFilterButton
+    GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
@@ -19,21 +19,25 @@ import {Link} from "react-router-dom";
 import {esES} from "@mui/x-data-grid/locales";
 import {Button} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import Box from "@mui/material/Box";
 
 function CustomToolbar() {
     return (
         <GridToolbarContainer>
+            <GridToolbarQuickFilter size={'small'}/>
+            <GridToolbarColumnsButton/>
+            <GridToolbarFilterButton/>
+            <GridToolbarDensitySelector/>
+            <GridToolbarExport/>
+            <Box sx={{ flexGrow: 1 }} />
             <Button
                 startIcon={<AddIcon/>}
                 component={Link}
                 to="/clientes/form"
                 size="small"
+                variant="contained"
             >Nuevo Cliente
             </Button>
-            <GridToolbarColumnsButton/>
-            <GridToolbarFilterButton/>
-            <GridToolbarDensitySelector/>
-            <GridToolbarExport/>
         </GridToolbarContainer>
     );
 }

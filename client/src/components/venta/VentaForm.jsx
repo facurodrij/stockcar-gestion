@@ -2,8 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {
     Alert,
+    Autocomplete,
     Box,
     Button,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     FormControl,
     FormHelperText,
     Grid,
@@ -12,20 +16,22 @@ import {
     Paper,
     Select,
     Snackbar,
-    TextField,
-    Typography,
+    Tab,
     Tabs,
-    Tab, Autocomplete
+    TextField,
+    Typography
 } from "@mui/material";
-import {DatePicker, DateTimePicker, LocalizationProvider} from '@mui/x-date-pickers';
+import {DateTimePicker, LocalizationProvider} from '@mui/x-date-pickers';
+import {DataGrid, GridToolbarContainer, useGridApiRef} from '@mui/x-data-grid';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import 'dayjs/locale/en-gb';
 import SaveIcon from '@mui/icons-material/Save';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-
 import {API} from "../../App";
 import Divider from "@mui/material/Divider";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
+import AddIcon from "@mui/icons-material/Add";
+import Dialog from "@mui/material/Dialog";
 
 
 export default function VentaForm({pk}) {
@@ -46,7 +52,24 @@ export default function VentaForm({pk}) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [selectedTributo, setSelectedTributo] = useState([]);
+
+    const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
+    const [listArticulo, setListArticulo] = useState([]);
+    const [selectedArticulo, setSelectedArticulo] = useState([]);
+
+    const CustomToolbar = () => {
+        return (
+            <GridToolbarContainer>
+                <Button
+                    startIcon={<AddIcon/>}
+                    size="small"
+                    variant="contained"
+                    onClick={() => setOpenArticuloDialog(true)}
+                >Seleccionar Artículos
+                </Button>
+            </GridToolbarContainer>
+        );
+    }
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -96,25 +119,38 @@ export default function VentaForm({pk}) {
                     cliente: selectOptions.cliente,
                     tipo_comprobante: selectOptions.tipo_comprobante,
                 });
-                if (Boolean(pk)) {
-                    const venta = data['venta'];
-                    const tributos = venta['tributos'];
-                    setValue('cliente', venta.cliente);
-                    setSelectedTributo([])
-                    tributos.map((t) => {
-                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
-                    });
-                }
             }
         });
     }, []);
 
+    const fetchArticulos = async () => {
+        const res = await fetch(`${API}/articulos`);
+        return await res.json();
+    }
+
+    // useEffect para cargar los artículos cuando se abre el diálogo
+    useEffect(() => {
+        if (openArticuloDialog) {
+            fetchArticulos().then(data => {
+                setListArticulo(data['articulos']);
+            });
+        }
+    }, [openArticuloDialog]);
+
     const onSubmit = (data) => {
-        alert(JSON.stringify(data));
+        const rowsArray = Array.from(ventaRenglonesGridApiRef.current.getRowModels().values());
+        if (rowsArray.length === 0) {
+            alert('No se ha seleccionado ningún artículo');
+            return;
+        }
+        data['renglones'] = rowsArray
     }
 
     const onError = (errors) => {
+        alert(JSON.stringify(errors));
     }
+
+    const ventaRenglonesGridApiRef = useGridApiRef();
 
     return (
         <>
@@ -151,7 +187,7 @@ export default function VentaForm({pk}) {
                                             options={selectOptions.cliente}
                                             getOptionLabel={(option) => option.razon_social ? option.razon_social : ''}
                                             getOptionKey={(option) => option.id}
-                                            value={selectOptions.cliente.find((c) => c.id === field.value) || {}}
+                                            value={selectOptions.cliente.find((c) => c.id === field.value) || ""}
                                             isOptionEqualToValue={(option, value) =>
                                                 value === undefined || value === "" || option.id === value.id
                                             }
@@ -195,13 +231,12 @@ export default function VentaForm({pk}) {
                                     control={control}
                                     defaultValue={null}
                                     render={({field}) => (
-                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'en-gb'}>
                                             <DateTimePicker
                                                 {...field}
                                                 label="Fecha de Emisión"
                                                 value={field.value ? dayjs(field.value) : null}
                                                 onChange={(value) => field.onChange(value)}
-                                                renderInput={(params) => <TextField {...params} required/>}
                                             />
                                         </LocalizationProvider>
                                     )}
@@ -210,6 +245,34 @@ export default function VentaForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
+                    <Divider sx={{mt: 2}}/>
+                    <Typography variant="h6" sx={{mt: 2}}>Renglones de Venta</Typography>
+                    <div style={{height: 400, width: '100%'}}>
+                        <DataGrid
+                            apiRef={ventaRenglonesGridApiRef}
+                            columns={[
+                                {field: 'articulo_id', headerName: 'ID Artículo', width: 75},
+                                {field: 'descripcion', headerName: 'Descripción', width: 500},
+                                {field: 'cantidad', headerName: 'Cantidad', width: 100},
+                                {field: 'precio_unitario', headerName: 'Precio Unitario', width: 150},
+                                {field: 'precio_total', headerName: 'Precio Total', width: 150},
+                            ]}
+                            rows={listArticulo.filter((item) => selectedArticulo.includes(item.id)).map((item) => {
+                                return {
+                                    articulo_id: item.id,
+                                    descripcion: item.descripcion,
+                                    cantidad: 1,
+                                    precio_unitario: 0,
+                                    precio_total: 0,
+                                }
+                            })}
+                            getRowId={(row) => row.articulo_id}
+                            pageSize={5}
+                            rowsPerPageOptions={[5]}
+                            disableSelectionOnClick
+                            slots={{toolbar: CustomToolbar}}
+                        />
+                    </div>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
                     <Grid container spacing={2}>
@@ -221,6 +284,50 @@ export default function VentaForm({pk}) {
                     </Button>
                 </Box>
             </Paper>
+            <Dialog
+                open={openArticuloDialog}
+                onClose={() => setOpenArticuloDialog(false)}
+                fullWidth={true}
+                maxWidth={'md'}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">Seleccionar Artículos</DialogTitle>
+                <DialogContent dividers>
+                    <div style={{height: 400, width: '100%'}}>
+                        <DataGrid
+                            columns={[
+                                {field: 'id', headerName: 'ID', width: 75},
+                                {field: 'descripcion', headerName: 'Descripción', width: 500},
+                            ]}
+                            rows={listArticulo.map(item => {
+                                return {
+                                    id: item.id,
+                                    descripcion: item.descripcion,
+                                }
+                            })}
+                            rowHeight={30}
+                            pageSize={5}
+                            rowsPerPageOptions={[5, 10, 20]}
+                            checkboxSelection
+                            onRowSelectionModelChange={(newSelection) => {
+                                setSelectedArticulo(newSelection);
+                            }}
+                            rowSelectionModel={selectedArticulo}
+                        />
+                    </div>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        color="primary"
+                        onClick={() => {
+                            setOpenArticuloDialog(false);
+                        }}
+                    >
+                        Aceptar
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={snackbar.onClose}>
                 <Alert onClose={snackbar.onClose} severity={snackbar.severity} sx={{width: '100%'}}>
                     {snackbar.message}
