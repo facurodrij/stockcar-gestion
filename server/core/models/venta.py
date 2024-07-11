@@ -49,7 +49,7 @@ class Venta(db.Model):
         """
         Devuelve el número de documento en formato 0000-00000000.
         """
-        return f'{self.sucursal:04d}-{self.numero:08d}'
+        return f'{self.punto_venta:04d}-{self.numero:08d}'
 
     def to_json(self):
         """

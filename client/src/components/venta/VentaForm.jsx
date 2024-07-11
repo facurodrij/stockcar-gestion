@@ -32,6 +32,7 @@ import Divider from "@mui/material/Divider";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import AddIcon from "@mui/icons-material/Add";
 import Dialog from "@mui/material/Dialog";
+import SnackbarAlert from "../shared/SnackbarAlert";
 
 
 export default function VentaForm({pk}) {
@@ -128,7 +129,6 @@ export default function VentaForm({pk}) {
         return await res.json();
     }
 
-    // useEffect para cargar los artículos cuando se abre el diálogo
     useEffect(() => {
         if (openArticuloDialog) {
             fetchArticulos().then(data => {
@@ -143,7 +143,56 @@ export default function VentaForm({pk}) {
             alert('No se ha seleccionado ningún artículo');
             return;
         }
-        data['renglones'] = rowsArray
+        if (Boolean(pk) === false) {
+            fetch(`${API}/ventas/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({venta: data, renglones: rowsArray})
+            }).then(res => {
+                if (res.ok) {
+                    setSnackbar({
+                        message: 'Venta creada correctamente',
+                        severity: 'success',
+                        onClose: () => handleCloseSnackbar(true)
+                    });
+                    setOpenSnackbar(true);
+                } else {
+                    setSnackbar({
+                        message: 'Error al crear la venta',
+                        severity: 'error',
+                        onClose: () => handleCloseSnackbar(false)
+                    });
+                    setOpenSnackbar(true);
+                }
+            });
+        } else {
+            fetch(`${API}/ventas/${pk}/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({venta: data, renglones: rowsArray})
+            }).then(res => {
+                if (res.ok) {
+                    setSnackbar({
+                        message: 'Venta actualizada correctamente',
+                        severity: 'success',
+                        onClose: () => handleCloseSnackbar(true)
+                    });
+                    setOpenSnackbar(true);
+                } else {
+                    console.log(res);
+                    setSnackbar({
+                        message: 'Error al actualizar la venta',
+                        severity: 'error',
+                        onClose: () => handleCloseSnackbar(false)
+                    });
+                    setOpenSnackbar(true);
+                }
+            });
+        }
     }
 
     const onError = (errors) => {
@@ -254,7 +303,7 @@ export default function VentaForm({pk}) {
                                 {field: 'articulo_id', headerName: 'ID Artículo', width: 75},
                                 {field: 'descripcion', headerName: 'Descripción', width: 500},
                                 {field: 'cantidad', headerName: 'Cantidad', width: 100},
-                                {field: 'precio_unitario', headerName: 'Precio Unitario', width: 150},
+                                {field: 'precio_unidad', headerName: 'Precio Unitario', width: 150},
                                 {field: 'precio_total', headerName: 'Precio Total', width: 150},
                             ]}
                             rows={listArticulo.filter((item) => selectedArticulo.includes(item.id)).map((item) => {
@@ -262,7 +311,7 @@ export default function VentaForm({pk}) {
                                     articulo_id: item.id,
                                     descripcion: item.descripcion,
                                     cantidad: 1,
-                                    precio_unitario: 0,
+                                    precio_unidad: 5,
                                     precio_total: 0,
                                 }
                             })}
@@ -328,11 +377,13 @@ export default function VentaForm({pk}) {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={snackbar.onClose}>
-                <Alert onClose={snackbar.onClose} severity={snackbar.severity} sx={{width: '100%'}}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+            <SnackbarAlert
+                open={openSnackbar}
+                autoHideDuration={4000}
+                onClose={snackbar.onClose}
+                severity={snackbar.severity}
+                message={snackbar.message}
+            />
         </>
     );
 }

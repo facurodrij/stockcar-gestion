@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
 from server.config import db
-from server.core.models import Venta, VentaItem, Provincia, Cliente, TipoComprobante
+from server.core.models import Venta, VentaItem, Provincia, Cliente, TipoComprobante, Articulo
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -51,10 +51,57 @@ def create():
             if value == '':
                 venta_json[key] = None
         venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora'])
+        # venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']) if venta_json['vencimiento_cae'] else None
+        venta_json['punto_venta'] = 1
+        venta_json['numero'] = 1
+        venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
+        venta_json['total'] = 100
 
-        venta = Venta(**venta_json)
+        venta = Venta(
+            punto_venta=venta_json['punto_venta'],
+            numero=venta_json['numero'],
+            nombre_cliente=venta_json['nombre_cliente'],
+            fecha_hora=venta_json['fecha_hora'],
+            # descuento=venta_json['descuento'],
+            # recargo=venta_json['recargo'],
+            # gravado=venta_json['gravado'],
+            # total_iva=venta_json['total_iva'],
+            # total_tributos=venta_json['total_tributos'],
+            total=venta_json['total'],
+            # cae=venta_json['cae'],
+            # vencimiento_cae=venta_json['vencimiento_cae'],
+            tipo_comprobante_id=venta_json['tipo_comprobante_id'],
+            cliente_id=venta_json['cliente_id'],
+            # moneda_id=venta_json['moneda_id'],
+            # tipo_pago_id=venta_json['tipo_pago_id'],
+        )
 
-        return jsonify({'message': 'Venta creada'}), 201
+        venta_item_json = data['renglones']
+        for item in venta_item_json:
+            articulo = Articulo.query.get(item['articulo_id'])
+            venta.items.append(VentaItem(
+                codigo_barras=articulo.codigo_barras,
+                codigo_fabricante=articulo.codigo_fabricante,
+                codigo_proveedor=articulo.codigo_proveedor,
+                codigo_interno=articulo.codigo_interno,
+                descripcion=item['descripcion'],
+                tipo_unidad=articulo.tipo_unidad.nombre,
+                cantidad=item['cantidad'],
+                precio_unidad=item['precio_unidad'],
+                # alicuota_iva=,
+                subtotal_iva=0,
+                subtotal_gravado=100,
+                subtotal=100
+            ))
+
+        try:
+            db.session.add(venta)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({'error': str(e)}), 400
+        return 'ok', 201
 
 
 @venta_bp.route('/ventas/<int:pk>', methods=['GET'])

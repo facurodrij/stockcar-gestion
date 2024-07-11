@@ -38,8 +38,8 @@ export default function VentaList() {
             field: 'fecha', headerName: 'Fecha', type: 'dateTime', width: 150,
             valueFormatter: (value) => dayjs(value).format('DD/MM/YYYY HH:mm')
         },
-        {field: 'tipo_doc', headerName: 'Tipo', width: 50},
-        {field: 'letra', headerName: 'Letra', width: 50},
+        {field: 'tipo_comprobante', headerName: 'Comprobante', width: 100},
+        // {field: 'letra', headerName: 'Letra', width: 50},
         {field: 'nro_doc', headerName: 'Número', width: 150},
         {field: 'cliente', headerName: 'Cliente', width: 200},
         {
@@ -74,10 +74,10 @@ export default function VentaList() {
         return {
             id: item.id,
             fecha: item.fecha,
-            tipo_doc: item.tipo_doc,
-            letra: item.letra,
+            tipo_comprobante: item.tipo_comprobante.descripcion,
+            // letra: item.letra,
             nro_doc: item.nro_doc,
-            cliente: item.cliente.razon_social,
+            cliente: item.nombre_cliente,
             gravado: item.gravado,
             total: item.total
         }
