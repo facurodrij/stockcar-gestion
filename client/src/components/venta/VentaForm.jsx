@@ -57,6 +57,7 @@ export default function VentaForm({pk}) {
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
     const [listArticulo, setListArticulo] = useState([]);
     const [selectedArticulo, setSelectedArticulo] = useState([]);
+    const [ventaRenglones, setVentaRenglones] = useState([]);
 
     const CustomToolbar = () => {
         return (
@@ -120,6 +121,12 @@ export default function VentaForm({pk}) {
                     cliente: selectOptions.cliente,
                     tipo_comprobante: selectOptions.tipo_comprobante,
                 });
+                if (Boolean(pk)) {
+                    const venta = data['venta'];
+                    setValue('cliente_id', venta.cliente.id);
+                    setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
+                    setValue('fecha_hora', dayjs(venta.fecha_hora));
+                }
             }
         });
     }, []);
@@ -300,26 +307,33 @@ export default function VentaForm({pk}) {
                         <DataGrid
                             apiRef={ventaRenglonesGridApiRef}
                             columns={[
-                                {field: 'articulo_id', headerName: 'ID Artículo', width: 75},
-                                {field: 'descripcion', headerName: 'Descripción', width: 500},
-                                {field: 'cantidad', headerName: 'Cantidad', width: 100},
-                                {field: 'precio_unidad', headerName: 'Precio Unitario', width: 150},
-                                {field: 'precio_total', headerName: 'Precio Total', width: 150},
+                                // {field: 'id', headerName: 'ID', width: 75},
+                                // {field: 'articulo_id', headerName: 'ID Artículo', width: 75},
+                                {field: 'descripcion', headerName: 'Descripción', width: 500, editable: true},
+                                {field: 'cantidad', headerName: 'Cantidad', width: 100, type: 'number', editable: true},
+                                {
+                                    field: 'precio_unidad',
+                                    headerName: 'Precio Unitario',
+                                    width: 150,
+                                    type: 'number',
+                                    editable: true
+                                },
+                                {field: 'subtotal', headerName: 'Subtotal', width: 150, type: 'number'},
                             ]}
-                            rows={listArticulo.filter((item) => selectedArticulo.includes(item.id)).map((item) => {
-                                return {
-                                    articulo_id: item.id,
-                                    descripcion: item.descripcion,
-                                    cantidad: 1,
-                                    precio_unidad: 5,
-                                    precio_total: 0,
-                                }
-                            })}
+                            rows={ventaRenglones}
                             getRowId={(row) => row.articulo_id}
-                            pageSize={5}
-                            rowsPerPageOptions={[5]}
                             disableSelectionOnClick
                             slots={{toolbar: CustomToolbar}}
+                            processRowUpdate={(newRow, oldRow) => {
+                                const updatedRows = ventaRenglones.map((row) => {
+                                    if (row.articulo_id === oldRow.articulo_id) {
+                                        return { ...newRow };
+                                    }
+                                    return row;
+                                });
+                                setVentaRenglones(updatedRows);
+                                return newRow;
+                            }}
                         />
                     </div>
                 </SimpleTabPanel>
@@ -360,6 +374,23 @@ export default function VentaForm({pk}) {
                             rowsPerPageOptions={[5, 10, 20]}
                             checkboxSelection
                             onRowSelectionModelChange={(newSelection) => {
+                                const selectedArticulos = newSelection.map((row) => {
+                                    return listArticulo.find((item) => item.id === row);
+                                });
+                                const newRenglones = selectedArticulos.map((row) => {
+                                    if (ventaRenglones.length > 0 && ventaRenglones.find((r) => r.articulo_id === row.id)) {
+                                        return ventaRenglones.find((r) => r.articulo_id === row.id);
+                                    } else {
+                                        return {
+                                            articulo_id: row.id,
+                                            descripcion: row.descripcion,
+                                            cantidad: 1,
+                                            precio_unidad: 0,
+                                            subtotal: 0,
+                                        };
+                                    }
+                                });
+                                setVentaRenglones(newRenglones);
                                 setSelectedArticulo(newSelection);
                             }}
                             rowSelectionModel={selectedArticulo}
