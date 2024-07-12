@@ -57,11 +57,15 @@ class Venta(db.Model):
         """
         return {
             'id': self.id,
+            'cliente': self.cliente.to_json_min(),
             'tipo_comprobante': self.tipo_comprobante.to_json(),
             'punto_venta': self.punto_venta,
             'numero': self.numero,
             'nro_comprobante': self.nro_comprobante(),
             'nombre_cliente': self.nombre_cliente,
+            'fecha_hora': self.fecha_hora.isoformat(),
+            'descuento': self.descuento,
+            'recargo': self.recargo,
             'gravado': self.gravado,
             'total': self.total
         }

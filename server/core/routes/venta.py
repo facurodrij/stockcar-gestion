@@ -76,19 +76,14 @@ def create():
             # tipo_pago_id=venta_json['tipo_pago_id'],
         )
 
-        venta_item_json = data['renglones']
-        for item in venta_item_json:
+        renglones = data['renglones']
+        for item in renglones:
             articulo = Articulo.query.get(item['articulo_id'])
             venta.items.append(VentaItem(
-                codigo_barras=articulo.codigo_barras,
-                codigo_fabricante=articulo.codigo_fabricante,
-                codigo_proveedor=articulo.codigo_proveedor,
-                codigo_interno=articulo.codigo_interno,
+                articulo=articulo,
                 descripcion=item['descripcion'],
-                tipo_unidad=articulo.tipo_unidad.nombre,
                 cantidad=item['cantidad'],
                 precio_unidad=item['precio_unidad'],
-                # alicuota_iva=,
                 subtotal_iva=0,
                 subtotal_gravado=100,
                 subtotal=100
@@ -104,22 +99,13 @@ def create():
         return 'ok', 201
 
 
-@venta_bp.route('/ventas/<int:pk>', methods=['GET'])
-def detail(pk):
-    venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
-    # Obtener los items de la venta, con una query
-    items = VentaItem.query.filter_by(tipo_doc=venta.tipo_doc,
-                                      letra=venta.letra,
-                                      sucursal=venta.sucursal,
-                                      numero=venta.numero).all()
-    return jsonify({'venta': venta.to_json(), 'items': list(map(lambda x: x.to_json(), items))}), 200
-
-
 @venta_bp.route('/ventas/<int:pk>/update', methods=['GET', 'PUT'])
 def update(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
+    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
     if request.method == 'GET':
-        return jsonify({'select_options': get_select_options(), model: venta.to_json()}), 200
+        return jsonify({'select_options': get_select_options(), 'venta': venta.to_json(),
+                        'renglones': list(map(lambda x: x.to_json(), venta_items))}), 200
     if request.method == 'PUT':
         data = request.json
         for key, value in data.items():

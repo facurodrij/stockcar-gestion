@@ -14,12 +14,7 @@ class VentaItem(db.Model):
     __tablename__ = 'venta_item'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    codigo_barras = Column(String, nullable=False)
-    codigo_fabricante = Column(String, nullable=True)
-    codigo_proveedor = Column(String, nullable=True)
-    codigo_interno = Column(String, nullable=True)  # Obtener de la tabla de Producto
-    descripcion = Column(String, nullable=False)  # Obtener de la tabla de Producto
-    tipo_unidad = Column(String, nullable=False)  # Obtener de la tabla de Producto
+    descripcion = Column(String, nullable=False)
     cantidad = Column(Numeric(precision=10, scale=2), nullable=False)
     precio_unidad = Column(Numeric(precision=10, scale=2), nullable=False)
     alicuota_iva = Column(Numeric(precision=5, scale=2), default=21, nullable=False)
@@ -28,13 +23,16 @@ class VentaItem(db.Model):
     subtotal = Column(Numeric(precision=10, scale=2), nullable=False)
 
     # Relaciones con otras tablas
+    articulo_id = Column(Integer, ForeignKey('articulo.id'), nullable=False)
+    articulo = relationship('Articulo', backref='items')
     venta_id = Column(Integer, ForeignKey('venta.id'), nullable=False)
     venta = relationship('Venta', backref='items')
 
     def to_json(self):
         return {
-            'id': self.id,
-            'codigo': self.codigo,
-            'producto': self.producto,
-            'cantidad': self.cantidad
+            'articulo_id': self.articulo_id,
+            'descripcion': self.descripcion,
+            'cantidad': self.cantidad,
+            'precio_unidad': self.precio_unidad,
+            'subtotal': self.subtotal,
         }
