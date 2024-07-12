@@ -35,8 +35,13 @@ export default function VentaList() {
     const columns = [
         {field: 'id', headerName: 'ID', width: 75},
         {
-            field: 'fecha', headerName: 'Fecha', type: 'dateTime', width: 150,
-            valueFormatter: (value) => dayjs(value).format('DD/MM/YYYY HH:mm')
+            field: 'fecha_hora', headerName: 'Fecha y Hora', type: 'dateTime', width: 150,
+            valueFormatter: (value) => {
+                if (!value) {
+                    return "";
+                }
+                return dayjs(value, 'YYYY-MM-DDTHH:mm:ss').format('DD/MM/YYYY HH:mm:ss');
+            }
         },
         {field: 'tipo_comprobante', headerName: 'Comprobante', width: 100},
         // {field: 'letra', headerName: 'Letra', width: 50},
@@ -73,7 +78,7 @@ export default function VentaList() {
     let rows: GridRowsProp = list.map((item) => {
         return {
             id: item.id,
-            fecha: item.fecha,
+            fecha_hora: item.fecha_hora,
             tipo_comprobante: item.tipo_comprobante.descripcion,
             // letra: item.letra,
             nro_doc: item.nro_doc,
