@@ -126,8 +126,23 @@ export default function VentaForm({pk}) {
                     setValue('cliente_id', venta.cliente.id);
                     setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
                     setValue('fecha_hora', dayjs(venta.fecha_hora));
+                    const renglonesArray = data['renglones'].map((r) => {
+                        return {
+                            articulo_id: r.articulo_id,
+                            descripcion: r.descripcion,
+                            cantidad: r.cantidad,
+                            precio_unidad: r.precio_unidad,
+                            subtotal: r.subtotal,
+                        };
+                    });
+                    const articuloArray = renglonesArray.map((r) => r.articulo_id);
+                    setVentaRenglones(renglonesArray);
+                    setSelectedArticulo(articuloArray);
                 }
             }
+        });
+        fetchArticulos().then(data => {
+            setListArticulo(data['articulos']);
         });
     }, []);
 
@@ -136,13 +151,13 @@ export default function VentaForm({pk}) {
         return await res.json();
     }
 
-    useEffect(() => {
-        if (openArticuloDialog) {
-            fetchArticulos().then(data => {
-                setListArticulo(data['articulos']);
-            });
-        }
-    }, [openArticuloDialog]);
+    // useEffect(() => {
+    //     if (openArticuloDialog) {
+    //         fetchArticulos().then(data => {
+    //             setListArticulo(data['articulos']);
+    //         });
+    //     }
+    // }, [openArticuloDialog]);
 
     const onSubmit = (data) => {
         const rowsArray = Array.from(ventaRenglonesGridApiRef.current.getRowModels().values());
@@ -327,7 +342,7 @@ export default function VentaForm({pk}) {
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaRenglones.map((row) => {
                                     if (row.articulo_id === oldRow.articulo_id) {
-                                        return { ...newRow };
+                                        return {...newRow};
                                     }
                                     return row;
                                 });
