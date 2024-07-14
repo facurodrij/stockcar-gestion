@@ -33,7 +33,22 @@ import SimpleTabPanel from "../shared/SimpleTabPanel";
 import AddIcon from "@mui/icons-material/Add";
 import Dialog from "@mui/material/Dialog";
 import SnackbarAlert from "../shared/SnackbarAlert";
+import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 
+const CustomToolbar = ({onOpen}) => {
+    return (
+        <GridToolbarContainer>
+            <Button
+                startIcon={<AddIcon/>}
+                size="small"
+                variant="contained"
+                onClick={() => onOpen(true)}
+            >
+                Seleccionar Artículos
+            </Button>
+        </GridToolbarContainer>
+    );
+}
 
 export default function VentaForm({pk}) {
     const {
@@ -55,23 +70,8 @@ export default function VentaForm({pk}) {
     const [openSnackbar, setOpenSnackbar] = useState(false);
 
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
-    const [listArticulo, setListArticulo] = useState([]);
     const [selectedArticulo, setSelectedArticulo] = useState([]);
     const [ventaRenglones, setVentaRenglones] = useState([]);
-
-    const CustomToolbar = () => {
-        return (
-            <GridToolbarContainer>
-                <Button
-                    startIcon={<AddIcon/>}
-                    size="small"
-                    variant="contained"
-                    onClick={() => setOpenArticuloDialog(true)}
-                >Seleccionar Artículos
-                </Button>
-            </GridToolbarContainer>
-        );
-    }
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -141,23 +141,7 @@ export default function VentaForm({pk}) {
                 }
             }
         });
-        fetchArticulos().then(data => {
-            setListArticulo(data['articulos']);
-        });
     }, []);
-
-    const fetchArticulos = async () => {
-        const res = await fetch(`${API}/articulos`);
-        return await res.json();
-    }
-
-    // useEffect(() => {
-    //     if (openArticuloDialog) {
-    //         fetchArticulos().then(data => {
-    //             setListArticulo(data['articulos']);
-    //         });
-    //     }
-    // }, [openArticuloDialog]);
 
     const onSubmit = (data) => {
         const rowsArray = Array.from(ventaRenglonesGridApiRef.current.getRowModels().values());
@@ -322,8 +306,6 @@ export default function VentaForm({pk}) {
                         <DataGrid
                             apiRef={ventaRenglonesGridApiRef}
                             columns={[
-                                // {field: 'id', headerName: 'ID', width: 75},
-                                // {field: 'articulo_id', headerName: 'ID Artículo', width: 75},
                                 {field: 'descripcion', headerName: 'Descripción', width: 500, editable: true},
                                 {field: 'cantidad', headerName: 'Cantidad', width: 100, type: 'number', editable: true},
                                 {
@@ -338,7 +320,7 @@ export default function VentaForm({pk}) {
                             rows={ventaRenglones}
                             getRowId={(row) => row.articulo_id}
                             disableSelectionOnClick
-                            slots={{toolbar: CustomToolbar}}
+                            slots={{toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog}/>}}
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaRenglones.map((row) => {
                                     if (row.articulo_id === oldRow.articulo_id) {
@@ -362,67 +344,14 @@ export default function VentaForm({pk}) {
                     </Button>
                 </Box>
             </Paper>
-            <Dialog
+            <ArticuloSelectorDialog
                 open={openArticuloDialog}
                 onClose={() => setOpenArticuloDialog(false)}
-                fullWidth={true}
-                maxWidth={'md'}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">Seleccionar Artículos</DialogTitle>
-                <DialogContent dividers>
-                    <div style={{height: 400, width: '100%'}}>
-                        <DataGrid
-                            columns={[
-                                {field: 'id', headerName: 'ID', width: 75},
-                                {field: 'descripcion', headerName: 'Descripción', width: 500},
-                            ]}
-                            rows={listArticulo.map(item => {
-                                return {
-                                    id: item.id,
-                                    descripcion: item.descripcion,
-                                }
-                            })}
-                            rowHeight={30}
-                            pageSize={5}
-                            rowsPerPageOptions={[5, 10, 20]}
-                            checkboxSelection
-                            onRowSelectionModelChange={(newSelection) => {
-                                const selectedArticulos = newSelection.map((row) => {
-                                    return listArticulo.find((item) => item.id === row);
-                                });
-                                const newRenglones = selectedArticulos.map((row) => {
-                                    if (ventaRenglones.length > 0 && ventaRenglones.find((r) => r.articulo_id === row.id)) {
-                                        return ventaRenglones.find((r) => r.articulo_id === row.id);
-                                    } else {
-                                        return {
-                                            articulo_id: row.id,
-                                            descripcion: row.descripcion,
-                                            cantidad: 1,
-                                            precio_unidad: 0,
-                                            subtotal: 0,
-                                        };
-                                    }
-                                });
-                                setVentaRenglones(newRenglones);
-                                setSelectedArticulo(newSelection);
-                            }}
-                            rowSelectionModel={selectedArticulo}
-                        />
-                    </div>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        color="primary"
-                        onClick={() => {
-                            setOpenArticuloDialog(false);
-                        }}
-                    >
-                        Aceptar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                selectedArticulo={selectedArticulo}
+                setSelectedArticulo={setSelectedArticulo}
+                renglones={ventaRenglones}
+                setRenglones={setVentaRenglones}
+            />
             <SnackbarAlert
                 open={openSnackbar}
                 autoHideDuration={4000}
