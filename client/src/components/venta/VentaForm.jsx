@@ -17,7 +17,7 @@ import {
     Typography
 } from "@mui/material";
 import {DateTimePicker, LocalizationProvider} from '@mui/x-date-pickers';
-import {DataGrid, GridToolbarContainer, useGridApiRef} from '@mui/x-data-grid';
+import {DataGrid, GridToolbarContainer} from '@mui/x-data-grid';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
@@ -28,6 +28,7 @@ import SimpleTabPanel from "../shared/SimpleTabPanel";
 import AddIcon from "@mui/icons-material/Add";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
+import {esES} from "@mui/x-data-grid/locales";
 
 const CustomToolbar = ({onOpen}) => {
     return (
@@ -273,16 +274,16 @@ export default function VentaForm({pk}) {
                     <div style={{height: 400, width: '100%'}}>
                         <DataGrid
                             columns={[
-                                {field: 'descripcion', headerName: 'Descripción', width: 500, editable: true},
-                                {field: 'cantidad', headerName: 'Cantidad', width: 100, type: 'number', editable: true},
+                                {field: 'descripcion', headerName: 'Descripción', flex: 2, editable: true},
+                                {field: 'cantidad', headerName: 'Cantidad', flex: 0.5, type: 'number', editable: true},
                                 {
                                     field: 'precio_unidad',
                                     headerName: 'Precio x Unidad',
-                                    width: 150,
+                                    flex: 0.5,
                                     type: 'number',
                                     editable: true
                                 },
-                                {field: 'subtotal', headerName: 'Subtotales', width: 150, type: 'number'},
+                                {field: 'subtotal', headerName: 'Subtotales', flex: 0.5, type: 'number'},
                             ]}
                             rows={ventaRenglones}
                             getRowId={(row) => row.articulo_id}
@@ -302,6 +303,7 @@ export default function VentaForm({pk}) {
                                 setVentaRenglones(updatedRows);
                                 return newRow;
                             }}
+                            localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                         />
                     </div>
                 </SimpleTabPanel>

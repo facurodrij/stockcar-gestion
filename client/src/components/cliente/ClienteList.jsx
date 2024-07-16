@@ -21,7 +21,7 @@ import {Button} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 
-function CustomToolbar() {
+const CustomToolbar = () => {
     return (
         <GridToolbarContainer>
             <GridToolbarQuickFilter size={'small'}/>
@@ -36,7 +36,8 @@ function CustomToolbar() {
                 to="/clientes/form"
                 size="small"
                 variant="contained"
-            >Nuevo Cliente
+            >
+                Nuevo Cliente
             </Button>
         </GridToolbarContainer>
     );
