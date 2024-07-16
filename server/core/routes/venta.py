@@ -85,8 +85,8 @@ def create():
                 cantidad=item['cantidad'],
                 precio_unidad=item['precio_unidad'],
                 subtotal_iva=0,
-                subtotal_gravado=100,
-                subtotal=100
+                subtotal_gravado=0,
+                subtotal=item['subtotal']
             ))
 
         try:
@@ -139,8 +139,8 @@ def update(pk):
                     cantidad=item['cantidad'],
                     precio_unidad=item['precio_unidad'],
                     subtotal_iva=0,
-                    subtotal_gravado=100,
-                    subtotal=100
+                    subtotal_gravado=0,
+                    subtotal=item['subtotal']
                 ))
         for articulo_id in current_articulo_ids:
             venta_item = VentaItem.query.filter_by(venta_id=pk, articulo_id=articulo_id).first()

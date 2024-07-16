@@ -1,13 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {
-    Alert,
-    Autocomplete,
+Venta    Autocomplete,
     Box,
     Button,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
     FormControl,
     FormHelperText,
     Grid,
@@ -15,7 +11,6 @@ import {
     MenuItem,
     Paper,
     Select,
-    Snackbar,
     Tab,
     Tabs,
     TextField,
@@ -31,7 +26,6 @@ import {API} from "../../App";
 import Divider from "@mui/material/Divider";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import AddIcon from "@mui/icons-material/Add";
-import Dialog from "@mui/material/Dialog";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 
@@ -85,127 +79,100 @@ export default function VentaForm({pk}) {
     }
 
     const fetchData = async () => {
-        if (Boolean(pk) === false) {
-            const res = await fetch(`${API}/ventas/create`);
-            return await res.json();
-        } else {
-            const res = await fetch(`${API}/ventas/${pk}/update`);
-            if (res.status === 404) {
-                setSnackbar({
-                    message: 'Venta no encontrada',
-                    severity: 'error',
-                    onClose: () => handleCloseSnackbar(true)
-                });
-                setOpenSnackbar(true);
-                return;
-            }
-            if (!res.ok) {
-                setSnackbar({
-                    message: 'Error al obtener los datos de la venta',
-                    severity: 'error',
-                    onClose: () => handleCloseSnackbar(true)
-                });
-                setOpenSnackbar(true);
-                console.log(res);
-                return;
-            }
-            return await res.json();
+        const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
+        const res = await fetch(url);
+        if (!res.ok) {
+            console.error(res);
+            const message = Boolean(pk) ? 'Error al obtener la venta' : 'Error al obtener los datos';
+            setSnackbar({
+                message: message,
+                severity: 'error',
+                onClose: () => handleCloseSnackbar(true)
+            });
+            setOpenSnackbar(true);
+            return;
         }
+        return await res.json();
     }
 
     useEffect(() => {
-        fetchData().then((data) => {
-            if (data) {
-                const selectOptions = data['select_options'];
-                setSelectOptions({
-                    cliente: selectOptions.cliente,
-                    tipo_comprobante: selectOptions.tipo_comprobante,
-                });
-                if (Boolean(pk)) {
-                    const venta = data['venta'];
-                    setValue('cliente_id', venta.cliente.id);
-                    setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
-                    setValue('fecha_hora', dayjs(venta.fecha_hora));
-                    const renglonesArray = data['renglones'].map((r) => {
-                        return {
-                            articulo_id: r.articulo_id,
-                            descripcion: r.descripcion,
-                            cantidad: r.cantidad,
-                            precio_unidad: r.precio_unidad,
-                            subtotal: r.subtotal,
-                        };
+        const loadData = async () => {
+            try {
+                const data = await fetchData();
+                if (data) {
+                    const selectOptions = data['select_options'];
+                    setSelectOptions({
+                        cliente: selectOptions.cliente,
+                        tipo_comprobante: selectOptions.tipo_comprobante,
                     });
-                    const articuloArray = renglonesArray.map((r) => r.articulo_id);
-                    setVentaRenglones(renglonesArray);
-                    setSelectedArticulo(articuloArray);
+                    if (Boolean(pk)) {
+                        const venta = data['venta'];
+                        setValue('cliente_id', venta.cliente.id);
+                        setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
+                        setValue('fecha_hora', dayjs(venta.fecha_hora));
+                        const renglonesArray = data['renglones'].map((r) => {
+                            return {
+                                articulo_id: r.articulo_id,
+                                descripcion: r.descripcion,
+                                cantidad: r.cantidad,
+                                precio_unidad: r.precio_unidad,
+                                subtotal: r.subtotal,
+                            };
+                        });
+                        const articuloArray = renglonesArray.map((r) => r.articulo_id);
+                        setVentaRenglones(renglonesArray);
+                        setSelectedArticulo(articuloArray);
+                    }
                 }
+            } catch (e) {
+                console.error('Error en la carga de datos:', e);
+                setSnackbar({
+                    message: 'Error al cargar los datos',
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(false)
+                });
+                setOpenSnackbar(true);
             }
-        });
+        }
+
+        loadData();
     }, []);
 
     const onSubmit = (data) => {
-        const rowsArray = Array.from(ventaRenglonesGridApiRef.current.getRowModels().values());
-        if (rowsArray.length === 0) {
+        const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
+        const method = Boolean(pk) ? 'PUT' : 'POST';
+        if (ventaRenglones.length === 0) {
             alert('No se ha seleccionado ningún artículo');
             return;
         }
-        if (Boolean(pk) === false) {
-            fetch(`${API}/ventas/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({venta: data, renglones: rowsArray})
-            }).then(res => {
-                if (res.ok) {
-                    setSnackbar({
-                        message: 'Venta creada correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(true)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    setSnackbar({
-                        message: 'Error al crear la venta',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
-            });
-        } else {
-            fetch(`${API}/ventas/${pk}/update`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({venta: data, renglones: rowsArray})
-            }).then(res => {
-                if (res.ok) {
-                    setSnackbar({
-                        message: 'Venta actualizada correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(true)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    console.log(res);
-                    setSnackbar({
-                        message: 'Error al actualizar la venta',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
-            });
-        }
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({venta: data, renglones: ventaRenglones})
+        }).then(res => {
+            if (res.ok) {
+                setSnackbar({
+                    message: 'Venta guardada correctamente',
+                    severity: 'success',
+                    onClose: () => handleCloseSnackbar(true)
+                });
+            } else {
+                console.error('Error al guardar la venta:', res);
+                setSnackbar({
+                    message: 'Error al guardar la venta',
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(false)
+                });
+            }
+            setOpenSnackbar(true);
+        });
     }
 
     const onError = (errors) => {
         alert(JSON.stringify(errors));
     }
-
-    const ventaRenglonesGridApiRef = useGridApiRef();
 
     return (
         <>
@@ -282,6 +249,7 @@ export default function VentaForm({pk}) {
                         <Grid item xs={6}>
                             <FormControl fullWidth error={Boolean(errors.fecha_hora)}>
                                 <Controller
+                                    // TODO: Corregir el formato de la fecha y hora, no se muestra correctamente y modifica el valor
                                     name="fecha_hora"
                                     control={control}
                                     defaultValue={null}
@@ -304,26 +272,29 @@ export default function VentaForm({pk}) {
                     <Typography variant="h6" sx={{mt: 2}}>Renglones de Venta</Typography>
                     <div style={{height: 400, width: '100%'}}>
                         <DataGrid
-                            apiRef={ventaRenglonesGridApiRef}
                             columns={[
                                 {field: 'descripcion', headerName: 'Descripción', width: 500, editable: true},
                                 {field: 'cantidad', headerName: 'Cantidad', width: 100, type: 'number', editable: true},
                                 {
                                     field: 'precio_unidad',
-                                    headerName: 'Precio Unitario',
+                                    headerName: 'Precio x Unidad',
                                     width: 150,
                                     type: 'number',
                                     editable: true
                                 },
-                                {field: 'subtotal', headerName: 'Subtotal', width: 150, type: 'number'},
+                                {field: 'subtotal', headerName: 'Subtotales', width: 150, type: 'number'},
                             ]}
                             rows={ventaRenglones}
                             getRowId={(row) => row.articulo_id}
                             disableSelectionOnClick
-                            slots={{toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog}/>}}
+                            slots={{
+                                toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog}/>,
+                                // TODO: footer: () => () para mostrar el total de la venta
+                            }}
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaRenglones.map((row) => {
                                     if (row.articulo_id === oldRow.articulo_id) {
+                                        newRow.subtotal = newRow.cantidad * newRow.precio_unidad;
                                         return {...newRow};
                                     }
                                     return row;
