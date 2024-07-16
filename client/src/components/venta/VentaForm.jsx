@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {
-Venta    Autocomplete,
+    Autocomplete,
     Box,
     Button,
     FormControl,
