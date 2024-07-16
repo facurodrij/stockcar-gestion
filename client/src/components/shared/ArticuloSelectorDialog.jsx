@@ -10,8 +10,10 @@ import {
 import {API} from "../../App";
 import {esES} from "@mui/x-data-grid/locales";
 import Box from "@mui/material/Box";
-import AddIcon from "@mui/icons-material/Add";
 import {Link} from "react-router-dom";
+import AddIcon from '@mui/icons-material/Add';
+import ChecklistIcon from '@mui/icons-material/Checklist';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 
 const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones}) => {
@@ -28,16 +30,35 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                 <GridToolbarQuickFilter size={'small'}/>
                 <GridToolbarColumnsButton/>
                 <GridToolbarFilterButton/>
-                <Box sx={{flexGrow: 1}}/>
                 <Button
+                    startIcon={<ChecklistIcon/>}
                     size="small"
-                    variant="contained"
                     onClick={() => {
                         setShowSelected(!showSelected);
                     }}
                 >
                     {showSelected ? 'Ver Todos' : 'Ver Seleccionados'}
                 </Button>
+                <Box sx={{flexGrow: 1}}/>
+                <Button
+                    startIcon={<AddIcon/>}
+                    component={Link}
+                    to="/articulos/form"
+                    target="_blank"
+                    size="small"
+                    variant="contained"
+                >
+                    Nuevo Artículo
+                </Button>
+                <Button
+                    startIcon={<RefreshIcon/>}
+                    size="small"
+                    onClick={() => {
+                        fetchData().then(data => {
+                            setListArticulo(data['articulos']);
+                        });
+                    }}
+                />
             </GridToolbarContainer>
         );
     }
@@ -69,7 +90,7 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                         columns={[
                             {field: 'id', headerName: 'ID', width: 75},
                             {field: 'descripcion', headerName: 'Descripción', width: 500},
-                            {field: 'codigo_barra', headerName: 'Código de Barras', width: 200},
+                            {field: 'codigo_barras', headerName: 'Código de Barras', width: 200},
                             {field: 'codigo_fabricante', headerName: 'Código de Fabricante', width: 200},
                             {field: 'codigo_proveedor', headerName: 'Código de Proveedor', width: 200},
                             {field: 'codigo_interno', headerName: 'Código Interno', width: 200}
@@ -78,7 +99,7 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                             return {
                                 id: item.id,
                                 descripcion: item.descripcion,
-                                codigo_barra: item.codigo_barra,
+                                codigo_barras: item.codigo_barras,
                                 codigo_fabricante: item.codigo_fabricante,
                                 codigo_proveedor: item.codigo_proveedor,
                                 codigo_interno: item.codigo_interno
