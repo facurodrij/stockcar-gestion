@@ -62,25 +62,16 @@ export default function ClienteList() {
     }, []);
 
     const columns = [
-        {field: 'id', headerName: 'ID', width: 75},
-        {field: 'tipo_responsable', headerName: 'Tipo Responsable', width: 200},
-        {field: 'razon_social', headerName: 'Razón Social', width: 250},
-        {field: 'tipo_documento', headerName: 'Tipo Documento', width: 100},
-        {field: 'nro_documento', headerName: 'Nro. Documento', width: 150},
+        {field: 'id', headerName: 'ID', flex: 0.5},
+        {field: 'tipo_responsable', headerName: 'Tipo responsable', flex: 1},
+        {field: 'razon_social', headerName: 'Razón social', flex: 1.5},
+        {field: 'tipo_documento', headerName: 'Tipo documento', flex: 1},
+        {field: 'nro_documento', headerName: 'Nro. documento', flex: 1},
+        {field: 'direccion', headerName: 'Dirección', flex: 1},
+        {field: 'localidad', headerName: 'Localidad', flex: 1},
         {
-            field: 'fecha_nacimiento', headerName: 'Fecha Nacimiento', minWidth: 150, type: 'date',
-            valueFormatter: (value) => {
-                if (!value) {
-                    return "";
-                }
-                return dayjs(value, 'YYYY-MM-DD').format('DD/MM/YYYY')
-            }
-        },
-        {field: 'direccion', headerName: 'Dirección', width: 300},
-        {field: 'localidad', headerName: 'Localidad', width: 200},
-        {
-            field: 'actions', type: 'actions', headerName: 'Acciones', width: 100,
-            getActions: (params: GridRowParams) => [
+            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
+            getActions: (params) => [
                 <GridActionsCellItem
                     icon={<VisibilityIcon/>}
                     label="Detalle"
@@ -98,14 +89,13 @@ export default function ClienteList() {
         }
     ]
 
-    let rows: GridRowsProp = list.map((item) => {
+    let rows = list.map((item) => {
         return {
             id: item.id,
             tipo_responsable: item.tipo_responsable['descripcion'] || '',
             razon_social: item.razon_social,
             tipo_documento: item.tipo_documento['descripcion'] || '',
             nro_documento: item.nro_documento,
-            fecha_nacimiento: item.fecha_nacimiento,
             direccion: item.direccion,
             localidad: item.localidad
         }
@@ -125,16 +115,16 @@ export default function ClienteList() {
         <>
             <div style={{height: 500, width: '100%'}}>
                 <DataGrid
+                    columns={columns}
                     rows={rows}
                     rowHeight={30}
-                    columns={columns}
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     checkboxSelection
-                    disableRowSelectionOnClick
                     initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{toolbar: CustomToolbar}}
+                    ignoreDiacritics
                 />
             </div>
             <ClienteDetailDialog item={itemSelected} open={showDetail} onClose={handleCloseDetail}/>

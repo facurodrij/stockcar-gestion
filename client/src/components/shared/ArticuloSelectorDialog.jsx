@@ -10,6 +10,7 @@ import {
 import {API} from "../../App";
 import {esES} from "@mui/x-data-grid/locales";
 import Box from "@mui/material/Box";
+import IconButton from '@mui/material/IconButton';
 import {Link} from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import ChecklistIcon from '@mui/icons-material/Checklist';
@@ -50,15 +51,6 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                 >
                     Nuevo Artículo
                 </Button>
-                <Button
-                    startIcon={<RefreshIcon/>}
-                    size="small"
-                    onClick={() => {
-                        fetchData().then(data => {
-                            setListArticulo(data['articulos']);
-                        });
-                    }}
-                />
             </GridToolbarContainer>
         );
     }
@@ -84,6 +76,21 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
             aria-describedby="alert-dialog-description"
         >
             <DialogTitle id="alert-dialog-title">Seleccionar Artículos</DialogTitle>
+            <IconButton
+                aria-label="reload"
+                onClick={() => {
+                    fetchData().then(data => {
+                        setListArticulo(data['articulos']);
+                    });
+                }}
+                sx={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 8,
+                }}
+            >
+                <RefreshIcon/>
+            </IconButton>
             <DialogContent dividers>
                 <div style={{height: 400, width: '100%'}}>
                     <DataGrid

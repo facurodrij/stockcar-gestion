@@ -19,7 +19,7 @@ import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 
 
-function CustomToolbar() {
+const CustomToolbar = () => {
     return (
         <GridToolbarContainer>
             <GridToolbarQuickFilter size={'small'}/>
@@ -34,7 +34,8 @@ function CustomToolbar() {
                 to="/articulos/form"
                 size="small"
                 variant="contained"
-            >Nuevo Artículo
+            >
+                Nuevo Artículo
             </Button>
         </GridToolbarContainer>
     );
@@ -59,16 +60,15 @@ export default function ArticuloList() {
     }, []);
 
     const columns = [
-        {field: 'id', headerName: 'ID', width: 75},
-        {field: 'codigo_barras', headerName: 'Código de barras', width: 150},
-        {field: 'codigo_fabricante', headerName: 'Código de fabricante', width: 150},
-        {field: 'codigo_proveedor', headerName: 'Código de proveedor', width: 150},
-        {field: 'codigo_interno', headerName: 'Código interno', width: 150},
-        {field: 'descripcion', headerName: 'Descripción', width: 250},
-        {field: 'tipo_unidad', headerName: 'Tipo de unidad', width: 100},
+        {field: 'id', headerName: 'ID', flex: 0.5},
+        {field: 'codigo_barras', headerName: 'Código de barras', flex: 1},
+        {field: 'codigo_fabricante', headerName: 'Código de fabricante', flex: 1},
+        {field: 'codigo_proveedor', headerName: 'Código de proveedor', flex: 1},
+        {field: 'codigo_interno', headerName: 'Código interno', flex: 1},
+        {field: 'descripcion', headerName: 'Descripción', flex: 1.5},
         {
-            field: 'actions', type: 'actions', headerName: 'Acciones', width: 100,
-            getActions: (params: GridRowParams) => [
+            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
+            getActions: (params) => [
                 <GridActionsCellItem
                     icon={<EditIcon/>}
                     label="Editar"
@@ -80,7 +80,7 @@ export default function ArticuloList() {
         }
     ];
 
-    const rows: GridRowsProp = list.map(item => {
+    const rows = list.map(item => {
         return {
             id: item.id,
             codigo_barras: item.codigo_barras,
@@ -88,16 +88,15 @@ export default function ArticuloList() {
             codigo_proveedor: item.codigo_proveedor,
             codigo_interno: item.codigo_interno,
             descripcion: item.descripcion,
-            tipo_unidad: item.tipo_unidad['nombre']
         }
     });
 
     return (
         <div style={{height: 500, width: '100%'}}>
             <DataGrid
+                columns={columns}
                 rows={rows}
                 rowHeight={30}
-                columns={columns}
                 pageSize={5}
                 rowsPerPageOptions={[5, 10, 20]}
                 checkboxSelection

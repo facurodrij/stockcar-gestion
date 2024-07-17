@@ -1,5 +1,15 @@
 import React, {useEffect, useState} from 'react'
-import {DataGrid, GridActionsCellItem, GridRowParams, GridRowsProp} from '@mui/x-data-grid';
+import {
+    DataGrid,
+    GridActionsCellItem,
+    GridRowParams,
+    GridRowsProp,
+    GridToolbarColumnsButton,
+    GridToolbarContainer,
+    GridToolbarDensitySelector,
+    GridToolbarExport,
+    GridToolbarFilterButton, GridToolbarQuickFilter
+} from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
@@ -12,8 +22,31 @@ import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {Button} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 
+
+const CustomToolbar = () => {
+    return (
+        <GridToolbarContainer>
+            <GridToolbarQuickFilter size={'small'}/>
+            <GridToolbarColumnsButton/>
+            <GridToolbarFilterButton/>
+            <GridToolbarDensitySelector/>
+            <GridToolbarExport/>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button
+                startIcon={<AddIcon/>}
+                component={Link}
+                to="/ventas/form"
+                size="small"
+                variant="contained"
+            >
+                Nueva Venta
+            </Button>
+        </GridToolbarContainer>
+    );
+}
 
 export default function VentaList() {
     const [list, setList] = useState([]);
@@ -33,9 +66,9 @@ export default function VentaList() {
     }
 
     const columns = [
-        {field: 'id', headerName: 'ID', width: 75},
+        {field: 'id', headerName: 'ID', flex: 0.5},
         {
-            field: 'fecha_hora', headerName: 'Fecha y Hora', type: 'dateTime', width: 150,
+            field: 'fecha_hora', headerName: 'Fecha y hora', type: 'dateTime', flex: 1,
             valueFormatter: (value) => {
                 if (!value) {
                     return "";
@@ -43,21 +76,16 @@ export default function VentaList() {
                 return dayjs(value, 'YYYY-MM-DDTHH:mm:ss').format('DD/MM/YYYY HH:mm:ss');
             }
         },
-        {field: 'tipo_comprobante', headerName: 'Comprobante', width: 100},
-        // {field: 'letra', headerName: 'Letra', width: 50},
-        {field: 'nro_doc', headerName: 'Número', width: 150},
-        {field: 'cliente', headerName: 'Cliente', width: 200},
+        {field: 'tipo_comprobante', headerName: 'Comprobante', flex: 1},
+        {field: 'nro_doc', headerName: 'Número', flex: 1},
+        {field: 'cliente', headerName: 'Cliente', flex: 1},
         {
-            field: 'gravado', headerName: 'Gravado',
+            field: 'total', headerName: 'Total', flex: 1,
             valueFormatter: (value) => currencyFormatter.format(value)
         },
         {
-            field: 'total', headerName: 'Total',
-            valueFormatter: (value) => currencyFormatter.format(value)
-        },
-        {
-            field: 'actions', type: 'actions', headerName: 'Acciones', width: 100,
-            getActions: (params: GridRowParams) => [
+            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
+            getActions: (params) => [
                 <GridActionsCellItem
                     icon={<VisibilityIcon/>}
                     label="Detalle"
@@ -75,15 +103,13 @@ export default function VentaList() {
         }
     ]
 
-    let rows: GridRowsProp = list.map((item) => {
+    let rows = list.map((item) => {
         return {
             id: item.id,
             fecha_hora: item.fecha_hora,
             tipo_comprobante: item.tipo_comprobante.descripcion,
-            // letra: item.letra,
             nro_doc: item.nro_doc,
             cliente: item.nombre_cliente,
-            gravado: item.gravado,
             total: item.total
         }
     });
@@ -136,14 +162,15 @@ export default function VentaList() {
             </Box>
             <div style={{height: 500, width: '100%'}}>
                 <DataGrid
+                    columns={columns}
                     rows={rows}
                     rowHeight={30}
-                    columns={columns}
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
                     checkboxSelection
                     initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                    slots={{toolbar: CustomToolbar}}
                 />
             </div>
             <VentaDetailDialog item={itemSelected} open={showDetail} onClose={handleCloseDetail}/>
