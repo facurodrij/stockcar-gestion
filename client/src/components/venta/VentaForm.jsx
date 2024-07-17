@@ -68,7 +68,7 @@ export default function VentaForm({pk}) {
     const [selectedArticulo, setSelectedArticulo] = useState([]);
     const [ventaRenglones, setVentaRenglones] = useState([]);
 
-    const handleTabChange = (event, newValue) => {
+    const handleTabChange = (newValue) => {
         setTabValue(newValue);
     }
 
@@ -269,9 +269,8 @@ export default function VentaForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Divider sx={{mt: 2}}/>
-                    <Typography variant="h6" sx={{mt: 2}}>Renglones de Venta</Typography>
-                    <div style={{height: 400, width: '100%'}}>
+                    <Typography variant="h6" gutterBottom sx={{mt: 3}}>Renglones de Venta</Typography>
+                    <div style={{height: 500, width: '100%'}}>
                         <DataGrid
                             columns={[
                                 {field: 'descripcion', headerName: 'Descripción', flex: 2, editable: true},

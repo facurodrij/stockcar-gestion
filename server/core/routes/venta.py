@@ -1,3 +1,4 @@
+import pytz
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
@@ -8,6 +9,7 @@ venta_bp = Blueprint('venta_bp', __name__)
 
 model = 'ventas'
 
+local_tz = pytz.timezone('America/Argentina/Buenos_Aires')
 
 def get_select_options():
     cliente = Cliente.query.all()
@@ -50,7 +52,7 @@ def create():
         for key, value in venta_json.items():
             if value == '':
                 venta_json[key] = None
-        venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora'])
+        venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora']).astimezone(local_tz)
         # venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']) if venta_json['vencimiento_cae'] else None
         venta_json['punto_venta'] = 1
         venta_json['numero'] = 1
@@ -112,7 +114,7 @@ def update(pk):
         for key, value in venta_json.items():
             if value == '':
                 venta_json[key] = None
-        venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora'])
+        venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora']).astimezone(local_tz)
         # venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']) if venta_json['vencimiento_cae'] else None
         venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
         venta_json['total'] = 100
