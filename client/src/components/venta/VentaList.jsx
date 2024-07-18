@@ -81,7 +81,12 @@ export default function VentaList() {
         {field: 'cliente', headerName: 'Cliente', flex: 1},
         {
             field: 'total', headerName: 'Total', flex: 1,
-            valueFormatter: (value) => currencyFormatter.format(value)
+            valueFormatter: (value) => {
+                return new Intl.NumberFormat('es-AR', {
+                    style: 'currency',
+                    currency: 'ARS'
+                }).format(value);
+            }
         },
         {
             field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,

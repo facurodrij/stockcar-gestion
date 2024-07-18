@@ -20,10 +20,9 @@ import {DateTimePicker, LocalizationProvider} from '@mui/x-date-pickers';
 import {DataGrid, GridToolbarContainer} from '@mui/x-data-grid';
 import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import 'dayjs/locale/en-gb';
+import 'dayjs/locale/es';
 import SaveIcon from '@mui/icons-material/Save';
 import {API} from "../../App";
-import Divider from "@mui/material/Divider";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import AddIcon from "@mui/icons-material/Add";
 import SnackbarAlert from "../shared/SnackbarAlert";
@@ -250,12 +249,11 @@ export default function VentaForm({pk}) {
                         <Grid item xs={6}>
                             <FormControl fullWidth error={Boolean(errors.fecha_hora)}>
                                 <Controller
-                                    // TODO: Corregir el formato de la fecha y hora, no se muestra correctamente y modifica el valor
                                     name="fecha_hora"
                                     control={control}
-                                    defaultValue={null}
+                                    defaultValue={dayjs()}
                                     render={({field}) => (
-                                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'en-gb'}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
                                             <DateTimePicker
                                                 {...field}
                                                 label="Fecha de Emisión"
@@ -274,15 +272,42 @@ export default function VentaForm({pk}) {
                         <DataGrid
                             columns={[
                                 {field: 'descripcion', headerName: 'Descripción', flex: 2, editable: true},
-                                {field: 'cantidad', headerName: 'Cantidad', flex: 0.5, type: 'number', editable: true},
+                                {
+                                    field: 'cantidad', 
+                                    headerName: 'Cantidad', 
+                                    flex: 0.5, 
+                                    type: 'number', 
+                                    editable: true,
+                                    valueFormatter: (value) => {
+                                        return new Intl.NumberFormat('es-AR').format(value);
+                                    }
+                                },
                                 {
                                     field: 'precio_unidad',
                                     headerName: 'Precio x Unidad',
                                     flex: 0.5,
                                     type: 'number',
-                                    editable: true
+                                    editable: true,
+                                    valueFormatter: (value) => {
+                                        return new Intl.NumberFormat('es-AR', {
+                                            style: 'currency',
+                                            currency: 'ARS'
+                                        }).format(value);
+                                    }
                                 },
-                                {field: 'subtotal', headerName: 'Subtotales', flex: 0.5, type: 'number'},
+                                {
+                                    field: 'subtotal', 
+                                    headerName: 'Subtotales', 
+                                    flex: 0.5, 
+                                    type: 'number', 
+                                    editable: false,
+                                    valueFormatter: (value) => {
+                                        return new Intl.NumberFormat('es-AR', {
+                                            style: 'currency',
+                                            currency: 'ARS'
+                                        }).format(value);
+                                    }
+                                },
                             ]}
                             rows={ventaRenglones}
                             getRowId={(row) => row.articulo_id}
@@ -305,6 +330,17 @@ export default function VentaForm({pk}) {
                             localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                         />
                     </div>
+                    <Typography variant="h6" gutterBottom sx={{mt: 3}}>Totales</Typography>
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <Typography>Total de Artículos: {ventaRenglones.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
+                            <Typography>Porcentaje de IVA: 21%</Typography>
+                            <Typography fontWeight={700}>Total a Pagar: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            {/* Espacio reservado para futuras expansiones o información adicional */}
+                        </Grid>
+                    </Grid>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
                     <Grid container spacing={2}>
