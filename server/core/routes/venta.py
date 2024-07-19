@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
 from server.config import db
-from server.core.models import Venta, VentaItem, Provincia, Cliente, TipoComprobante, Articulo
+from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -14,10 +14,14 @@ local_tz = pytz.timezone('America/Argentina/Buenos_Aires')
 def get_select_options():
     cliente = Cliente.query.all()
     tipo_comprobante = TipoComprobante.query.all()
+    tipo_pago = TipoPago.query.all()
+    moneda = Moneda.query.all()
 
     return {
         'cliente': list(map(lambda x: x.to_json_min(), cliente)),
         'tipo_comprobante': list(map(lambda x: x.to_json(), tipo_comprobante)),
+        'tipo_pago': list(map(lambda x: x.to_json(), tipo_pago)),
+        'moneda': list(map(lambda x: x.to_json(), moneda)),
     }
 
 
@@ -58,47 +62,53 @@ def create():
         venta_json['numero'] = 1
         venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
 
-        venta = Venta(
-            punto_venta=venta_json['punto_venta'],
-            numero=venta_json['numero'],
-            nombre_cliente=venta_json['nombre_cliente'],
-            fecha_hora=venta_json['fecha_hora'],
-            # descuento=venta_json['descuento'],
-            # recargo=venta_json['recargo'],
-            # gravado=venta_json['gravado'],
-            # total_iva=venta_json['total_iva'],
-            # total_tributos=venta_json['total_tributos'],
-            # cae=venta_json['cae'],
-            # vencimiento_cae=venta_json['vencimiento_cae'],
-            total=0,
-            tipo_comprobante_id=venta_json['tipo_comprobante_id'],
-            cliente_id=venta_json['cliente_id'],
-            # moneda_id=venta_json['moneda_id'],
-            # tipo_pago_id=venta_json['tipo_pago_id'],
-        )
-
-        renglones = data['renglones']
-        for item in renglones:
-            articulo = Articulo.query.get(item['articulo_id'])
-            venta.items.append(VentaItem(
-                articulo=articulo,
-                descripcion=item['descripcion'],
-                cantidad=item['cantidad'],
-                precio_unidad=item['precio_unidad'],
-                subtotal_iva=0,
-                subtotal_gravado=0,
-                subtotal=item['subtotal']
-            ))
-            venta.total += float(item['subtotal'])
-
         try:
+            venta = Venta(
+                punto_venta=venta_json['punto_venta'],
+                numero=venta_json['numero'],
+                nombre_cliente=venta_json['nombre_cliente'],
+                fecha_hora=venta_json['fecha_hora'],
+                descuento=venta_json['descuento'],
+                recargo=venta_json['recargo'],
+                # total_iva=venta_json['total_iva'],
+                # total_tributos=venta_json['total_tributos'],
+                gravado=0,
+                total=0,
+                tipo_comprobante_id=venta_json['tipo_comprobante_id'],
+                cliente_id=venta_json['cliente_id'],
+                moneda_id=venta_json['moneda_id'],
+                tipo_pago_id=venta_json['tipo_pago_id'],
+                # cae=venta_json['cae'],
+                # vencimiento_cae=venta_json['vencimiento_cae'],
+            )
             db.session.add(venta)
+            db.session.flush() # para obtener el id de la venta creada
+
+            renglones = data['renglones']
+            for item in renglones:
+                articulo = Articulo.query.get(item['articulo_id'])
+                ventaItem = VentaItem(
+                    # TODO calcular IVA y gravado
+                    articulo=articulo,
+                    descripcion=item['descripcion'],
+                    cantidad=item['cantidad'],
+                    precio_unidad=item['precio_unidad'],
+                    subtotal_iva=0,
+                    subtotal_gravado=0,
+                    subtotal=item['subtotal'],
+                    venta_id=venta.id
+                )
+                db.session.add(ventaItem)
+                venta.total += float(item['subtotal'])
+
             db.session.commit()
+            return jsonify({'venta_id': venta.id}), 201
         except Exception as e:
             db.session.rollback()
-            print(e)
-            return jsonify({'error': str(e)}), 400
-        return 'ok', 201
+            return jsonify({'error': str(e)}), 500
+        finally:
+            db.session.close()
+            # TODO crar vista de Detalle de Venta y redirigir a la misma
 
 
 @venta_bp.route('/ventas/<int:pk>/update', methods=['GET', 'PUT'])
@@ -149,13 +159,9 @@ def update(pk):
             venta_item = VentaItem.query.filter_by(venta_id=pk, articulo_id=articulo_id).first()
             db.session.delete(venta_item)
 
-        # nuevo_item = VentaItem(
-        #     articulo=articulo,
-        #     **{key: value for key, value in item_data.items() if key != 'id'}
-        # )
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
-        return 'ok', 200
+        return jsonify({'venta_id': venta.id}), 200

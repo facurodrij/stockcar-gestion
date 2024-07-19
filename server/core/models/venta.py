@@ -51,6 +51,13 @@ class Venta(db.Model):
         """
         return f'{self.punto_venta:04d}-{self.numero:08d}'
 
+    def get_last_number(self):
+        """
+        # TODO
+        Devuelve el último número de venta, según el comprobante y punto de venta.
+        """
+        return 0
+    
     def to_json(self):
         """
         Convierte los datos de la venta a formato JSON.
@@ -59,6 +66,8 @@ class Venta(db.Model):
             'id': self.id,
             'cliente': self.cliente.to_json_min(),
             'tipo_comprobante': self.tipo_comprobante.to_json(),
+            'moneda': self.moneda.to_json(),
+            'tipo_pago': self.tipo_pago.to_json(),
             'punto_venta': self.punto_venta,
             'numero': self.numero,
             'nro_comprobante': self.nro_comprobante(),
