@@ -57,7 +57,6 @@ def create():
         venta_json['punto_venta'] = 1
         venta_json['numero'] = 1
         venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
-        venta_json['total'] = 100
 
         venta = Venta(
             punto_venta=venta_json['punto_venta'],
@@ -69,9 +68,9 @@ def create():
             # gravado=venta_json['gravado'],
             # total_iva=venta_json['total_iva'],
             # total_tributos=venta_json['total_tributos'],
-            total=venta_json['total'],
             # cae=venta_json['cae'],
             # vencimiento_cae=venta_json['vencimiento_cae'],
+            total=0,
             tipo_comprobante_id=venta_json['tipo_comprobante_id'],
             cliente_id=venta_json['cliente_id'],
             # moneda_id=venta_json['moneda_id'],
@@ -90,6 +89,7 @@ def create():
                 subtotal_gravado=0,
                 subtotal=item['subtotal']
             ))
+            venta.total += float(item['subtotal'])
 
         try:
             db.session.add(venta)
@@ -116,10 +116,10 @@ def update(pk):
                 venta_json[key] = None
         venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora']).astimezone(local_tz)
         # venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']) if venta_json['vencimiento_cae'] else None
-        venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
-        venta_json['total'] = 100
         venta_json['punto_venta'] = 1
         venta_json['numero'] = 1
+        venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
+        venta_json['total'] = 0
 
         for key, value in venta_json.items():
             setattr(venta, key, value)
@@ -144,6 +144,7 @@ def update(pk):
                     subtotal_gravado=0,
                     subtotal=item['subtotal']
                 ))
+            venta.total += float(item['subtotal'])
         for articulo_id in current_articulo_ids:
             venta_item = VentaItem.query.filter_by(venta_id=pk, articulo_id=articulo_id).first()
             db.session.delete(venta_item)
