@@ -35,5 +35,8 @@ class VentaItem(db.Model):
             'descripcion': self.descripcion,
             'cantidad': self.cantidad,
             'precio_unidad': self.precio_unidad,
+            'alicuota_iva': self.alicuota_iva,
+            'subtotal_iva': self.subtotal_iva,
+            'subtotal_gravado': self.subtotal_gravado,
             'subtotal': self.subtotal,
         }

@@ -125,6 +125,9 @@ export default function VentaForm({pk}) {
                                 descripcion: r.descripcion,
                                 cantidad: r.cantidad,
                                 precio_unidad: r.precio_unidad,
+                                alicuota_iva: r.alicuota_iva,
+                                subtotal_iva: r.subtotal_iva,
+                                subtotal_gravado: r.subtotal_gravado,
                                 subtotal: r.subtotal,
                             };
                         });
@@ -293,7 +296,7 @@ export default function VentaForm({pk}) {
                         </Grid>
                     </Grid>
                     <Typography variant="h6" gutterBottom sx={{mt: 3}}>Renglones de Venta</Typography>
-                    <div style={{height: 500, width: '100%'}}>
+                    <Box sx={{height: 500, width: '100%', '& .font-weight-bold': {fontWeight: '700'}}}>
                         <DataGrid
                             columns={[
                                 {field: 'descripcion', headerName: 'Descripción', flex: 2, editable: true},
@@ -321,6 +324,42 @@ export default function VentaForm({pk}) {
                                     }
                                 },
                                 {
+                                    field: 'alicuota_iva',
+                                    headerName: 'IVA (%)',
+                                    flex: 0.5,
+                                    type: 'number',
+                                    editable: true,
+                                    valueFormatter: (value) => {
+                                        return new Intl.NumberFormat('es-AR').format(value);
+                                    }
+                                },
+                                {
+                                    field: 'subtotal_iva',
+                                    headerName: 'Importe IVA',
+                                    flex: 0.5,
+                                    type: 'number',
+                                    editable: false,
+                                    valueFormatter: (value) => {
+                                        return new Intl.NumberFormat('es-AR', {
+                                            style: 'currency',
+                                            currency: 'ARS'
+                                        }).format(value);
+                                    }
+                                },
+                                {
+                                    field: 'subtotal_gravado',
+                                    headerName: 'Importe Gravado',
+                                    flex: 0.5,
+                                    type: 'number',
+                                    editable: false,
+                                    valueFormatter: (value) => {
+                                        return new Intl.NumberFormat('es-AR', {
+                                            style: 'currency',
+                                            currency: 'ARS'
+                                        }).format(value);
+                                    }
+                                },
+                                {
                                     field: 'subtotal', 
                                     headerName: 'Subtotales', 
                                     flex: 0.5, 
@@ -331,7 +370,8 @@ export default function VentaForm({pk}) {
                                             style: 'currency',
                                             currency: 'ARS'
                                         }).format(value);
-                                    }
+                                    },
+                                    cellClassName: () => 'font-weight-bold'
                                 },
                             ]}
                             rows={ventaRenglones}
@@ -343,7 +383,10 @@ export default function VentaForm({pk}) {
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaRenglones.map((row) => {
                                     if (row.articulo_id === oldRow.articulo_id) {
+                                        const iva = parseFloat(newRow.alicuota_iva);
                                         newRow.subtotal = newRow.cantidad * newRow.precio_unidad;
+                                        newRow.subtotal_iva = newRow.subtotal * iva / (100 + iva);
+                                        newRow.subtotal_gravado = newRow.subtotal - newRow.subtotal_iva;
                                         return {...newRow};
                                     }
                                     return row;
@@ -353,11 +396,13 @@ export default function VentaForm({pk}) {
                             }}
                             localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                         />
-                    </div>
+                    </Box>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
                     <Grid container spacing={2}>
-                        {/* TODO Agregar campos de configuracion, iva, tributos, puntos de venta, descuento, recargo */}
+                        {/* TODO Agrega la funcionalidad de Descuento y Recargo, revisar sobre que monto debe realizarse
+                            el descuento y recargo, y como eso influye en el calculo del IVA y demas impuestos
+                        */}
                         <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <Controller
@@ -454,8 +499,10 @@ export default function VentaForm({pk}) {
                         <Typography variant="h6" gutterBottom>Totales</Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={6}>
-                                <Typography>Total de Artículos: {ventaRenglones.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
-                                <Typography>Porcentaje de IVA: 21%</Typography>
+                                <Typography>Artículos: {ventaRenglones.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
+                                <Typography>Importe de IVA: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_iva), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography>Importe Gravado: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography>Importe Total c/IVA: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                                 <Typography fontWeight={700}>Total a Pagar: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                             </Grid>
                             <Grid item xs={6}>

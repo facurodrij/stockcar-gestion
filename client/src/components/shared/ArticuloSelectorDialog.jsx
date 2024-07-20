@@ -127,6 +127,9 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                                     descripcion: row.descripcion,
                                     cantidad: 1,
                                     precio_unidad: 0,
+                                    alicuota_iva: row.alicuota_iva.porcentaje,
+                                    subtotal_iva: 0,
+                                    subtotal_gravado: 0,
                                     subtotal: 0,
                                 };
                             });

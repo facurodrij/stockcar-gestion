@@ -70,7 +70,7 @@ def create():
                 fecha_hora=venta_json['fecha_hora'],
                 descuento=venta_json['descuento'],
                 recargo=venta_json['recargo'],
-                # total_iva=venta_json['total_iva'],
+                total_iva=0,
                 # total_tributos=venta_json['total_tributos'],
                 gravado=0,
                 total=0,
@@ -88,17 +88,19 @@ def create():
             for item in renglones:
                 articulo = Articulo.query.get(item['articulo_id'])
                 ventaItem = VentaItem(
-                    # TODO calcular IVA y gravado
                     articulo=articulo,
                     descripcion=item['descripcion'],
                     cantidad=item['cantidad'],
                     precio_unidad=item['precio_unidad'],
-                    subtotal_iva=0,
-                    subtotal_gravado=0,
+                    alicuota_iva=item['alicuota_iva'],
+                    subtotal_iva=item['subtotal_iva'],
+                    subtotal_gravado=item['subtotal_gravado'],
                     subtotal=item['subtotal'],
                     venta_id=venta.id
                 )
                 db.session.add(ventaItem)
+                venta.total_iva += float(item['subtotal_iva'])
+                venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
 
             db.session.commit()
@@ -129,6 +131,8 @@ def update(pk):
         venta_json['punto_venta'] = 1
         venta_json['numero'] = 1
         venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
+        venta_json['total_iva'] = 0
+        venta_json['gravado'] = 0
         venta_json['total'] = 0
 
         for key, value in venta_json.items():
@@ -150,10 +154,12 @@ def update(pk):
                     descripcion=item['descripcion'],
                     cantidad=item['cantidad'],
                     precio_unidad=item['precio_unidad'],
-                    subtotal_iva=0,
-                    subtotal_gravado=0,
+                    subtotal_iva=item['subtotal_iva'],
+                    subtotal_gravado=item['subtotal_gravado'],
                     subtotal=item['subtotal']
                 ))
+            venta.total_iva += float(item['subtotal_iva'])
+            venta.gravado += float(item['subtotal_gravado'])
             venta.total += float(item['subtotal'])
         for articulo_id in current_articulo_ids:
             venta_item = VentaItem.query.filter_by(venta_id=pk, articulo_id=articulo_id).first()
