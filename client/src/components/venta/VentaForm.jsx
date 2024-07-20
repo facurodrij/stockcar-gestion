@@ -189,8 +189,13 @@ export default function VentaForm({pk}) {
     }
 
     const onError = (errors) => {
-        alert(JSON.stringify(errors));
-        // TODO Mostrar errores
+        if (errors['cliente_id'] || errors['tipo_comprobante_id'] || errors['fecha_hora']) {
+            setTabValue(0);
+            return;
+        }
+        if (errors['descuento'] || errors['recargo'] || errors['tipo_pago_id'] || errors['moneda_id']) {
+            setTabValue(1);
+        }
     }
 
     return (
