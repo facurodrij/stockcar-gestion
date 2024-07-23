@@ -1,7 +1,16 @@
-from sqlalchemy import Column, String, Integer, Numeric, ForeignKey, DateTime, CHAR, Table
+import enum
+from sqlalchemy import Column, String, Integer, Numeric, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
 from server.config import db
+
+class BaseCalculo(enum.Enum):
+    """
+    Enumeración para los tipos de base de cálculo de los tributos.
+    """
+    neto = 'Neto'
+    bruto = 'Bruto'
+    gravado = 'Gravado'
 
 
 class Tributo(db.Model):
@@ -19,6 +28,7 @@ class Tributo(db.Model):
     minimo_imponible = Column(Numeric(precision=10, scale=2), default=0, nullable=False)  # Minimo imponible
     """Es de utilidad para el caso de percepciones que se calculan sólo a partir de un importe determinado. 
     En este campo se consigna el importe mínimo gravado a partir del que se calculará la sobretasa correspondiente."""
+    base_calculo = Column(Enum(BaseCalculo), nullable=False, default=BaseCalculo.neto)
 
     # Relaciones con otras tablas
     tipo_tributo_id = Column(Integer, ForeignKey('tipo_tributo.id'), nullable=False)

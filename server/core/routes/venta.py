@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
 from server.config import db
-from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago
+from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -17,12 +17,14 @@ def get_select_options():
     tipo_comprobante = TipoComprobante.query.all()
     tipo_pago = TipoPago.query.all()
     moneda = Moneda.query.all()
+    tributo = Tributo.query.all()
 
     return {
         'cliente': list(map(lambda x: x.to_json_min(), cliente)),
         'tipo_comprobante': list(map(lambda x: x.to_json(), tipo_comprobante)),
         'tipo_pago': list(map(lambda x: x.to_json(), tipo_pago)),
         'moneda': list(map(lambda x: x.to_json(), moneda)),
+        'tributo': list(map(lambda x: x.to_json(), tributo))
     }
 
 
@@ -75,8 +77,13 @@ def create():
                 venta.total_iva += float(item['subtotal_iva'])
                 venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
-            
-            # TODO agregar tributos adicionales
+
+            tributos = data['tributos']
+            for tributo_id in tributos:
+                tributo = Tributo.query.get(tributo_id)
+                venta.tributos.append(tributo)
+
+            # TODO calcular importe de cada tributo, y el total de tributos    
 
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
@@ -131,24 +138,33 @@ def update(pk):
             venta_item = VentaItem.query.filter_by(
                 venta_id=pk, articulo_id=articulo_id).first()
             db.session.delete(venta_item)
+        
+        venta.tributos = []
+        nuevos_tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
+        for tributo in nuevos_tributos:
+            venta.tributos.append(tributo)
 
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
+            print(e)
             return jsonify({'error': str(e)}), 400
         return jsonify({'venta_id': venta.id}), 200
 
 
 def venta_json_to_model(venta_json: dict) -> dict:
     for key, value in venta_json.items():
-            if value == '': 
-                venta_json[key] = None
-    venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora']).astimezone(local_tz)
-    venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']).astimezone(local_tz) if venta_json['vencimiento_cae'] else None
+        if value == '':
+            venta_json[key] = None
+    venta_json['fecha_hora'] = datetime.fromisoformat(
+        venta_json['fecha_hora']).astimezone(local_tz)
+    venta_json['vencimiento_cae'] = datetime.fromisoformat(
+        venta_json['vencimiento_cae']).astimezone(local_tz) if venta_json['vencimiento_cae'] else None
     venta_json['punto_venta'] = 1
     venta_json['numero'] = 1
-    venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
+    venta_json['nombre_cliente'] = Cliente.query.get(
+        venta_json['cliente_id']).razon_social
     venta_json['gravado'] = 0
     venta_json['total_iva'] = 0
     venta_json['total_tributos'] = 0

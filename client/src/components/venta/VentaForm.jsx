@@ -29,6 +29,7 @@ import SnackbarAlert from "../shared/SnackbarAlert";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import {esES} from "@mui/x-data-grid/locales";
 import InputAdornment from '@mui/material/InputAdornment';
+import TributoDataGrid from "../tributo/TributoDataGrid";
 
 const CustomToolbar = ({onOpen}) => {
     return (
@@ -57,6 +58,7 @@ export default function VentaForm({pk}) {
         tipo_comprobante: [],
         tipo_pago: [],
         moneda: [],
+        tributo: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -69,6 +71,7 @@ export default function VentaForm({pk}) {
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
     const [selectedArticulo, setSelectedArticulo] = useState([]);
     const [ventaRenglones, setVentaRenglones] = useState([]);
+    const [selectedTributo, setSelectedTributo] = useState([]);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -108,10 +111,12 @@ export default function VentaForm({pk}) {
                         cliente: selectOptions.cliente,
                         tipo_comprobante: selectOptions.tipo_comprobante,
                         tipo_pago: selectOptions.tipo_pago,
-                        moneda: selectOptions.moneda
+                        moneda: selectOptions.moneda,
+                        tributo: selectOptions.tributo,
                     });
                     if (Boolean(pk)) {
                         const venta = data['venta'];
+                        const tributos = venta['tributos'];
                         setValue('cliente_id', venta.cliente.id);
                         setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
                         setValue('fecha_hora', dayjs(venta.fecha_hora));
@@ -136,6 +141,10 @@ export default function VentaForm({pk}) {
                         const articuloArray = renglonesArray.map((r) => r.articulo_id);
                         setVentaRenglones(renglonesArray);
                         setSelectedArticulo(articuloArray);
+                        setSelectedTributo([])
+                        tributos.map((t) => {
+                            setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
+                        });
                     }
                 }
             } catch (e) {
@@ -167,7 +176,7 @@ export default function VentaForm({pk}) {
                     'Accept': 'application/json', // Indica que se espera una respuesta en formato JSON
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({venta: data, renglones: ventaRenglones})
+                body: JSON.stringify({venta: data, renglones: ventaRenglones, tributos: selectedTributo})
             });
 
             if (!response.ok) {
@@ -490,6 +499,17 @@ export default function VentaForm({pk}) {
                                     )}
                                 />
                             </FormControl>
+                        </Grid>
+                    </Grid>
+                    <Typography variant="h6" gutterBottom sx={{mt: 2}}>Tributos adicionales</Typography>
+                    {/* TODO Actualizar tributos al cambiar de Cliente */}
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <TributoDataGrid
+                                tributos={selectOptions.tributo}
+                                selectedTributo={selectedTributo}
+                                setSelectedTributo={setSelectedTributo}
+                            />
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>

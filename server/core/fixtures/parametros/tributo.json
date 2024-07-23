@@ -1,0 +1,10 @@
+[
+    {
+        "id": "1",
+        "descripcion": "DGR 3.31%",
+        "alicuota": 3.31,
+        "minimo_imponible": 0.00,
+        "tipo_tributo_id": 2,
+        "base_calculo": "neto"
+    }
+]

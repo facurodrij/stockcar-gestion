@@ -29,8 +29,7 @@ tributo_venta = db.Table(
     'tributo_venta',
     Column('tributo_id', Integer, ForeignKey('tributo.id'), primary_key=True),
     Column('venta_id', Integer, ForeignKey('venta.id'), primary_key=True),
-    Column('porcentaje', Numeric, nullable=False),
-    Column('importe', Numeric, nullable=False)
+    Column('importe', Numeric, default=0, nullable=False)
 )
 
 # Tabla de asociación entre tributos y artículos
