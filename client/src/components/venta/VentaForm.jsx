@@ -119,6 +119,8 @@ export default function VentaForm({pk}) {
                         setValue('recargo', venta.recargo);
                         setValue('tipo_pago_id', venta.tipo_pago.id);
                         setValue('moneda_id', venta.moneda.id);
+                        setValue('cae', venta.cae);
+                        if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
                         const renglonesArray = data['renglones'].map((r) => {
                             return {
                                 articulo_id: r.articulo_id,
@@ -492,7 +494,44 @@ export default function VentaForm({pk}) {
                     </Grid>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={2}>
-                    {/* TODO Agregar campos de factura electronica */}
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="cae"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({field}) => (
+                                        <TextField
+                                            {...field}
+                                            label="CAE"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth error={Boolean(errors.vencimiento_cae)}>
+                                <Controller
+                                    name="vencimiento_cae"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({field}) => (
+                                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
+                                            <DateTimePicker
+                                                {...field}
+                                                label="Vencimiento de CAE"
+                                                value={field.value ? dayjs(field.value) : null}
+                                                onChange={(value) => field.onChange(value)}
+                                            />
+                                        </LocalizationProvider>
+                                    )}
+                                />
+                                <FormHelperText>{errors.vencimiento_cae && errors.vencimiento_cae.message}</FormHelperText>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
                 </SimpleTabPanel>
                 <Box sx={{borderTop: 1, borderColor: 'divider'}}>
                     <Box sx={{p: 3}}>
@@ -511,7 +550,7 @@ export default function VentaForm({pk}) {
                         </Grid>
                     </Box>
                     <Box sx={{display: 'flex', justifyContent: 'right', mt: 2}}>
-                        <Button variant="contained" startIcon={<SaveIcon/>} type="submit">
+                        <Button variant="contained" startIcon={<SaveIcon/>} type="button" onClick={handleSubmit(onSubmit, onError)}>
                             Guardar
                         </Button>
                     </Box>

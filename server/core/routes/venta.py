@@ -11,6 +11,7 @@ model = 'ventas'
 
 local_tz = pytz.timezone('America/Argentina/Buenos_Aires')
 
+
 def get_select_options():
     cliente = Cliente.query.all()
     tipo_comprobante = TipoComprobante.query.all()
@@ -35,7 +36,8 @@ def index():
             datetime.fromisoformat(fecha_desde),
             (datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1))))
     elif fecha_desde:
-        ventas = Venta.query.filter(Venta.fecha >= datetime.fromisoformat(fecha_desde))
+        ventas = Venta.query.filter(
+            Venta.fecha >= datetime.fromisoformat(fecha_desde))
     elif fecha_hasta:
         ventas = Venta.query.filter(
             Venta.fecha <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1))
@@ -52,61 +54,35 @@ def create():
         return jsonify({'select_options': get_select_options()}), 200
     if request.method == 'POST':
         data = request.json
-        venta_json = data['venta']
-        for key, value in venta_json.items():
-            if value == '':
-                venta_json[key] = None
-        venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora']).astimezone(local_tz)
-        # venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']) if venta_json['vencimiento_cae'] else None
-        venta_json['punto_venta'] = 1
-        venta_json['numero'] = 1
-        venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
+        venta_json = venta_json_to_model(data['venta'])
 
         try:
             venta = Venta(
-                punto_venta=venta_json['punto_venta'],
-                numero=venta_json['numero'],
-                nombre_cliente=venta_json['nombre_cliente'],
-                fecha_hora=venta_json['fecha_hora'],
-                descuento=venta_json['descuento'],
-                recargo=venta_json['recargo'],
-                total_iva=0,
-                # total_tributos=venta_json['total_tributos'],
-                gravado=0,
-                total=0,
-                tipo_comprobante_id=venta_json['tipo_comprobante_id'],
-                cliente_id=venta_json['cliente_id'],
-                moneda_id=venta_json['moneda_id'],
-                tipo_pago_id=venta_json['tipo_pago_id'],
-                # cae=venta_json['cae'],
-                # vencimiento_cae=venta_json['vencimiento_cae'],
+                **venta_json
             )
             db.session.add(venta)
-            db.session.flush() # para obtener el id de la venta creada
+            db.session.flush()  # para obtener el id de la venta creada
 
             renglones = data['renglones']
             for item in renglones:
                 articulo = Articulo.query.get(item['articulo_id'])
                 ventaItem = VentaItem(
                     articulo=articulo,
-                    descripcion=item['descripcion'],
-                    cantidad=item['cantidad'],
-                    precio_unidad=item['precio_unidad'],
-                    alicuota_iva=item['alicuota_iva'],
-                    subtotal_iva=item['subtotal_iva'],
-                    subtotal_gravado=item['subtotal_gravado'],
-                    subtotal=item['subtotal'],
-                    venta_id=venta.id
+                    venta_id=venta.id,
+                    **item
                 )
                 db.session.add(ventaItem)
                 venta.total_iva += float(item['subtotal_iva'])
                 venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
+            
+            # TODO agregar tributos adicionales
 
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
         except Exception as e:
             db.session.rollback()
+            print(e)
             return jsonify({'error': str(e)}), 500
         finally:
             db.session.close()
@@ -122,18 +98,7 @@ def update(pk):
                         'renglones': list(map(lambda x: x.to_json(), venta_items))}), 200
     if request.method == 'PUT':
         data = request.json
-        venta_json = data['venta']
-        for key, value in venta_json.items():
-            if value == '':
-                venta_json[key] = None
-        venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora']).astimezone(local_tz)
-        # venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']) if venta_json['vencimiento_cae'] else None
-        venta_json['punto_venta'] = 1
-        venta_json['numero'] = 1
-        venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
-        venta_json['total_iva'] = 0
-        venta_json['gravado'] = 0
-        venta_json['total'] = 0
+        venta_json = venta_json_to_model(data['venta'])
 
         for key, value in venta_json.items():
             setattr(venta, key, value)
@@ -143,7 +108,8 @@ def update(pk):
         for item in renglones:
             articulo_id = item['articulo_id']
             if articulo_id in current_articulo_ids:
-                venta_item = VentaItem.query.filter_by(venta_id=pk, articulo_id=articulo_id).first()
+                venta_item = VentaItem.query.filter_by(
+                    venta_id=pk, articulo_id=articulo_id).first()
                 for key, value in item.items():
                     setattr(venta_item, key, value)
                 current_articulo_ids.remove(articulo_id)
@@ -162,7 +128,8 @@ def update(pk):
             venta.gravado += float(item['subtotal_gravado'])
             venta.total += float(item['subtotal'])
         for articulo_id in current_articulo_ids:
-            venta_item = VentaItem.query.filter_by(venta_id=pk, articulo_id=articulo_id).first()
+            venta_item = VentaItem.query.filter_by(
+                venta_id=pk, articulo_id=articulo_id).first()
             db.session.delete(venta_item)
 
         try:
@@ -171,3 +138,19 @@ def update(pk):
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
         return jsonify({'venta_id': venta.id}), 200
+
+
+def venta_json_to_model(venta_json: dict) -> dict:
+    for key, value in venta_json.items():
+            if value == '': 
+                venta_json[key] = None
+    venta_json['fecha_hora'] = datetime.fromisoformat(venta_json['fecha_hora']).astimezone(local_tz)
+    venta_json['vencimiento_cae'] = datetime.fromisoformat(venta_json['vencimiento_cae']).astimezone(local_tz) if venta_json['vencimiento_cae'] else None
+    venta_json['punto_venta'] = 1
+    venta_json['numero'] = 1
+    venta_json['nombre_cliente'] = Cliente.query.get(venta_json['cliente_id']).razon_social
+    venta_json['gravado'] = 0
+    venta_json['total_iva'] = 0
+    venta_json['total_tributos'] = 0
+    venta_json['total'] = 0
+    return venta_json

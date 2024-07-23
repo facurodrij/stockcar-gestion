@@ -17,13 +17,13 @@ class Venta(db.Model):
     punto_venta = Column(Integer, nullable=False)
     numero = Column(Integer, nullable=False)
     nombre_cliente = Column(String, nullable=False)
-    fecha_hora = Column(DateTime, default=func.now())
-    descuento = Column(Numeric(precision=5, scale=2), default=0)
-    recargo = Column(Numeric(precision=5, scale=2), default=0)
-    gravado = Column(Numeric(precision=10, scale=2), default=0)  # Total - IVA - Percepción
-    total_iva = Column(Numeric(precision=10, scale=2), default=0)
-    total_tributos = Column(Numeric(precision=10, scale=2), default=0)
-    total = Column(Numeric(precision=10, scale=2), nullable=False)
+    fecha_hora = Column(DateTime, default=func.now(), nullable=False)
+    descuento = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
+    recargo = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
+    gravado = Column(Numeric(precision=10, scale=2), default=0, nullable=False)  # Total - IVA - Percepción
+    total_iva = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
+    total_tributos = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
+    total = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
     cae = Column(String, nullable=True)  # Código de Autorización Electrónico
     vencimiento_cae = Column(DateTime, nullable=True)
 
@@ -53,8 +53,7 @@ class Venta(db.Model):
 
     def get_last_number(self):
         """
-        # TODO
-        Devuelve el último número de venta, según el comprobante y punto de venta.
+        TODO Devuelve el último número de venta, según el comprobante y punto de venta.
         """
         return 0
     
