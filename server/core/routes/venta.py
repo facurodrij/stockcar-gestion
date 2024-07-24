@@ -4,6 +4,8 @@ from flask import Blueprint, jsonify, request
 
 from server.config import db
 from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo
+from server.core.models.tributo import BaseCalculo
+from server.core.models.association_table import tributo_venta
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -78,13 +80,27 @@ def create():
                 venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
 
-            tributos = data['tributos']
-            for tributo_id in tributos:
-                tributo = Tributo.query.get(tributo_id)
-                venta.tributos.append(tributo)
+            tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
+            for tributo in tributos:
+                base_calculo = tributo.base_calculo
+                alicuota = float(tributo.alicuota / 100)
+                if base_calculo == BaseCalculo.neto:
+                    importe = venta.gravado * alicuota
+                elif base_calculo == BaseCalculo.bruto:
+                    # TODO revisar si es correcto
+                    importe = venta.total * alicuota
+                
+                venta.total_tributos += importe
 
-            # TODO calcular importe de cada tributo, y el total de tributos    
-
+                db.session.execute(
+                    tributo_venta.insert().values(
+                        tributo_id=tributo.id,
+                        venta_id=venta.id,
+                        importe=importe
+                    )
+                )                
+            venta.total += venta.total_tributos
+ 
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
         except Exception as e:
@@ -93,7 +109,7 @@ def create():
             return jsonify({'error': str(e)}), 500
         finally:
             db.session.close()
-            # TODO crar vista de Detalle de Venta y redirigir a la misma
+            # TODO crear vista de Detalle de Venta y redirigir a la misma
 
 
 @venta_bp.route('/ventas/<int:pk>/update', methods=['GET', 'PUT'])
@@ -107,50 +123,71 @@ def update(pk):
         data = request.json
         venta_json = venta_json_to_model(data['venta'])
 
-        for key, value in venta_json.items():
-            setattr(venta, key, value)
+        try:
+            for key, value in venta_json.items():
+                setattr(venta, key, value)
 
-        current_articulo_ids = list(map(lambda x: x.articulo_id, venta_items))
-        renglones = data['renglones']
-        for item in renglones:
-            articulo_id = item['articulo_id']
-            if articulo_id in current_articulo_ids:
+            current_articulo_ids = list(map(lambda x: x.articulo_id, venta_items))
+            renglones = data['renglones']
+            for item in renglones:
+                articulo_id = item['articulo_id']
+                if articulo_id in current_articulo_ids:
+                    venta_item = VentaItem.query.filter_by(
+                        venta_id=pk, articulo_id=articulo_id).first()
+                    for key, value in item.items():
+                        setattr(venta_item, key, value)
+                    current_articulo_ids.remove(articulo_id)
+                else:
+                    articulo = Articulo.query.get(articulo_id)
+                    venta.items.append(VentaItem(
+                        articulo=articulo,
+                        descripcion=item['descripcion'],
+                        cantidad=item['cantidad'],
+                        precio_unidad=item['precio_unidad'],
+                        subtotal_iva=item['subtotal_iva'],
+                        subtotal_gravado=item['subtotal_gravado'],
+                        subtotal=item['subtotal']
+                    ))
+                venta.total_iva += float(item['subtotal_iva'])
+                venta.gravado += float(item['subtotal_gravado'])
+                venta.total += float(item['subtotal'])
+
+            for articulo_id in current_articulo_ids:
                 venta_item = VentaItem.query.filter_by(
                     venta_id=pk, articulo_id=articulo_id).first()
-                for key, value in item.items():
-                    setattr(venta_item, key, value)
-                current_articulo_ids.remove(articulo_id)
-            else:
-                articulo = Articulo.query.get(articulo_id)
-                venta.items.append(VentaItem(
-                    articulo=articulo,
-                    descripcion=item['descripcion'],
-                    cantidad=item['cantidad'],
-                    precio_unidad=item['precio_unidad'],
-                    subtotal_iva=item['subtotal_iva'],
-                    subtotal_gravado=item['subtotal_gravado'],
-                    subtotal=item['subtotal']
-                ))
-            venta.total_iva += float(item['subtotal_iva'])
-            venta.gravado += float(item['subtotal_gravado'])
-            venta.total += float(item['subtotal'])
-        for articulo_id in current_articulo_ids:
-            venta_item = VentaItem.query.filter_by(
-                venta_id=pk, articulo_id=articulo_id).first()
-            db.session.delete(venta_item)
-        
-        venta.tributos = []
-        nuevos_tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
-        for tributo in nuevos_tributos:
-            venta.tributos.append(tributo)
+                db.session.delete(venta_item)
+            
+            venta.tributos = []
+            nuevos_tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
+            for tributo in nuevos_tributos:
+                base_calculo = tributo.base_calculo
+                alicuota = float(tributo.alicuota / 100)
+                if base_calculo == BaseCalculo.neto:
+                    importe = venta.gravado * alicuota
+                elif base_calculo == BaseCalculo.bruto:
+                    # TODO revisar si es correcto
+                    importe = venta.total * alicuota
+                
+                venta.total_tributos += importe
 
-        try:
+                db.session.execute(
+                    tributo_venta.insert().values(
+                        tributo_id=tributo.id,
+                        venta_id=venta.id,
+                        importe=importe
+                    )
+                )
+            venta.total += venta.total_tributos
+
             db.session.commit()
+            return jsonify({'venta_id': venta.id}), 200
         except Exception as e:
             db.session.rollback()
             print(e)
-            return jsonify({'error': str(e)}), 400
-        return jsonify({'venta_id': venta.id}), 200
+            return jsonify({'error': str(e)}), 500
+        finally:
+            db.session.close()
+            # TODO crear vista de Detalle de Venta y redirigir a la misma
 
 
 def venta_json_to_model(venta_json: dict) -> dict:

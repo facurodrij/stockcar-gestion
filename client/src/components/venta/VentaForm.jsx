@@ -124,7 +124,7 @@ export default function VentaForm({pk}) {
                         setValue('recargo', venta.recargo);
                         setValue('tipo_pago_id', venta.tipo_pago.id);
                         setValue('moneda_id', venta.moneda.id);
-                        setValue('cae', venta.cae);
+                        if (venta.cae) setValue('cae', venta.cae);
                         if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
                         const renglonesArray = data['renglones'].map((r) => {
                             return {
@@ -212,6 +212,18 @@ export default function VentaForm({pk}) {
         }
     }
 
+    const calculateTotalTributos = () => {
+        const tributos = selectOptions.tributo.filter((t) => selectedTributo.includes(t.id));
+        let totalTributos = 0
+        tributos.map((t) => {
+            if (t.base_calculo === 'Neto')
+                totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0) * t.alicuota / 100;
+            else
+                totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0) * t.alicuota / 100;
+        });
+        return totalTributos
+    }
+
     return (
         <>
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
@@ -253,7 +265,7 @@ export default function VentaForm({pk}) {
                                                 value === undefined || value === "" || option.id === value.id
                                             }
                                             onChange={(event, value) => {
-                                                field.onChange(value ? value.id : null);
+                                                field.onChange(value ? value.id : "");
                                             }}
                                         />
                                     )}
@@ -561,8 +573,10 @@ export default function VentaForm({pk}) {
                                 <Typography>Artículos: {ventaRenglones.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
                                 <Typography>Importe de IVA: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_iva), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                                 <Typography>Importe Gravado: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography>Importe Total c/IVA: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography fontWeight={700}>Total a Pagar: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography>Descuento:</Typography>
+                                <Typography>Recargo:</Typography>
+                                <Typography>Importe Otros Tributos: {calculateTotalTributos().toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography fontWeight={700}>Importe Total: {(ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0) + calculateTotalTributos()).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                             </Grid>
                             <Grid item xs={6}>
                                 {/* Espacio reservado para futuras expansiones o información adicional */}

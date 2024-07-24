@@ -8,9 +8,8 @@ class BaseCalculo(enum.Enum):
     """
     Enumeración para los tipos de base de cálculo de los tributos.
     """
-    neto = 'Neto'
+    neto = 'Neto' # Se calcula sobre el neto gravado, es decir, el total de la venta menos el IVA
     bruto = 'Bruto'
-    gravado = 'Gravado'
 
 
 class Tributo(db.Model):
@@ -46,7 +45,8 @@ class Tributo(db.Model):
         return {
             'id': self.id,
             'descripcion': self.descripcion,
-            'alicuota': self.alicuota,
+            'alicuota': float(self.alicuota),
             'minimo_imponible': self.minimo_imponible,
-            'tipo_tributo': self.tipo_tributo.to_json()
+            'base_calculo': self.base_calculo.value,
+            'tipo_tributo': self.tipo_tributo.to_json(),
         }
