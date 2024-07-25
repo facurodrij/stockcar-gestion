@@ -18,11 +18,15 @@ class Venta(db.Model):
     numero = Column(Integer, nullable=False)
     nombre_cliente = Column(String, nullable=False)
     fecha_hora = Column(DateTime, default=func.now(), nullable=False)
-    descuento = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
+    descuento = Column(Numeric(precision=5, scale=2),
+                       default=0, nullable=False)
     recargo = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
-    gravado = Column(Numeric(precision=10, scale=2), default=0, nullable=False)  # Total - IVA - Percepción
-    total_iva = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
-    total_tributos = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
+    gravado = Column(Numeric(precision=10, scale=2), default=0,
+                     nullable=False)  # Total - IVA - Percepción
+    total_iva = Column(Numeric(precision=10, scale=2),
+                       default=0, nullable=False)
+    total_tributos = Column(
+        Numeric(precision=10, scale=2), default=0, nullable=False)
     total = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
     cae = Column(String, nullable=True)  # Código de Autorización Electrónico
     vencimiento_cae = Column(DateTime, nullable=True)
@@ -30,16 +34,20 @@ class Venta(db.Model):
     # TODO investigar como almacenar los tipos de pagos, teniendo en cuenta que una venta puede pagarse con varios tipos de pagos
 
     # Relaciones con otras tablas
-    tipo_comprobante_id = Column(Integer, ForeignKey('tipo_comprobante.id'), nullable=False)
+    tipo_comprobante_id = Column(Integer, ForeignKey(
+        'tipo_comprobante.id'), nullable=False)
     tipo_comprobante = relationship('TipoComprobante', backref='ventas')
     cliente_id = Column(Integer, ForeignKey('cliente.id'), nullable=False)
     cliente = relationship('Cliente', backref='ventas')
-    moneda_id = Column(Integer, ForeignKey('moneda.id'), default=1, nullable=False)
+    moneda_id = Column(Integer, ForeignKey(
+        'moneda.id'), default=1, nullable=False)
     moneda = relationship('Moneda', backref='ventas')
-    tipo_pago_id = Column(Integer, ForeignKey('tipo_pago.id'), default=1, nullable=False)
+    tipo_pago_id = Column(Integer, ForeignKey(
+        'tipo_pago.id'), default=1, nullable=False)
     tipo_pago = relationship('TipoPago', backref='ventas')
 
-    tributos = relationship('Tributo', secondary='tributo_venta', back_populates='ventas')
+    tributos = relationship(
+        'Tributo', secondary='tributo_venta', back_populates='ventas')
 
     # Datos de Auditoría
     fecha_alta = Column(DateTime, default=func.now())
@@ -55,10 +63,16 @@ class Venta(db.Model):
 
     def get_last_number(self):
         """
-        TODO Devuelve el último número de venta, según el comprobante y punto de venta.
+        Devuelve el último número de venta, según el comprobante y punto de venta.
         """
-        return 0
-    
+        last_number = db.session.query(func.max(Venta.numero)).filter(
+            Venta.tipo_comprobante_id == self.tipo_comprobante_id, 
+            Venta.punto_venta == self.punto_venta).scalar()
+        if last_number:
+            return last_number
+        else:
+            return 0
+
     def to_json(self):
         """
         Convierte los datos de la venta a formato JSON.

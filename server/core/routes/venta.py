@@ -64,6 +64,7 @@ def create():
             venta = Venta(
                 **venta_json
             )
+            venta.numero = venta.get_last_number() + 1
             db.session.add(venta)
             db.session.flush()  # para obtener el id de la venta creada
 
@@ -198,8 +199,7 @@ def venta_json_to_model(venta_json: dict) -> dict:
         venta_json['fecha_hora']).astimezone(local_tz)
     venta_json['vencimiento_cae'] = datetime.fromisoformat(
         venta_json['vencimiento_cae']).astimezone(local_tz) if venta_json['vencimiento_cae'] else None
-    venta_json['punto_venta'] = 1
-    venta_json['numero'] = 1
+    venta_json['punto_venta'] = 1 # TODO agregar funcionalidad para elegir punto de venta
     venta_json['nombre_cliente'] = Cliente.query.get(
         venta_json['cliente_id']).razon_social
     venta_json['gravado'] = 0

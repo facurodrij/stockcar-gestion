@@ -77,7 +77,7 @@ export default function VentaList() {
             }
         },
         {field: 'tipo_comprobante', headerName: 'Comprobante', flex: 1},
-        {field: 'nro_doc', headerName: 'Número', flex: 1},
+        {field: 'nro_comprobante', headerName: 'Número', flex: 1},
         {field: 'cliente', headerName: 'Cliente', flex: 1},
         {
             field: 'total', headerName: 'Total', flex: 1,
@@ -113,7 +113,7 @@ export default function VentaList() {
             id: item.id,
             fecha_hora: item.fecha_hora,
             tipo_comprobante: item.tipo_comprobante.descripcion,
-            nro_doc: item.nro_doc,
+            nro_comprobante: item.nro_comprobante,
             cliente: item.nombre_cliente,
             total: item.total
         }
