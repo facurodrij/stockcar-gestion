@@ -26,7 +26,7 @@ class Venta(db.Model):
     total = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
     cae = Column(String, nullable=True)  # Código de Autorización Electrónico
     vencimiento_cae = Column(DateTime, nullable=True)
-    # TODO agregar campo observaciones
+    observacion = Column(String, nullable=True)
     # TODO investigar como almacenar los tipos de pagos, teniendo en cuenta que una venta puede pagarse con varios tipos de pagos
 
     # Relaciones con otras tablas
@@ -84,5 +84,7 @@ class Venta(db.Model):
             'total': self.total,
             'cae': self.cae,
             'vencimiento_cae': self.vencimiento_cae.isoformat() if self.vencimiento_cae else None,
-            'tributos': tributos
+            'observacion': self.observacion,
+            'tributos': tributos,
+            'fecha_alta': self.fecha_alta.isoformat(),
         }

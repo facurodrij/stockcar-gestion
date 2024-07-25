@@ -126,6 +126,9 @@ export default function VentaForm({pk}) {
                         setValue('moneda_id', venta.moneda.id);
                         if (venta.cae) setValue('cae', venta.cae);
                         if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
+                        if (venta.observacion) setValue('observacion', venta.observacion);
+                        
+                        // Cargar renglones de venta y articulos seleccionados
                         const renglonesArray = data['renglones'].map((r) => {
                             return {
                                 articulo_id: r.articulo_id,
@@ -141,6 +144,8 @@ export default function VentaForm({pk}) {
                         const articuloArray = renglonesArray.map((r) => r.articulo_id);
                         setVentaRenglones(renglonesArray);
                         setSelectedArticulo(articuloArray);
+
+                        // Cargar tributos seleccionados
                         setSelectedTributo([])
                         tributos.map((t) => {
                             setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
@@ -233,6 +238,7 @@ export default function VentaForm({pk}) {
                         <Tab label="Principal"/>
                         <Tab label="Configuración"/>
                         <Tab label="Factura Electrónica"/>
+                        <Tab label="Observaciones"/>
                     </Tabs>
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
@@ -561,6 +567,29 @@ export default function VentaForm({pk}) {
                                     )}
                                 />
                                 <FormHelperText>{errors.vencimiento_cae && errors.vencimiento_cae.message}</FormHelperText>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                </SimpleTabPanel>
+                <SimpleTabPanel value={tabValue} index={3}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="observacion"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({field}) => (
+                                        <TextField
+                                            {...field}
+                                            id="observacion"
+                                            label="Observaciones"
+                                            variant="outlined"
+                                            multiline
+                                            rows={6}
+                                        />
+                                    )}
+                                />
                             </FormControl>
                         </Grid>
                     </Grid>
