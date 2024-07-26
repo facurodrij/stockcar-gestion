@@ -30,6 +30,25 @@ def get_select_options():
     }
 
 
+def venta_json_to_model(venta_json: dict) -> dict:
+    for key, value in venta_json.items():
+        if value == '':
+            venta_json[key] = None
+    venta_json['fecha_hora'] = datetime.fromisoformat(
+        venta_json['fecha_hora']).astimezone(local_tz)
+    venta_json['vencimiento_cae'] = datetime.fromisoformat(
+        venta_json['vencimiento_cae']).astimezone(local_tz) if venta_json['vencimiento_cae'] else None
+    # TODO agregar funcionalidad para elegir punto de venta
+    venta_json['punto_venta'] = 1
+    venta_json['nombre_cliente'] = Cliente.query.get(
+        venta_json['cliente_id']).razon_social
+    venta_json['gravado'] = 0
+    venta_json['total_iva'] = 0
+    venta_json['total_tributos'] = 0
+    venta_json['total'] = 0
+    return venta_json
+
+
 @venta_bp.route('/ventas', methods=['GET'])
 def index():
     fecha_desde = request.args.get('desde')
@@ -81,7 +100,8 @@ def create():
                 venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
 
-            tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
+            tributos = Tributo.query.filter(
+                Tributo.id.in_(data['tributos'])).all()
             for tributo in tributos:
                 base_calculo = tributo.base_calculo
                 alicuota = float(tributo.alicuota / 100)
@@ -90,7 +110,7 @@ def create():
                 elif base_calculo == BaseCalculo.bruto:
                     # TODO revisar si es correcto
                     importe = venta.total * alicuota
-                
+
                 venta.total_tributos += importe
 
                 db.session.execute(
@@ -99,9 +119,9 @@ def create():
                         venta_id=venta.id,
                         importe=importe
                     )
-                )                
+                )
             venta.total += venta.total_tributos
- 
+
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
         except Exception as e:
@@ -110,7 +130,6 @@ def create():
             return jsonify({'error': str(e)}), 500
         finally:
             db.session.close()
-            # TODO crear vista de Detalle de Venta y redirigir a la misma
 
 
 @venta_bp.route('/ventas/<int:pk>/update', methods=['GET', 'PUT'])
@@ -128,7 +147,8 @@ def update(pk):
             for key, value in venta_json.items():
                 setattr(venta, key, value)
 
-            current_articulo_ids = list(map(lambda x: x.articulo_id, venta_items))
+            current_articulo_ids = list(
+                map(lambda x: x.articulo_id, venta_items))
             renglones = data['renglones']
             for item in renglones:
                 articulo_id = item['articulo_id']
@@ -157,9 +177,10 @@ def update(pk):
                 venta_item = VentaItem.query.filter_by(
                     venta_id=pk, articulo_id=articulo_id).first()
                 db.session.delete(venta_item)
-            
+
             venta.tributos = []
-            nuevos_tributos = Tributo.query.filter(Tributo.id.in_(data['tributos'])).all()
+            nuevos_tributos = Tributo.query.filter(
+                Tributo.id.in_(data['tributos'])).all()
             for tributo in nuevos_tributos:
                 base_calculo = tributo.base_calculo
                 alicuota = float(tributo.alicuota / 100)
@@ -168,7 +189,7 @@ def update(pk):
                 elif base_calculo == BaseCalculo.bruto:
                     # TODO revisar si es correcto
                     importe = venta.total * alicuota
-                
+
                 venta.total_tributos += importe
 
                 db.session.execute(
@@ -188,22 +209,10 @@ def update(pk):
             return jsonify({'error': str(e)}), 500
         finally:
             db.session.close()
-            # TODO crear vista de Detalle de Venta y redirigir a la misma
 
 
-def venta_json_to_model(venta_json: dict) -> dict:
-    for key, value in venta_json.items():
-        if value == '':
-            venta_json[key] = None
-    venta_json['fecha_hora'] = datetime.fromisoformat(
-        venta_json['fecha_hora']).astimezone(local_tz)
-    venta_json['vencimiento_cae'] = datetime.fromisoformat(
-        venta_json['vencimiento_cae']).astimezone(local_tz) if venta_json['vencimiento_cae'] else None
-    venta_json['punto_venta'] = 1 # TODO agregar funcionalidad para elegir punto de venta
-    venta_json['nombre_cliente'] = Cliente.query.get(
-        venta_json['cliente_id']).razon_social
-    venta_json['gravado'] = 0
-    venta_json['total_iva'] = 0
-    venta_json['total_tributos'] = 0
-    venta_json['total'] = 0
-    return venta_json
+@venta_bp.route('/ventas/<int:pk>', methods=['GET'])
+def detail(pk):
+    venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
+    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
+    return jsonify({'venta': venta.to_json(), 'renglones': list(map(lambda x: x.to_json(), venta_items))}), 200

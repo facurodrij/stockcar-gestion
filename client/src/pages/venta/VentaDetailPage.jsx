@@ -1,9 +1,9 @@
 import React from 'react';
 import {useParams} from 'react-router-dom';
 import Typography from "@mui/material/Typography";
-import {VentaForm} from "../../components/venta";
+import {VentaDetail} from "../../components/venta";
 
-export default function VentaFormPage() {
+export default function VentaDetailPage() {
     const routeParams = useParams();
     const pk = routeParams.pk;
 
@@ -18,9 +18,9 @@ export default function VentaFormPage() {
                     color: 'inherit'
                 }}
             >
-                {pk ? 'Editar' : 'Agregar'} Venta
+                Detalle de Venta
             </Typography>
-            <VentaForm pk={pk}/>
+            <VentaDetail pk={pk}/>
         </>
     );
 };

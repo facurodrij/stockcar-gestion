@@ -77,10 +77,10 @@ export default function VentaForm({pk}) {
         setTabValue(newValue);
     }
 
-    const handleCloseSnackbar = (redirect) => {
+    const handleCloseSnackbar = (redirect, url='/ventas') => {
         setOpenSnackbar(false);
         if (redirect) {
-            window.location.href = '/ventas';
+            window.location.href = url;
         }
     }
 
@@ -192,8 +192,7 @@ export default function VentaForm({pk}) {
             setSnackbar({
                 message: 'Venta guardada correctamente',
                 severity: 'success',
-                onClose: () => handleCloseSnackbar(true)
-                // TODO handleCloseSnackbar(true, responseData['venta_id']) 
+                onClose: () => handleCloseSnackbar(true, `/ventas/${responseData['venta_id']}`)
             });
             setOpenSnackbar(true);
         } catch (e) {

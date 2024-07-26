@@ -1,9 +1,7 @@
-import React, {useEffect, useState} from 'react'
+import React, {useState} from 'react'
 import {
     DataGrid,
     GridActionsCellItem,
-    GridRowParams,
-    GridRowsProp,
     GridToolbarColumnsButton,
     GridToolbarContainer,
     GridToolbarDensitySelector,
@@ -16,8 +14,6 @@ import dayjs from "dayjs";
 import {API} from "../../App";
 import {Link} from "react-router-dom";
 import {esES} from "@mui/x-data-grid/locales";
-import {currencyFormatter} from "../../utils/formatters";
-import {VentaDetailDialog} from "./index";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
@@ -54,7 +50,6 @@ export default function VentaList() {
     const [itemsSelectedList, setItemsSelectedList] = useState([]);
     const [from, setFrom] = useState(null);
     const [to, setTo] = useState(null);
-    const [showDetail, setShowDetail] = useState(false);
 
     const fetchData = async () => {
         const fromStr = from ? from.toISOString() : null;
@@ -94,7 +89,8 @@ export default function VentaList() {
                 <GridActionsCellItem
                     icon={<VisibilityIcon/>}
                     label="Detalle"
-                    onClick={() => handleShowDetail(params.row)}
+                    component={Link}
+                    to={`/ventas/${params.row.id}`}
                     showInMenu
                 />,
                 <GridActionsCellItem
@@ -118,16 +114,6 @@ export default function VentaList() {
             total: item.total
         }
     });
-
-    const handleShowDetail = (item) => {
-        setItemSelected(item);
-        setShowDetail(true);
-    }
-
-    const handleCloseDetail = () => {
-        setItemSelected(null);
-        setShowDetail(false);
-    }
 
     return (
         <>
@@ -178,7 +164,6 @@ export default function VentaList() {
                     slots={{toolbar: CustomToolbar}}
                 />
             </div>
-            <VentaDetailDialog item={itemSelected} open={showDetail} onClose={handleCloseDetail}/>
         </>
     );
 };

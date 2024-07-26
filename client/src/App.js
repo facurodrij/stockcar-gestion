@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from "react";
+import React from "react";
 import Container from "@mui/material/Container";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Header from "./components/shared/Header";
 import VentaPage from './pages/venta/VentaPage';
 import VentaFormPage from './pages/venta/VentaFormPage';
+import VentaDetailPage from "./pages/venta/VentaDetailPage";
 import ClientePage from './pages/cliente/ClientePage';
 import ClienteFormPage from './pages/cliente/ClienteFormPage';
 import ArticuloPage from './pages/articulo/ArticuloPage';
@@ -21,6 +22,7 @@ function App() {
                 <Container sx={{mt: 8}}>
                     <Routes>
                         <Route path="/ventas" element={<VentaPage/>}></Route>
+                        <Route path="/ventas/:pk" element={<VentaDetailPage/>}></Route>
                         <Route path="/ventas/form" element={<VentaFormPage/>}></Route>
                         <Route path="/ventas/form/:pk" element={<VentaFormPage/>}></Route>
                         <Route path="/clientes" element={<ClientePage/>}></Route>

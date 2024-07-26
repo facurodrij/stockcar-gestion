@@ -1,5 +1,5 @@
 import VentaForm from './VentaForm';
 import VentaList from "./VentaList";
-import VentaDetailDialog from "./VentaDetailDialog";
+import VentaDetail from './VentaDetail';
 
-export {VentaForm, VentaList, VentaDetailDialog};
+export {VentaForm, VentaList, VentaDetail};
