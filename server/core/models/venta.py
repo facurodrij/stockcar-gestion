@@ -1,7 +1,19 @@
-from sqlalchemy import Column, String, Integer, Numeric, ForeignKey, DateTime, CHAR, Boolean, func
+import enum
+from sqlalchemy import Column, String, Integer, Numeric, ForeignKey, DateTime, CHAR, Boolean, func, Enum
 from sqlalchemy.orm import relationship
 
 from server.config import db
+
+
+class EstadoVenta(enum.Enum):
+    """
+    Enumeración para los estados de una venta.
+    """
+    borrador = 'Borrador',  # Estado inicial de la venta, se utiliza para ventas que se están creando
+    ticket = 'Ticket',  # Estado de la venta cuando se emite un ticket o comprobante no fiscal, no requiere facturación electrónica
+    # Estado de la venta cuando se emite una factura, requiere facturación electrónica
+    facturado = 'Facturado',
+    anulado = 'Anulado'  # Estado de la venta cuando se anula una venta
 
 
 class Venta(db.Model):
@@ -31,6 +43,8 @@ class Venta(db.Model):
     cae = Column(String, nullable=True)  # Código de Autorización Electrónico
     vencimiento_cae = Column(DateTime, nullable=True)
     observacion = Column(String, nullable=True)
+    estado = Column(Enum(EstadoVenta),
+                    default=EstadoVenta.borrador, nullable=False)
     # TODO investigar como almacenar los tipos de pagos, teniendo en cuenta que una venta puede pagarse con varios tipos de pagos
 
     # Relaciones con otras tablas
@@ -66,7 +80,7 @@ class Venta(db.Model):
         Devuelve el último número de venta, según el comprobante y punto de venta.
         """
         last_number = db.session.query(func.max(Venta.numero)).filter(
-            Venta.tipo_comprobante_id == self.tipo_comprobante_id, 
+            Venta.tipo_comprobante_id == self.tipo_comprobante_id,
             Venta.punto_venta == self.punto_venta).scalar()
         if last_number:
             return last_number

@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {Controller, useForm} from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
     Autocomplete,
     Box,
@@ -16,26 +16,26 @@ import {
     TextField,
     Typography
 } from "@mui/material";
-import {DateTimePicker, LocalizationProvider} from '@mui/x-date-pickers';
-import {DataGrid, GridToolbarContainer} from '@mui/x-data-grid';
-import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { DataGrid, GridToolbarContainer } from '@mui/x-data-grid';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import SaveIcon from '@mui/icons-material/Save';
-import {API} from "../../App";
+import { API } from "../../App";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import AddIcon from "@mui/icons-material/Add";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
-import {esES} from "@mui/x-data-grid/locales";
+import { esES } from "@mui/x-data-grid/locales";
 import InputAdornment from '@mui/material/InputAdornment';
 import TributoDataGrid from "../tributo/TributoDataGrid";
 
-const CustomToolbar = ({onOpen}) => {
+const CustomToolbar = ({ onOpen }) => {
     return (
         <GridToolbarContainer>
             <Button
-                startIcon={<AddIcon/>}
+                startIcon={<AddIcon />}
                 size="small"
                 variant="contained"
                 onClick={() => onOpen(true)}
@@ -46,11 +46,11 @@ const CustomToolbar = ({onOpen}) => {
     );
 }
 
-export default function VentaForm({pk}) {
+export default function VentaForm({ pk }) {
     const {
         handleSubmit,
         control,
-        formState: {errors},
+        formState: { errors },
         setValue
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
@@ -77,80 +77,70 @@ export default function VentaForm({pk}) {
         setTabValue(newValue);
     }
 
-    const handleCloseSnackbar = (redirect, url='/ventas') => {
+    const handleCloseSnackbar = (redirect, url = '/ventas') => {
         setOpenSnackbar(false);
         if (redirect) {
             window.location.href = url;
         }
     }
 
-    const fetchData = async () => {
-        const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
-        const res = await fetch(url);
-        if (!res.ok) {
-            console.error(res);
-            const message = Boolean(pk) ? 'Error al obtener la venta' : 'Error al obtener los datos';
-            setSnackbar({
-                message: message,
-                severity: 'error',
-                onClose: () => handleCloseSnackbar(true)
-            });
-            setOpenSnackbar(true);
-            return;
-        }
-        return await res.json();
-    }
-
     useEffect(() => {
+        const fetchData = async () => {
+            const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                const message = Boolean(pk) ? 'Error al obtener la venta' : 'Error al obtener los datos';
+                throw new Error(message);
+            }
+            return await res.json();
+        }
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                if (data) {
-                    const selectOptions = data['select_options'];
-                    setSelectOptions({
-                        cliente: selectOptions.cliente,
-                        tipo_comprobante: selectOptions.tipo_comprobante,
-                        tipo_pago: selectOptions.tipo_pago,
-                        moneda: selectOptions.moneda,
-                        tributo: selectOptions.tributo,
-                    });
-                    if (Boolean(pk)) {
-                        const venta = data['venta'];
-                        const tributos = venta['tributos'];
-                        setValue('cliente_id', venta.cliente.id);
-                        setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
-                        setValue('fecha_hora', dayjs(venta.fecha_hora));
-                        setValue('descuento', venta.descuento);
-                        setValue('recargo', venta.recargo);
-                        setValue('tipo_pago_id', venta.tipo_pago.id);
-                        setValue('moneda_id', venta.moneda.id);
-                        if (venta.cae) setValue('cae', venta.cae);
-                        if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
-                        if (venta.observacion) setValue('observacion', venta.observacion);
-                        
-                        // Cargar renglones de venta y articulos seleccionados
-                        const renglonesArray = data['renglones'].map((r) => {
-                            return {
-                                articulo_id: r.articulo_id,
-                                descripcion: r.descripcion,
-                                cantidad: r.cantidad,
-                                precio_unidad: r.precio_unidad,
-                                alicuota_iva: r.alicuota_iva,
-                                subtotal_iva: r.subtotal_iva,
-                                subtotal_gravado: r.subtotal_gravado,
-                                subtotal: r.subtotal,
-                            };
-                        });
-                        const articuloArray = renglonesArray.map((r) => r.articulo_id);
-                        setVentaRenglones(renglonesArray);
-                        setSelectedArticulo(articuloArray);
+                const selectOptions = data['select_options'];
+                setSelectOptions({
+                    cliente: selectOptions.cliente,
+                    tipo_comprobante: selectOptions.tipo_comprobante,
+                    tipo_pago: selectOptions.tipo_pago,
+                    moneda: selectOptions.moneda,
+                    tributo: selectOptions.tributo,
+                });
+                if (Boolean(pk)) {
+                    const venta = data['venta'];
+                    const tributos = venta['tributos'];
+                    setValue('cliente_id', venta.cliente.id);
+                    setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
+                    setValue('fecha_hora', dayjs(venta.fecha_hora));
+                    setValue('descuento', venta.descuento);
+                    setValue('recargo', venta.recargo);
+                    setValue('tipo_pago_id', venta.tipo_pago.id);
+                    setValue('moneda_id', venta.moneda.id);
+                    if (venta.cae) setValue('cae', venta.cae);
+                    if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
+                    if (venta.observacion) setValue('observacion', venta.observacion);
 
-                        // Cargar tributos seleccionados
-                        setSelectedTributo([])
-                        tributos.map((t) => {
-                            setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
-                        });
-                    }
+                    // Cargar renglones de venta y articulos seleccionados
+                    const renglonesArray = data['renglones'].map((r) => {
+                        return {
+                            articulo_id: r.articulo_id,
+                            descripcion: r.descripcion,
+                            cantidad: r.cantidad,
+                            precio_unidad: r.precio_unidad,
+                            alicuota_iva: r.alicuota_iva,
+                            subtotal_iva: r.subtotal_iva,
+                            subtotal_gravado: r.subtotal_gravado,
+                            subtotal: r.subtotal,
+                        };
+                    });
+                    const articuloArray = renglonesArray.map((r) => r.articulo_id);
+                    setVentaRenglones(renglonesArray);
+                    setSelectedArticulo(articuloArray);
+
+                    // Cargar tributos seleccionados
+                    setSelectedTributo([])
+                    tributos.forEach((t) => {
+                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
+                    });
                 }
             } catch (e) {
                 console.error('Error en la carga de datos:', e);
@@ -164,7 +154,7 @@ export default function VentaForm({pk}) {
         }
 
         loadData();
-    }, []);
+    }, [pk, setValue]);
 
     const onSubmit = async (data) => {
         const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
@@ -181,7 +171,7 @@ export default function VentaForm({pk}) {
                     'Accept': 'application/json', // Indica que se espera una respuesta en formato JSON
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({venta: data, renglones: ventaRenglones, tributos: selectedTributo})
+                body: JSON.stringify({ venta: data, renglones: ventaRenglones, tributos: selectedTributo })
             });
 
             if (!response.ok) {
@@ -219,7 +209,7 @@ export default function VentaForm({pk}) {
     const calculateTotalTributos = () => {
         const tributos = selectOptions.tributo.filter((t) => selectedTributo.includes(t.id));
         let totalTributos = 0
-        tributos.map((t) => {
+        tributos.forEach((t) => {
             if (t.base_calculo === 'Neto')
                 totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0) * t.alicuota / 100;
             else
@@ -231,13 +221,13 @@ export default function VentaForm({pk}) {
     return (
         <>
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
-                   sx={{mt: 2, padding: 2}}>
-                <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
+                sx={{ mt: 2, padding: 2 }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} centered>
-                        <Tab label="Principal"/>
-                        <Tab label="Configuración"/>
-                        <Tab label="Factura Electrónica"/>
-                        <Tab label="Observaciones"/>
+                        <Tab label="Principal" />
+                        <Tab label="Configuración" />
+                        <Tab label="Factura Electrónica" />
+                        <Tab label="Observaciones" />
                     </Tabs>
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
@@ -248,8 +238,8 @@ export default function VentaForm({pk}) {
                                     name="cliente_id"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Autocomplete
                                             {...field}
                                             renderInput={(params) => (
@@ -278,7 +268,7 @@ export default function VentaForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <br/>
+                    <br />
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
                             <FormControl fullWidth required error={Boolean(errors.tipo_comprobante_id)}>
@@ -287,8 +277,8 @@ export default function VentaForm({pk}) {
                                     name="tipo_comprobante_id"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="tipo_comprobante"
@@ -308,7 +298,7 @@ export default function VentaForm({pk}) {
                                     name="fecha_hora"
                                     control={control}
                                     defaultValue={dayjs()}
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
                                             <DateTimePicker
                                                 {...field}
@@ -323,16 +313,16 @@ export default function VentaForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{mt: 3}}>Renglones de Venta</Typography>
-                    <Box sx={{height: 500, width: '100%', '& .font-weight-bold': {fontWeight: '700'}}}>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Renglones de Venta</Typography>
+                    <Box sx={{ height: 500, width: '100%', '& .font-weight-bold': { fontWeight: '700' } }}>
                         <DataGrid
                             columns={[
-                                {field: 'descripcion', headerName: 'Descripción', flex: 2, editable: true},
+                                { field: 'descripcion', headerName: 'Descripción', flex: 2, editable: true },
                                 {
-                                    field: 'cantidad', 
-                                    headerName: 'Cantidad', 
-                                    flex: 0.5, 
-                                    type: 'number', 
+                                    field: 'cantidad',
+                                    headerName: 'Cantidad',
+                                    flex: 0.5,
+                                    type: 'number',
                                     editable: true,
                                     valueFormatter: (value) => {
                                         return new Intl.NumberFormat('es-AR').format(value);
@@ -388,10 +378,10 @@ export default function VentaForm({pk}) {
                                     }
                                 },
                                 {
-                                    field: 'subtotal', 
-                                    headerName: 'Subtotales', 
-                                    flex: 0.5, 
-                                    type: 'number', 
+                                    field: 'subtotal',
+                                    headerName: 'Subtotales',
+                                    flex: 0.5,
+                                    type: 'number',
                                     editable: false,
                                     valueFormatter: (value) => {
                                         return new Intl.NumberFormat('es-AR', {
@@ -406,7 +396,7 @@ export default function VentaForm({pk}) {
                             getRowId={(row) => row.articulo_id}
                             disableSelectionOnClick
                             slots={{
-                                toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog}/>,
+                                toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog} />,
                             }}
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaRenglones.map((row) => {
@@ -415,7 +405,7 @@ export default function VentaForm({pk}) {
                                         newRow.subtotal = newRow.cantidad * newRow.precio_unidad;
                                         newRow.subtotal_iva = newRow.subtotal * iva / (100 + iva);
                                         newRow.subtotal_gravado = newRow.subtotal - newRow.subtotal_iva;
-                                        return {...newRow};
+                                        return { ...newRow };
                                     }
                                     return row;
                                 });
@@ -437,7 +427,7 @@ export default function VentaForm({pk}) {
                                     name="descuento"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             label="Descuento"
@@ -451,7 +441,7 @@ export default function VentaForm({pk}) {
                                         />
                                     )}
                                 />
-                            </FormControl>    
+                            </FormControl>
                         </Grid>
                         <Grid item xs={6}>
                             <FormControl fullWidth>
@@ -459,7 +449,7 @@ export default function VentaForm({pk}) {
                                     name="recargo"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             label="Recargo"
@@ -482,7 +472,7 @@ export default function VentaForm({pk}) {
                                     name="tipo_pago_id"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="tipo_pago"
@@ -503,7 +493,7 @@ export default function VentaForm({pk}) {
                                     name="moneda_id"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="moneda"
@@ -518,7 +508,7 @@ export default function VentaForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{mt: 2}}>Tributos adicionales</Typography>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Tributos adicionales</Typography>
                     {/* TODO Actualizar tributos al cambiar de Cliente */}
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
@@ -538,7 +528,7 @@ export default function VentaForm({pk}) {
                                     name="cae"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             label="CAE"
@@ -554,7 +544,7 @@ export default function VentaForm({pk}) {
                                     name="vencimiento_cae"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
                                             <DateTimePicker
                                                 {...field}
@@ -578,7 +568,7 @@ export default function VentaForm({pk}) {
                                     name="observacion"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="observacion"
@@ -593,8 +583,8 @@ export default function VentaForm({pk}) {
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
-                <Box sx={{borderTop: 1, borderColor: 'divider'}}>
-                    <Box sx={{p: 3}}>
+                <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                    <Box sx={{ p: 3 }}>
                         <Typography variant="h6" gutterBottom>Totales</Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={6}>
@@ -611,8 +601,9 @@ export default function VentaForm({pk}) {
                             </Grid>
                         </Grid>
                     </Box>
-                    <Box sx={{display: 'flex', justifyContent: 'right', mt: 2}}>
-                        <Button variant="contained" startIcon={<SaveIcon/>} type="button" onClick={handleSubmit(onSubmit, onError)}>
+                    <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                        {/* TODO Agregar funcionalidad de Guardar Borrador, Generar Factura */}
+                        <Button variant="contained" startIcon={<SaveIcon />} type="button" onClick={handleSubmit(onSubmit, onError)}>
                             Guardar
                         </Button>
                     </Box>
