@@ -51,19 +51,7 @@ from cryptography.hazmat.primitives.serialization import pkcs7
 from subprocess import Popen, PIPE
 from base64 import b64encode
 
-WSDL_HOMO = 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl' # Homologación
-URL_HOMO = 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms' # Homologación
-#WSDL = 'https://wsaa.afip.gov.ar/ws/services/LoginCms?wsdl' # Producción
-#URL = 'https://wsaa.afip.gov.ar/ws/services/LoginCms' # Producción
-
-CERT_HOMO = '/workspaces/stockcar-gestion/server/instance/afipws_test.cert' # El certificado X.509 obtenido de AFIP
-PRIVATEKEY_HOMO = '/workspaces/stockcar-gestion/server/instance/afipws_test.key' # La clave privada del certificado
-PASSPHRASE_HOMO = '' 
-SERVICE = 'wsfe' # Servicio a utilizar (ej: wsfe, wsfex, ws_sr_padron_a13, etc.)
-
-# Crear el cliente SOAP para WSAA
-#client_wsaa = zeep.Client(wsdl=WSAA_WSDL)
-
+ 
 def date(fmt=None, timestamp=None):
     "Manejo de fechas (simil PHP)"
     if fmt == "U":  # return timestamp
@@ -78,31 +66,29 @@ def date(fmt=None, timestamp=None):
         d = datetime.now()
         return d.strftime("%Y%m%d")
 
-class WSAA(object):
+class WSAA:
     "Clase para obtener un ticket de autorización del web service WSAA de AFIP"
+    WSDL_HOMO = 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl' # Homologación
+    URL_HOMO = 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms' # Homologación
+    WSDL = 'https://wsaa.afip.gov.ar/ws/services/LoginCms?wsdl' # Producción
+    URL = 'https://wsaa.afip.gov.ar/ws/services/LoginCms' # Producción
 
-    def __init__(self, homologacion=True):
+
+    def __init__(self, options:dict):
         "Inicializar el objeto WSAA"
-        if homologacion:
-            self.wsdl = WSDL_HOMO
-            self.url = URL_HOMO
-            self.cert = CERT_HOMO
-            self.privatekey = PRIVATEKEY_HOMO
-            self.passphrase = PASSPHRASE_HOMO
-            self.client = zeep.Client(wsdl=WSDL_HOMO)
+        if not(options.get("service")):
+            raise Exception("Service field is required in options")
+        self.service: str = options.get("service")
+
+        if options.get("production"):
+            "!Produccion"
+            self.client = zeep.Client(wsdl=self.WSDL)
         else:
-           "!Produccion" 
-            #self.wsdl = WSDL
-            #self.url = URL
-            #self.cert = CERT
-            #self.privatekey = PRIVATEKEY
-            #self.passphrase = PASSPHRASE
-            #self.client = zeep.Client(wsdl=WSDL)
-        self.service: str = None
-        self.ta_xml: SimpleXMLElement = None
-        self.token: str = None
-        self.sign: str = None
-        self.expiration_time: str = None
+            self.client = zeep.Client(wsdl=self.WSDL_HOMO)
+        
+        self.cert: str = options.get("cert")
+        self.key: str = options.get("key")
+        self.passphrase: str = options.get("passphrase")
 
     
     def create_tra(self, ttl=2400):
@@ -140,20 +126,20 @@ class WSAA(object):
 
         cert = x509.load_pem_x509_certificate(cert)
 
-        if not self.privatekey.startswith("-----BEGIN RSA PRIVATE KEY-----"):
-            privatekey = open(self.privatekey).read()
-            if isinstance(privatekey, str):
-                privatekey = privatekey.encode("utf-8")
+        if not self.key.startswith("-----BEGIN RSA PRIVATE KEY-----"):
+            key = open(self.key).read()
+            if isinstance(key, str):
+                key = key.encode("utf-8")
 
         password = self.passphrase if self.passphrase else None
 
-        private_key = serialization.load_pem_private_key(
-            privatekey, password, default_backend()
+        key = serialization.load_pem_private_key(
+            key, password, default_backend()
         )
 
         # Sign the TRA
         p7 = pkcs7.PKCS7SignatureBuilder().set_data(tra).add_signer(
-            cert, private_key, hashes.SHA256()
+            cert, key, hashes.SHA256()
         ).sign(serialization.Encoding.SMIME, [pkcs7.PKCS7Options.Binary])
 
         # Generar p7 en formato mail y recortar headers
@@ -194,13 +180,12 @@ class WSAA(object):
         return ta_xml if current_time < expiration_time_fmt else False
         
 
-    def get_ticket_access(self, service=SERVICE):
+    def get_ticket_access(self) -> SimpleXMLElement:
         "Obtener un Ticket de Autorización (TA) del WSAA"
         "service: servicio a utilizar (ej: wsfe, wsfex, ws_sr_padron_a13, etc.)"
         "return: Ticket de Autorización (TA) del WSAA"
         ta_xml = self.load_ta_from_file()
         if not ta_xml:
-            self.service = service
             tra = self.create_tra()
             cms = self.sign_tra(tra)
             ta_xml = self.login_cms(cms)        
@@ -211,18 +196,4 @@ class WSAA(object):
             except Exception as e:
                 print("Error al guardar el TA en un archivo XML:", e)
 
-        self.ta_xml = ta_xml
-        self.token = str(ta_xml.credentials.token)
-        self.sign = str(ta_xml.credentials.sign)
-        self.expiration_time = str(ta_xml.header.expirationTime)
         return ta_xml
-
-
-def main():
-    "Obtener un ticket de autorización del web service WSAA de AFIP"
-    wsaa = WSAA()
-    ta_xml = wsaa.get_ticket_access()
-    print(ta_xml.as_xml())
-
-if __name__ == "__main__":
-    main()
