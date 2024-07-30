@@ -33,10 +33,10 @@ class VentaItem(db.Model):
             'id': self.id,
             'articulo_id': self.articulo_id,
             'descripcion': self.descripcion,
-            'cantidad': self.cantidad,
-            'precio_unidad': self.precio_unidad,
-            'alicuota_iva': self.alicuota_iva,
-            'subtotal_iva': self.subtotal_iva,
-            'subtotal_gravado': self.subtotal_gravado,
-            'subtotal': self.subtotal,
+            'cantidad': float(self.cantidad),
+            'precio_unidad': float(self.precio_unidad),
+            'alicuota_iva': float(self.alicuota_iva),
+            'subtotal_iva': float(self.subtotal_iva),
+            'subtotal_gravado': float(self.subtotal_gravado),
+            'subtotal': float(self.subtotal)
         }

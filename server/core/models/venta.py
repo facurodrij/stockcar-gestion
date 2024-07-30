@@ -109,6 +109,8 @@ class Venta(db.Model):
             'descuento': self.descuento,
             'recargo': self.recargo,
             'gravado': self.gravado,
+            'total_iva': self.total_iva,
+            'total_tributos': self.total_tributos,
             'total': self.total,
             'cae': self.cae,
             'vencimiento_cae': self.vencimiento_cae.isoformat() if self.vencimiento_cae else None,

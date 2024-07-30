@@ -139,7 +139,7 @@ class TipoPago(db.Model):
     __tablename__ = 'tipo_pago'
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False, unique=True)
-    interes = Column(Numeric, default=0)
+    interes = Column(Numeric(precision=5, scale=2), default=0)
     cuotas = Column(Integer, default=0)
     dias_acreditacion = Column(Integer, default=0)
     retencion = Column(Numeric(precision=5, scale=2), default=0)
@@ -148,26 +148,28 @@ class TipoPago(db.Model):
         return {
             'id': self.id,
             'nombre': self.nombre,
-            'interes': self.interes,
+            'interes': float(self.interes),
             'cuotas': self.cuotas,
             'dias_acreditacion': self.dias_acreditacion,
-            'retencion': self.retencion
+            'retencion': float(self.retencion)
         }
 
 
 class Moneda(db.Model):
     __tablename__ = 'moneda'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    nombre = Column(String, nullable=False, unique=True)
-    simbolo = Column(String(5), nullable=False, unique=True)
-    codigo_iso = Column(String(3), nullable=False, unique=True)
+    nombre = Column(String, nullable=False)
+    simbolo = Column(String(5), nullable=False)
+    codigo_iso = Column(String(3), nullable=False)
+    codigo_afip = Column(String(3), nullable=False)
 
     def to_json(self):
         return {
             'id': self.id,
             'nombre': self.nombre,
             'simbolo': self.simbolo,
-            'codigo_iso': self.codigo_iso
+            'codigo_iso': self.codigo_iso,
+            'codigo_afip': self.codigo_afip
         }
 
 

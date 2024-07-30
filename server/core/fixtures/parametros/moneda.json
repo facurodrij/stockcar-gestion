@@ -3,24 +3,28 @@
         "id": 1,
         "nombre": "Peso Argentino",
         "simbolo": "$",
-        "codigo_iso": "ARS"
+        "codigo_iso": "ARS",
+        "codigo_afip": "PES"
     },
     {
         "id": 2,
         "nombre": "Dólar Estadounidense",
         "simbolo": "U$S",
-        "codigo_iso": "USD"
+        "codigo_iso": "USD",
+        "codigo_afip": "DOL"
     },
     {
         "id": 3,
         "nombre": "Euro",
         "simbolo": "€",
-        "codigo_iso": "EUR"
+        "codigo_iso": "EUR",
+        "codigo_afip": "060"
     },
     {
         "id": 4,
         "nombre": "Real",
         "simbolo": "R$",
-        "codigo_iso": "BRL"
+        "codigo_iso": "BRL",
+        "codigo_afip": "012"
     }
 ]

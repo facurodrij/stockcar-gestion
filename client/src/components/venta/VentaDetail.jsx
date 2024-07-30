@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {API} from "../../App";
+import React, { useEffect, useState } from 'react';
+import { API } from "../../App";
 import SnackbarAlert from "../shared/SnackbarAlert";
 
-export default function VentaDetail({pk}) {
+export default function VentaDetail({ pk }) {
     const [venta, setVenta] = useState({});
     const [loading, setLoading] = useState(true);
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -19,17 +19,16 @@ export default function VentaDetail({pk}) {
         }
     }
 
-    const fetchData = async () => {
-        const url = `${API}/ventas/${pk}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-            console.error(res);
-            throw new Error('Error al obtener la venta:', res);
-        }
-        return await res.json();
-    }
-    
     useEffect(() => {
+        const fetchData = async () => {
+            const url = `${API}/ventas/${pk}`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                console.error(res);
+                throw new Error('Error al obtener la venta:', res);
+            }
+            return await res.json();
+        }
         const loadData = async () => {
             try {
                 const data = await fetchData();
@@ -49,7 +48,7 @@ export default function VentaDetail({pk}) {
         }
 
         loadData();
-    }, []);
+    }, [pk]);
 
     return (
         <>

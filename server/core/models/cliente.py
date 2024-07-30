@@ -60,6 +60,8 @@ class Cliente(db.Model):
         return {
             'id': self.id,
             'razon_social': self.razon_social,
+            'tipo_documento': self.tipo_documento.to_json(),
+            'nro_documento': self.nro_documento,
         }
 
     def to_json(self):
