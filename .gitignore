@@ -396,10 +396,14 @@ cython_debug/
 #.idea/
 
 ### Flask template
-server/instance/*
-!server/instance/.gitignore
+instance/
 
 ### Others
 *.bak
 dump/
 server_test/
+
+### Codespace
+.code-workspace
+.devcontainer/
+.github/

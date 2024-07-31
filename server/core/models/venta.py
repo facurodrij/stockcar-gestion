@@ -79,6 +79,7 @@ class Venta(db.Model):
         """
         Devuelve el último número de venta, según el comprobante y punto de venta.
         """
+        # TODO: Conectarse con afip para obtener el último número de comprobante
         last_number = db.session.query(func.max(Venta.numero)).filter(
             Venta.tipo_comprobante_id == self.tipo_comprobante_id,
             Venta.punto_venta == self.punto_venta).scalar()
@@ -94,6 +95,9 @@ class Venta(db.Model):
         tributos = []
         for tributo in self.tributos:
             tributos.append(tributo.to_json())
+
+        # TODO: Agregar diferentes IVAs si hay items con diferentes alícuotas
+        # Y calcular el importe de IVA para cada alícuota
 
         return {
             'id': self.id,

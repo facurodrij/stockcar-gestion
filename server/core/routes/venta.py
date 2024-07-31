@@ -6,6 +6,7 @@ from server.config import db
 from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
+from server.core.services import AfipService
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -121,6 +122,13 @@ def create():
                     )
                 )
             venta.total += venta.total_tributos
+
+            # TODO: Manejar excepciones al momento de obtener el CAE
+            afip = AfipService()
+            cae_data = afip.obtener_cae(venta)
+            venta.cae = cae_data['CAE']
+            venta.vencimiento_cae = datetime.fromisoformat(cae_data['CAEFchVto'])
+            # TODO: Actualizar estado de venta
 
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
