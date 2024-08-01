@@ -21,7 +21,6 @@ def get_select_options():
     tipo_pago = TipoPago.query.all()
     moneda = Moneda.query.all()
     tributo = Tributo.query.all()
-
     return {
         'cliente': list(map(lambda x: x.to_json_min(), cliente)),
         'tipo_comprobante': list(map(lambda x: x.to_json(), tipo_comprobante)),
@@ -124,11 +123,14 @@ def create():
             venta.total += venta.total_tributos
 
             # TODO: Manejar excepciones al momento de obtener el CAE
+            # TODO: Si el comprobante es de tipo Factura, se debe obtener el CAE
             afip = AfipService()
-            cae_data = afip.obtener_cae(venta)
-            venta.cae = cae_data['CAE']
-            venta.vencimiento_cae = datetime.fromisoformat(cae_data['CAEFchVto'])
-            # TODO: Actualizar estado de venta
+            res = afip.obtener_cae(venta)
+            # TODO: afip.obtener_ultimo_comprobante()
+            venta.cae = res['cae']
+            venta.vencimiento_cae = datetime.fromisoformat(
+                res['vencimiento_cae'])
+            venta.estado = 'facturado'
 
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201

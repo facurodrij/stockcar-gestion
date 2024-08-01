@@ -62,12 +62,13 @@ class AfipService:
                 }
             ],
         }
-
-        response: dict = self.wsfev1.CAESolicitar(data)
+        res = self.wsfev1.CAESolicitar(data)
+        # TODO: Revisar si conviene obtener el numero de venta desde la respuesta de AFIP
+        # wsfev1.CAESolicitar(data, obtener_numero=True)
 
         return {
-            "CAE": response["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"][0]["CAE"],
-            "CAEFchVto": self.formatDate(response["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"][0]["CAEFchVto"])
+            "cae": res["CAE"],
+            "vencimiento_cae": self.formatDate(res["CAEFchVto"])
         }
 
     # Change date from AFIP used format (yyyymmdd) to yyyy-mm-dd
