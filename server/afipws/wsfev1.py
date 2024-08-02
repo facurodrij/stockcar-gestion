@@ -40,18 +40,23 @@ class WSFEv1:
             "production": self.production
         }).get_ticket_access()
 
-        self.token = str(self.wsaa.credentials.token)
-        self.sign = str(self.wsaa.credentials.sign)
-        self.expiration_time = str(self.wsaa.header.expirationTime)
+        self.token = str(self.wsaa.credentials.token) # Token de acceso obtenido por WSAA
+        self.sign = str(self.wsaa.credentials.sign) # Sign obtenido por WSAA
+        self.expiration_time = str(self.wsaa.header.expirationTime) # Fecha de expiración del token
 
-    def CAESolicitar(self, data: dict, only_cae: bool = True) -> dict:
+    def CAESolicitar(self, data: dict, return_response: bool = False, fetch_last_cbte: bool = False):
         """Solicitar CAE a AFIP para un comprobante
         data: dict con los datos del comprobante
-        only_cae: bool, si es True devuelve solo el CAE y CAEFchVto, si es False devuelve toda la respuesta
+        return_response: bool, si se debe devolver la respuesta completa o solo los datos del CAE
+        fetch_last_cbte: bool, si se debe obtener el último comprobante autorizado
         """
         data = data.copy()
 
         Auth = {"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+
+        if fetch_last_cbte:
+            last_cbte = self.CompUltimoAutorizado(data["PtoVta"], data["CbteTipo"])
+
         Req = {
             "FeCabReq": {
                 "CantReg": 1,  # int
@@ -63,8 +68,8 @@ class WSFEv1:
                     "Concepto": data["Concepto"],  # int
                     "DocTipo": data["DocTipo"],  # int
                     "DocNro": data["DocNro"],  # long
-                    "CbteDesde": data["CbteDesde"],  # long
-                    "CbteHasta": data["CbteHasta"],  # long
+                    "CbteDesde": last_cbte + 1 if fetch_last_cbte else data["CbteDesde"],  # long
+                    "CbteHasta": last_cbte + 1 if fetch_last_cbte else data["CbteHasta"],  # long
                     # string
                     "CbteFch": data["CbteFch"] if data.get("CbteFch") else None,
                     "ImpTotal": data["ImpTotal"],  # double
@@ -154,12 +159,16 @@ class WSFEv1:
             }
 
         res = self.client.FECAESolicitar(Auth=Auth, FeCAEReq=Req)
-        
+
+        if return_response:
+            return res
+
         if not res["FECAESolicitarResult"]["FeCabResp"]["Resultado"] == "A":
             if "Errors" in res["FECAESolicitarResult"]:
                 raise Exception(res["FECAESolicitarResult"]["Errors"])
             if "Observaciones" in res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"][0]:
-                raise Exception(res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"][0]["Observaciones"])
+                raise Exception(res["FECAESolicitarResult"]["FeDetResp"]
+                                ["FECAEDetResponse"][0]["Observaciones"])
             raise Exception("Error desconocido:", res)
 
         events = []
@@ -170,31 +179,24 @@ class WSFEv1:
                     "Msg": event["Msg"]
                 })
 
-        cab = res["FECAESolicitarResult"]["FeCabResp"]
-
         if type(res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"]) == list:
             det = res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"][0]
         else:
             det = res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"]
 
-        if only_cae:
-            return {
-                "CAE": det["CAE"],
-                "CAEFchVto": det["CAEFchVto"]
-            }
-        
         return {
-            "FeCabResp": cab,
-            "FeDetResp": det,
-            "Events": events,
+            "NroCbte": det["CbteDesde"],
+            "CAE": det["CAE"],
+            "CAEFchVto": det["CAEFchVto"]
         }
 
-    def CompUltimoAutorizado(self, PtoVta: int, CbteTipo: int):
+    def CompUltimoAutorizado(self, PtoVta: int, CbteTipo: int, return_respose: bool = False) -> int:
         "Obtener el ultimo comprobante autorizado"
         res = self.client.FECompUltimoAutorizado(
             Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT},
             PtoVta=PtoVta,
             CbteTipo=CbteTipo
         )
-        # TODO: Procesar respuesta
-        return res
+        if return_respose:
+            return res
+        return res["FECompUltimoAutorizadoResult"]["CbteNro"]
