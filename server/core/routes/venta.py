@@ -121,17 +121,17 @@ def create():
                     )
                 )
             venta.total += venta.total_tributos
+            
+            if not venta.tipo_comprobante.codigo_afip is None:
+                afip = AfipService()
+                res = afip.obtener_cae(venta)
+                venta.numero = res['numero']
+                venta.cae = res['cae']
+                venta.vencimiento_cae = datetime.fromisoformat(
+                    res['vencimiento_cae'])
+                venta.estado = 'facturado'
 
-            # TODO: Manejar excepciones al momento de obtener el CAE
-            # TODO: Si el comprobante es de tipo Factura, se debe obtener el CAE
-            afip = AfipService()
-            res = afip.obtener_cae(venta)
-            # TODO: afip.obtener_ultimo_comprobante()
-            venta.cae = res['cae']
-            venta.vencimiento_cae = datetime.fromisoformat(
-                res['vencimiento_cae'])
-            venta.estado = 'facturado'
-
+            venta.estado = 'ticket'
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
         except Exception as e:

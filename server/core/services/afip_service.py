@@ -33,12 +33,12 @@ class AfipService:
             # Tipo de documento del comprador (ver tipos disponibles)
             "DocTipo": venta.cliente.tipo_documento.codigo_afip,
             "DocNro": venta.cliente.nro_documento,  # Numero de documento del comprador
-            # Numero de comprobante o numero del primer comprobante en caso de ser mas de uno
-            "CbteDesde": venta.numero,
-            # Numero de comprobante o numero del ultimo comprobante en caso de ser mas de uno
-            "CbteHasta": venta.numero,
-            # (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
+            # Numero de comprobante se obtiene con CompUltimoAutorizado
+            "CbteDesde": None,
+            "CbteHasta": None,
+            # Fecha del comprobante (yyyymmdd)
             "CbteFch": venta.fecha_hora.strftime("%Y%m%d"),
+            # Fecha de servicio (yyyymmdd), obligatorio para Concepto 2 y 3
             "FchServDesde": None,
             "FchServHasta": None,
             "FchVtoPago": None,
@@ -62,11 +62,9 @@ class AfipService:
                 }
             ],
         }
-        res = self.wsfev1.CAESolicitar(data)
-        # TODO: Revisar si conviene obtener el numero de venta desde la respuesta de AFIP
-        # wsfev1.CAESolicitar(data, obtener_numero=True)
-
+        res = self.wsfev1.CAESolicitar(data, fetch_last_cbte=True)
         return {
+            "numero": res["NroCbte"],
             "cae": res["CAE"],
             "vencimiento_cae": self.formatDate(res["CAEFchVto"])
         }
