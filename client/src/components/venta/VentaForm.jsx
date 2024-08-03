@@ -67,11 +67,11 @@ export default function VentaForm({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
-
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
     const [selectedArticulo, setSelectedArticulo] = useState([]);
     const [ventaRenglones, setVentaRenglones] = useState([]);
     const [selectedTributo, setSelectedTributo] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -157,13 +157,14 @@ export default function VentaForm({ pk }) {
     }, [pk, setValue]);
 
     const onSubmit = async (data) => {
+        setIsSubmitting(true);
         const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         if (ventaRenglones.length === 0) {
             alert('No se ha seleccionado ningún artículo');
+            setIsSubmitting(false);
             return;
         }
-
         try {
             const response = await fetch(url, {
                 method: method,
@@ -175,6 +176,7 @@ export default function VentaForm({ pk }) {
             });
 
             if (!response.ok) {
+                // TODO: Mostrar el mensaje de error
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
@@ -193,6 +195,7 @@ export default function VentaForm({ pk }) {
                 onClose: () => handleCloseSnackbar(false)
             });
             setOpenSnackbar(true);
+            setIsSubmitting(false);
         }
     }
 
@@ -603,7 +606,13 @@ export default function VentaForm({ pk }) {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
                         {/* TODO Agregar funcionalidad de Guardar Borrador, Generar Factura */}
-                        <Button variant="contained" startIcon={<SaveIcon />} type="button" onClick={handleSubmit(onSubmit, onError)}>
+                        <Button 
+                            variant="contained" 
+                            startIcon={<SaveIcon />} 
+                            type="button" 
+                            onClick={handleSubmit(onSubmit, onError)}
+                            disabled={isSubmitting}
+                        >
                             Guardar
                         </Button>
                     </Box>
