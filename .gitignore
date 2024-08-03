@@ -398,6 +398,11 @@ cython_debug/
 ### Flask template
 instance/
 
+### Alembic
+alembic.ini
+alembic/
+migrations/
+
 ### Others
 *.bak
 dump/
