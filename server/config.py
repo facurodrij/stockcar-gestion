@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from sqlalchemy import MetaData
@@ -10,8 +11,13 @@ class Base(DeclarativeBase):
     pass
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:3000"}})
+
+# CORS Configuration (Local & Codespaces)
+CORS(app, resources={r"/*": {"origins": ["http://127.00.1:3000", "https://shiny-space-journey-4rppp59wj6j3jj9p-3000.app.github.dev"]}})
+
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 convention = {
@@ -24,14 +30,21 @@ convention = {
 
 metadata = MetaData(naming_convention=convention)
 
+# Config for Development
+
+database_path = os.path.join(BASE_DIR, 'instance', 'datos.db')
+if not os.path.exists(os.path.join(BASE_DIR, 'instance')):
+    os.makedirs(os.path.join(BASE_DIR, 'instance'))
+
 app.config[
-    "SQLALCHEMY_DATABASE_URI"] = "sqlite:////home/facurodrij/PycharmProjects/stockcar-gestion/server/instance/datos.db"
+    "SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
 db = SQLAlchemy(model_class=Base, metadata=metadata)
 migrate = Migrate(app, db)
+
+# Config for Production
 # app.config['SQLALCHEMY_DATABASE_URI'] = ('mssql+pyodbc://sa:Admin-181020@localhost:1433/Datos?driver=ODBC+Driver+18+for'
 #                                          '+SQL+Server&TrustServerCertificate=yes')
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['SQLALCHEMY_ECHO'] = False
 # app.config['SQLALCHEMY_TRUSTED_CONNECTION'] = True
-# app.config['CORS_HEADERS'] = 'Content-Type'
 db.init_app(app)
