@@ -53,8 +53,3 @@ def test_CompUltimoAutorizado(wsfev1_instance):
     response = wsfev1_instance.CompUltimoAutorizado(1, 6)
     assert isinstance(response, int)
     print(response)
-
-
-
-
-

@@ -51,7 +51,8 @@ from cryptography.hazmat.primitives.serialization import pkcs7
 from subprocess import Popen, PIPE
 from base64 import b64encode
 
- 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def date(fmt=None, timestamp=None):
     "Manejo de fechas (simil PHP)"
     if fmt == "U":  # return timestamp
@@ -169,17 +170,25 @@ class WSAA:
         "Cargar el Ticket de Autorización (TA) desde un archivo XML"
         "return: Ticket de Autorización (TA) del WSAA si existe y no ha expirado, False en caso contrario"
         try:          
-            with open(os.path.join("/workspaces/stockcar-gestion/server/afipws/instance", "loginTicketResponse.xml"), "r") as f:
+            with open(os.path.join(BASE_DIR, "instance", f"loginTicketResponse_{self.service}.xml"), "r") as f:
                 ta_xml = SimpleXMLElement(f.read())
         except FileNotFoundError:
             return False
         expiration_time = str(ta_xml.header.expirationTime)
         current_time = datetime.now(timezone.utc)
         expiration_time_fmt = datetime.fromisoformat(expiration_time).astimezone(timezone.utc)
-        
         return ta_xml if current_time < expiration_time_fmt else False
-        
+    
+    def save_ta_to_file(self, ta_xml: SimpleXMLElement):
+        "Guardar el Ticket de Autorización (TA) en un archivo XML"
+        "ta_xml: Ticket de Autorización (TA) del WSAA"
+        if not os.path.exists(os.path.join(BASE_DIR, "instance")):
+            os.makedirs(os.path.join(BASE_DIR, "instance"))
+        file_name = f"loginTicketResponse_{self.service}.xml"
+        with open(os.path.join(BASE_DIR, "instance", file_name), "w") as f:
+            f.write(ta_xml.as_xml().decode("utf-8"))
 
+        
     def get_ticket_access(self) -> SimpleXMLElement:
         "Obtener un Ticket de Autorización (TA) del WSAA"
         "service: servicio a utilizar (ej: wsfe, wsfex, ws_sr_padron_a13, etc.)"
@@ -189,11 +198,5 @@ class WSAA:
             tra = self.create_tra()
             cms = self.sign_tra(tra)
             ta_xml = self.login_cms(cms)        
-            "Guardar el TA en un archivo XML"
-            try:
-                with open(os.path.join("/workspaces/stockcar-gestion/server/afipws/instance", "loginTicketResponse.xml"), "w") as f:
-                    f.write(ta_xml.as_xml().decode("utf-8"))
-            except Exception as e:
-                print("Error al guardar el TA en un archivo XML:", e)
-
+            self.save_ta_to_file(ta_xml)
         return ta_xml
