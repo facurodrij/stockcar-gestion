@@ -16,28 +16,38 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 
 # CORS Configuration (Local & Codespaces)
-CORS(app, resources={r"/*": {"origins": ["http://127.00.1:3000", "https://shiny-space-journey-4rppp59wj6j3jj9p-3000.app.github.dev"]}})
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": [
+                "http://127.0.0.1:3000",
+                "https://shiny-space-journey-4rppp59wj6j3jj9p-3000.app.github.dev",
+                "https://xs2wpms2-3000.brs.devtunnels.ms",
+            ]
+        }
+    },
+)
 
-app.config['CORS_HEADERS'] = 'Content-Type'
+app.config["CORS_HEADERS"] = "Content-Type"
 
 convention = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
     "ck": "ck_%(table_name)s_%(column_0_name)s",
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s"
+    "pk": "pk_%(table_name)s",
 }
 
 metadata = MetaData(naming_convention=convention)
 
 # Config for Development
 
-database_path = os.path.join(BASE_DIR, 'instance', 'datos.db')
-if not os.path.exists(os.path.join(BASE_DIR, 'instance')):
-    os.makedirs(os.path.join(BASE_DIR, 'instance'))
+database_path = os.path.join(BASE_DIR, "instance", "datos.db")
+if not os.path.exists(os.path.join(BASE_DIR, "instance")):
+    os.makedirs(os.path.join(BASE_DIR, "instance"))
 
-app.config[
-    "SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
 db = SQLAlchemy(model_class=Base, metadata=metadata)
 migrate = Migrate(app, db)
 
