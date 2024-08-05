@@ -64,6 +64,7 @@ export default function VentaForm({ pk }) {
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
+        autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -160,12 +161,10 @@ export default function VentaForm({ pk }) {
         setIsSubmitting(true);
         const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
-        if (ventaRenglones.length === 0) {
-            alert('No se ha seleccionado ningún artículo');
-            setIsSubmitting(false);
-            return;
-        }
         try {
+            if (ventaRenglones.length === 0) {
+                throw new Error('No se ha seleccionado ningún artículo');
+            }
             const response = await fetch(url, {
                 method: method,
                 headers: {
@@ -174,28 +173,26 @@ export default function VentaForm({ pk }) {
                 },
                 body: JSON.stringify({ venta: data, renglones: ventaRenglones, tributos: selectedTributo })
             });
-
+            const responseJson = await response.json();
             if (!response.ok) {
-                // TODO: Mostrar el mensaje de error
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`${responseJson['error']}`);
             }
-
-            const responseData = await response.json();
             setSnackbar({
                 message: 'Venta guardada correctamente',
                 severity: 'success',
-                onClose: () => handleCloseSnackbar(true, `/ventas/${responseData['venta_id']}`)
+                autoHideDuration: 4000,
+                onClose: () => handleCloseSnackbar(true, `/ventas/${responseJson['venta_id']}`)
             });
-            setOpenSnackbar(true);
         } catch (e) {
-            console.error('Error al guardar la venta:', e);
             setSnackbar({
-                message: 'Error al guardar la venta',
+                message: e.message,
                 severity: 'error',
+                autoHideDuration: null, // No cerrar el snackbar
                 onClose: () => handleCloseSnackbar(false)
             });
-            setOpenSnackbar(true);
             setIsSubmitting(false);
+        } finally {
+            setOpenSnackbar(true);
         }
     }
 
@@ -235,7 +232,7 @@ export default function VentaForm({ pk }) {
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
                     <Grid container spacing={2}>
-                        <Grid item xs={6}>
+                        <Grid item xs={12}>
                             <FormControl fullWidth>
                                 <Controller
                                     name="cliente_id"
@@ -512,7 +509,7 @@ export default function VentaForm({ pk }) {
                         </Grid>
                     </Grid>
                     <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Tributos adicionales</Typography>
-                    {/* TODO Actualizar tributos al cambiar de Cliente */}
+                    {/* TODO Actualizar tributos al cambiar de Cliente y Comprobante */}
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <TributoDataGrid
@@ -606,10 +603,10 @@ export default function VentaForm({ pk }) {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
                         {/* TODO Agregar funcionalidad de Guardar Borrador, Generar Factura */}
-                        <Button 
-                            variant="contained" 
-                            startIcon={<SaveIcon />} 
-                            type="button" 
+                        <Button
+                            variant="contained"
+                            startIcon={<SaveIcon />}
+                            type="button"
                             onClick={handleSubmit(onSubmit, onError)}
                             disabled={isSubmitting}
                         >
@@ -628,7 +625,7 @@ export default function VentaForm({ pk }) {
             />
             <SnackbarAlert
                 open={openSnackbar}
-                autoHideDuration={4000}
+                autoHideDuration={snackbar.autoHideDuration}
                 onClose={snackbar.onClose}
                 severity={snackbar.severity}
                 message={snackbar.message}
