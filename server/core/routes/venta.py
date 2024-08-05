@@ -130,8 +130,8 @@ def create():
                 venta.vencimiento_cae = datetime.fromisoformat(
                     res['vencimiento_cae'])
                 venta.estado = 'facturado'
-
-            venta.estado = 'ticket'
+            else:
+                venta.estado = 'ticket'
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
         except Exception as e:

@@ -7,8 +7,8 @@ from server.afipws import WSFEv1
 class AfipService:
     "Servicio para interactuar con la API de AFIP y los modelos de la base de datos."
     CUIT = 20428129572
-    CERT = "/workspaces/stockcar-gestion/server/instance/afipws_test.cert"
-    KEY = "/workspaces/stockcar-gestion/server/instance/afipws_test.key"
+    CERT = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_test.cert"
+    KEY = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_test.key"
     PASSPHRASE = ""
     PRODUCTION = False
 
@@ -61,6 +61,15 @@ class AfipService:
                     "Importe": "{:.2f}".format(venta.total_iva)
                 }
             ],
+            "Tributos": [
+                {
+                    "Id": tributo.tipo_tributo.codigo_afip,
+                    "Desc": tributo.descripcion,
+                    "BaseImp": "{:.2f}".format(venta.gravado),
+                    "Alic": "{:.2f}".format(tributo.alicuota),
+                    "Importe": "{:.2f}".format(venta.get_tributo_importe(tributo.id))
+                } for tributo in venta.tributos
+            ] if venta.tributos else None
         }
         res = self.wsfev1.CAESolicitar(data, fetch_last_cbte=True)
         return {

@@ -1,8 +1,10 @@
 import enum
+from decimal import Decimal
 from sqlalchemy import Column, String, Integer, Numeric, ForeignKey, DateTime, CHAR, Boolean, func, Enum
 from sqlalchemy.orm import relationship
 
 from server.config import db
+from server.core.models.association_table import tributo_venta
 
 
 class EstadoVenta(enum.Enum):
@@ -79,7 +81,6 @@ class Venta(db.Model):
         """
         Devuelve el último número de venta, según el comprobante y punto de venta.
         """
-        # TODO: Conectarse con afip para obtener el último número de comprobante
         last_number = db.session.query(func.max(Venta.numero)).filter(
             Venta.tipo_comprobante_id == self.tipo_comprobante_id,
             Venta.punto_venta == self.punto_venta).scalar()
@@ -87,6 +88,17 @@ class Venta(db.Model):
             return last_number
         else:
             return 0
+    
+    def get_tributo_importe(self, tributo_id: int) -> float:
+        """
+        Devuelve el importe de la tabla asociativa tributo_venta
+        """
+        importe = db.session.query(tributo_venta.c.importe).filter(
+            tributo_venta.c.tributo_id == tributo_id,
+            tributo_venta.c.venta_id == self.id
+        ).scalar()
+        return float(importe)
+        
 
     def to_json(self):
         """
