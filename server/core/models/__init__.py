@@ -1,5 +1,5 @@
 from .cliente import Cliente
-from .venta import Venta
+from .venta import Venta, EstadoVenta
 from .venta_item import VentaItem
 from .articulo import Articulo, ArticuloCodigo
 from .tributo import Tributo
