@@ -4,7 +4,7 @@ import click
 import pandas as pd
 from server.config import db, app
 from server.core.models import Genero, Provincia, TipoDocumento, TipoResponsable, TipoComprobante, Moneda, \
-    TipoPago, AlicuotaIVA, TipoArticulo, TipoUnidad, TipoTributo, Tributo
+    TipoPago, AlicuotaIVA, TipoArticulo, TipoUnidad, TipoTributo, Tributo, Comercio
 
 
 @app.cli.command("load_fixtures")
@@ -16,8 +16,8 @@ def load_fixtures():
                             (TipoComprobante, 'tipo_comprobante.json'), (Moneda, 'moneda.json'),
                             (TipoPago, 'tipo_pago.json'), (AlicuotaIVA, 'tipo_alicuota_iva.json'),
                             (TipoArticulo, 'tipo_articulo.json'), (TipoUnidad, 'tipo_unidad.json'),
-                            (TipoTributo, 'tipo_tributo.json'), (Tributo, 'tributo.json')]:
-        filepath = f"core/fixtures/parametros/{filename}"
+                            (TipoTributo, 'tipo_tributo.json'), (Tributo, 'tributo.json'), (Comercio, 'comercio.json')]:
+        filepath = f"core/fixtures/{filename}"
         df = pd.read_json(filepath)
         for _, row in df.iterrows():
             record = model(**row.to_dict())

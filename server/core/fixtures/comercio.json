@@ -1,0 +1,15 @@
+[
+    {
+        "id": "1",
+        "razon_social": "Comercio 1",
+        "nombre_fantasia": "Comercio 1",
+        "cuit": "30-12345678-9",
+        "ingresos_brutos": "12345678",
+        "direccion": "Calle 123",
+        "localidad": "Posadas",
+        "codigo_postal": "3300",
+        "telefono": "3764-123456",
+        "tipo_responsable_id": 1,
+        "provincia_id": 1
+    }
+]
