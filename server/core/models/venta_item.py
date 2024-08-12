@@ -22,6 +22,8 @@ class VentaItem(db.Model):
     subtotal_gravado = Column(Numeric(precision=10, scale=2), nullable=False)
     subtotal = Column(Numeric(precision=10, scale=2), nullable=False)
 
+    # TODO Es necesario relacionar los items con las alícuotas de IVA
+
     # Relaciones con otras tablas
     articulo_id = Column(Integer, ForeignKey('articulo.id'), nullable=False)
     articulo = relationship('Articulo', backref='items')

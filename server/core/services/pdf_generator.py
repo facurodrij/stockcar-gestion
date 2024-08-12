@@ -10,6 +10,8 @@ from num2words import num2words
 from server.core.models import Venta, EstadoVenta
 
 
+# TODO: Generar codigo QR con la informacion de la venta
+
 class BasePDFGenerator(canvas.Canvas):
     def __init__(self, *args, **kwargs):
         canvas.Canvas.__init__(self, *args, **kwargs)
