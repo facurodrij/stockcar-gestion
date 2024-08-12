@@ -1,12 +1,14 @@
 import pytz
+
+from io import BytesIO
 from datetime import datetime, timedelta
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 
 from server.config import db
 from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
-from server.core.services import AfipService
+from server.core.services import AfipService, A4PDFGenerator, TicketPDFGenerator
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -78,7 +80,6 @@ def create():
     if request.method == 'POST':
         data = request.json
         venta_json = venta_json_to_model(data['venta'])
-
         try:
             venta = Venta(
                 **venta_json
@@ -86,7 +87,6 @@ def create():
             venta.numero = venta.get_last_number() + 1
             db.session.add(venta)
             db.session.flush()  # para obtener el id de la venta creada
-
             renglones = data['renglones']
             for item in renglones:
                 articulo = Articulo.query.get(item['articulo_id'])
@@ -99,7 +99,6 @@ def create():
                 venta.total_iva += float(item['subtotal_iva'])
                 venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
-
             tributos = Tributo.query.filter(
                 Tributo.id.in_(data['tributos'])).all()
             for tributo in tributos:
@@ -110,9 +109,7 @@ def create():
                 elif base_calculo == BaseCalculo.bruto:
                     # TODO revisar si es correcto
                     importe = venta.total * alicuota
-
                 venta.total_tributos += importe
-
                 db.session.execute(
                     tributo_venta.insert().values(
                         tributo_id=tributo.id,
@@ -121,7 +118,6 @@ def create():
                     )
                 )
             venta.total += venta.total_tributos
-            
             if not venta.tipo_comprobante.codigo_afip is None:
                 afip = AfipService()
                 res = afip.obtener_cae(venta)
@@ -152,11 +148,9 @@ def update(pk):
     if request.method == 'PUT':
         data = request.json
         venta_json = venta_json_to_model(data['venta'])
-
         try:
             for key, value in venta_json.items():
                 setattr(venta, key, value)
-
             current_articulo_ids = list(
                 map(lambda x: x.articulo_id, venta_items))
             renglones = data['renglones']
@@ -182,12 +176,10 @@ def update(pk):
                 venta.total_iva += float(item['subtotal_iva'])
                 venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
-
             for articulo_id in current_articulo_ids:
                 venta_item = VentaItem.query.filter_by(
                     venta_id=pk, articulo_id=articulo_id).first()
                 db.session.delete(venta_item)
-
             venta.tributos = []
             nuevos_tributos = Tributo.query.filter(
                 Tributo.id.in_(data['tributos'])).all()
@@ -199,9 +191,7 @@ def update(pk):
                 elif base_calculo == BaseCalculo.bruto:
                     # TODO revisar si es correcto
                     importe = venta.total * alicuota
-
                 venta.total_tributos += importe
-
                 db.session.execute(
                     tributo_venta.insert().values(
                         tributo_id=tributo.id,
@@ -210,7 +200,6 @@ def update(pk):
                     )
                 )
             venta.total += venta.total_tributos
-
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 200
         except Exception as e:
@@ -226,3 +215,26 @@ def detail(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
     return jsonify({'venta': venta.to_json(), 'renglones': list(map(lambda x: x.to_json(), venta_items))}), 200
+
+
+@venta_bp.route('/ventas/<int:pk>/pdf', methods=['GET'])
+def pdf(pk):
+    venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
+    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
+    size = request.args.get('size')
+    buffer = BytesIO()
+    if size == 'A4':
+        c = A4PDFGenerator(buffer)
+        c.generate_pdf(venta)
+        buffer.seek(0)
+    else:
+        c = TicketPDFGenerator(buffer)
+        c.generate_pdf(venta)
+        buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name=f'venta_{venta.numero}.pdf', mimetype='application/pdf')
+
+# TODO agregar funcionalidad para eliminar venta
+
+# TODO agregar funcionalidad para anular venta
+
+# TODO agregar funcionalidad para crear pdf de venta
