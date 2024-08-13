@@ -133,7 +133,7 @@ def create():
         except Exception as e:
             db.session.rollback()
             print(e)
-            return jsonify({'error': str(e)}), 500
+            return jsonify({'error': str(e)}), 400
         finally:
             db.session.close()
 
@@ -205,7 +205,7 @@ def update(pk):
         except Exception as e:
             db.session.rollback()
             print(e)
-            return jsonify({'error': str(e)}), 500
+            return jsonify({'error': str(e)}), 400
         finally:
             db.session.close()
 

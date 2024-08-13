@@ -1,12 +1,13 @@
 from flask import jsonify
 from .config import db, app
-from server.core.routes import venta_bp, cliente_bp, articulo_bp
+from server.core.routes import venta_bp, cliente_bp, articulo_bp, comercio_bp
 # noinspection PyUnresolvedReferences
 from server.core.commands import load_fixtures
 
 app.register_blueprint(venta_bp)
 app.register_blueprint(cliente_bp)
 app.register_blueprint(articulo_bp)
+app.register_blueprint(comercio_bp)
 
 
 @app.route('/')
