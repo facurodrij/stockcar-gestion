@@ -86,4 +86,4 @@ def update(pk):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 400
-        return 'ok', 200
+        return 'ok', 201

@@ -201,7 +201,7 @@ def update(pk):
                 )
             venta.total += venta.total_tributos
             db.session.commit()
-            return jsonify({'venta_id': venta.id}), 200
+            return jsonify({'venta_id': venta.id}), 201
         except Exception as e:
             db.session.rollback()
             print(e)
