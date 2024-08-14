@@ -46,7 +46,7 @@ const CustomToolbar = ({ onOpen }) => {
     );
 }
 
-export default function VentaForm({ pk }) {
+export default function OrdenVentaForm({ pk }) {
     const {
         handleSubmit,
         control,
@@ -54,11 +54,7 @@ export default function VentaForm({ pk }) {
         setValue
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
-        cliente: [],
-        tipo_comprobante: [],
-        tipo_pago: [],
-        moneda: [],
-        tributo: []
+        cliente: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -71,7 +67,6 @@ export default function VentaForm({ pk }) {
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
     const [selectedArticulo, setSelectedArticulo] = useState([]);
     const [ventaRenglones, setVentaRenglones] = useState([]);
-    const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleTabChange = (event, newValue) => {
@@ -100,27 +95,12 @@ export default function VentaForm({ pk }) {
                 const data = await fetchData();
                 const selectOptions = data['select_options'];
                 setSelectOptions({
-                    cliente: selectOptions.cliente,
-                    tipo_comprobante: selectOptions.tipo_comprobante,
-                    tipo_pago: selectOptions.tipo_pago,
-                    moneda: selectOptions.moneda,
-                    tributo: selectOptions.tributo,
+                    cliente: selectOptions.cliente
                 });
                 if (Boolean(pk)) {
                     const venta = data['venta'];
-                    const tributos = venta['tributos'];
                     setValue('cliente_id', venta.cliente.id);
-                    setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
-                    setValue('fecha_hora', dayjs(venta.fecha_hora));
-                    setValue('descuento', venta.descuento);
-                    setValue('recargo', venta.recargo);
-                    setValue('tipo_pago_id', venta.tipo_pago.id);
-                    setValue('moneda_id', venta.moneda.id);
-                    if (venta.cae) setValue('cae', venta.cae);
-                    if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
                     if (venta.observacion) setValue('observacion', venta.observacion);
-
-                    // Cargar renglones de venta y articulos seleccionados
                     const renglonesArray = data['renglones'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
@@ -136,12 +116,6 @@ export default function VentaForm({ pk }) {
                     const articuloArray = renglonesArray.map((r) => r.articulo_id);
                     setVentaRenglones(renglonesArray);
                     setSelectedArticulo(articuloArray);
-
-                    // Cargar tributos seleccionados
-                    setSelectedTributo([])
-                    tributos.forEach((t) => {
-                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
-                    });
                 }
             } catch (e) {
                 console.error('Error en la carga de datos:', e);
@@ -159,7 +133,7 @@ export default function VentaForm({ pk }) {
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
-        const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
+        const url = Boolean(pk) ? `${API}/ventas/orden/${pk}/update` : `${API}/ventas/orden/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
             if (ventaRenglones.length === 0) {
@@ -168,26 +142,26 @@ export default function VentaForm({ pk }) {
             const response = await fetch(url, {
                 method: method,
                 headers: {
-                    'Accept': 'application/json', // Indica que se espera una respuesta en formato JSON
+                    'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ venta: data, renglones: ventaRenglones, tributos: selectedTributo })
+                body: JSON.stringify({ venta: data, renglones: ventaRenglones})
             });
             const responseJson = await response.json();
             if (!response.ok) {
                 throw new Error(`${responseJson['error']}`);
             }
             setSnackbar({
-                message: 'Venta guardada correctamente',
+                message: 'Orden de Venta guardada correctamente',
                 severity: 'success',
                 autoHideDuration: 4000,
-                onClose: () => handleCloseSnackbar(true, `/ventas/${responseJson['venta_id']}`)
+                onClose: () => handleCloseSnackbar(false)
             });
         } catch (e) {
             setSnackbar({
                 message: e.message,
                 severity: 'error',
-                autoHideDuration: null, // No cerrar el snackbar
+                autoHideDuration: null,
                 onClose: () => handleCloseSnackbar(false)
             });
             setIsSubmitting(false);
@@ -197,25 +171,10 @@ export default function VentaForm({ pk }) {
     }
 
     const onError = (errors) => {
-        if (errors['cliente_id'] || errors['tipo_comprobante_id'] || errors['fecha_hora']) {
+        if (errors['cliente_id']) {
             setTabValue(0);
             return;
         }
-        if (errors['descuento'] || errors['recargo'] || errors['tipo_pago_id'] || errors['moneda_id']) {
-            setTabValue(1);
-        }
-    }
-
-    const calculateTotalTributos = () => {
-        const tributos = selectOptions.tributo.filter((t) => selectedTributo.includes(t.id));
-        let totalTributos = 0
-        tributos.forEach((t) => {
-            if (t.base_calculo === 'Neto')
-                totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0) * t.alicuota / 100;
-            else
-                totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0) * t.alicuota / 100;
-        });
-        return totalTributos
     }
 
     return (
@@ -225,8 +184,6 @@ export default function VentaForm({ pk }) {
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} centered>
                         <Tab label="Principal" />
-                        <Tab label="Configuración" />
-                        <Tab label="Factura Electrónica" />
                         <Tab label="Observaciones" />
                     </Tabs>
                 </Box>
@@ -265,51 +222,6 @@ export default function VentaForm({ pk }) {
                                         />
                                     )}
                                 />
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-                    <br />
-                    <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_comprobante_id)}>
-                                <InputLabel id="tipo_comprobante_label">Tipo de Comprobante</InputLabel>
-                                <Controller
-                                    name="tipo_comprobante_id"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{ required: "Este campo es requerido" }}
-                                    render={({ field }) => (
-                                        <Select
-                                            {...field}
-                                            id="tipo_comprobante"
-                                            labelId="tipo_comprobante_label"
-                                            label="Tipo de Comprobante"
-                                        >
-                                            {selectOptions.tipo_comprobante.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
-                                        </Select>
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth error={Boolean(errors.fecha_hora)}>
-                                <Controller
-                                    name="fecha_hora"
-                                    control={control}
-                                    defaultValue={dayjs()}
-                                    render={({ field }) => (
-                                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
-                                            <DateTimePicker
-                                                {...field}
-                                                label="Fecha de Emisión"
-                                                value={field.value ? dayjs(field.value) : null}
-                                                onChange={(value) => field.onChange(value)}
-                                            />
-                                        </LocalizationProvider>
-                                    )}
-                                />
-                                <FormHelperText>{errors.fecha_hora && errors.fecha_hora.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                     </Grid>
@@ -418,150 +330,6 @@ export default function VentaForm({ pk }) {
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
                     <Grid container spacing={2}>
-                        {/* TODO Agrega la funcionalidad de Descuento y Recargo, revisar sobre que monto debe realizarse
-                            el descuento y recargo, y como eso influye en el calculo del IVA y demas impuestos
-                        */}
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="descuento"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            label="Descuento"
-                                            variant="outlined"
-                                            type='number'
-                                            InputProps={{
-                                                endAdornment: <InputAdornment position="end">%</InputAdornment>
-                                            }}
-                                            error={Boolean(errors.descuento)}
-                                            helperText={errors.descuento && errors.descuento.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="recargo"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            label="Recargo"
-                                            variant="outlined"
-                                            type='number'
-                                            InputProps={{
-                                                endAdornment: <InputAdornment position="end">%</InputAdornment>
-                                            }}
-                                            error={Boolean(errors.recargo)}
-                                            helperText={errors.recargo && errors.recargo.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <InputLabel id="tipo_pago_label">Tipo de Pago</InputLabel>
-                                <Controller
-                                    name="tipo_pago_id"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <Select
-                                            {...field}
-                                            id="tipo_pago"
-                                            labelId="tipo_pago_label"
-                                            label="Tipo de Pago"
-                                        >
-                                            {selectOptions.tipo_pago.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
-                                        </Select>
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <InputLabel id="moneda_label">Moneda</InputLabel>
-                                <Controller
-                                    name="moneda_id"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <Select
-                                            {...field}
-                                            id="moneda"
-                                            labelId="moneda_label"
-                                            label="Moneda"
-                                        >
-                                            {selectOptions.moneda.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
-                                        </Select>
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-                    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Tributos adicionales</Typography>
-                    {/* TODO Actualizar tributos al cambiar de Cliente y Comprobante */}
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TributoDataGrid
-                                tributos={selectOptions.tributo}
-                                selectedTributo={selectedTributo}
-                                setSelectedTributo={setSelectedTributo}
-                            />
-                        </Grid>
-                    </Grid>
-                </SimpleTabPanel>
-                <SimpleTabPanel value={tabValue} index={2}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="cae"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            label="CAE"
-                                            variant="outlined"
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth error={Boolean(errors.vencimiento_cae)}>
-                                <Controller
-                                    name="vencimiento_cae"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
-                                            <DateTimePicker
-                                                {...field}
-                                                label="Vencimiento de CAE"
-                                                value={field.value ? dayjs(field.value) : null}
-                                                onChange={(value) => field.onChange(value)}
-                                            />
-                                        </LocalizationProvider>
-                                    )}
-                                />
-                                <FormHelperText>{errors.vencimiento_cae && errors.vencimiento_cae.message}</FormHelperText>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-                </SimpleTabPanel>
-                <SimpleTabPanel value={tabValue} index={3}>
-                    <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormControl fullWidth>
                                 <Controller
@@ -591,18 +359,11 @@ export default function VentaForm({ pk }) {
                                 <Typography>Artículos: {ventaRenglones.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
                                 <Typography>Importe de IVA: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_iva), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                                 <Typography>Importe Gravado: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography>Descuento:</Typography>
-                                <Typography>Recargo:</Typography>
-                                <Typography>Importe Otros Tributos: {calculateTotalTributos().toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography fontWeight={700}>Importe Total: {(ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0) + calculateTotalTributos()).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                                {/* Espacio reservado para futuras expansiones o información adicional */}
+                                <Typography fontWeight={700}>Importe Total: {(ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0)).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                             </Grid>
                         </Grid>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
-                        {/* TODO Agregar funcionalidad de Guardar Borrador, Generar Factura */}
                         <Button
                             variant="contained"
                             startIcon={<SaveIcon />}
@@ -610,7 +371,16 @@ export default function VentaForm({ pk }) {
                             onClick={handleSubmit(onSubmit, onError)}
                             disabled={isSubmitting}
                         >
-                            Guardar
+                            Guardar Orden de Venta
+                        </Button>
+                        <Button
+                            variant="contained"
+                            startIcon={<SaveIcon />}
+                            type="button"
+                            onClick={handleSubmit(onSubmit, onError)}
+                            disabled={isSubmitting}
+                        >
+                            Presupuesto
                         </Button>
                     </Box>
                 </Box>

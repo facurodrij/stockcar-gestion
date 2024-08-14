@@ -6,6 +6,7 @@ import Header from "./components/shared/Header";
 import VentaPage from './pages/venta/VentaPage';
 import VentaFormPage from './pages/venta/VentaFormPage';
 import VentaDetailPage from "./pages/venta/VentaDetailPage";
+import OrdenVentaFormPage from './pages/venta/OrdenVentaFormPage';
 import ClientePage from './pages/cliente/ClientePage';
 import ClienteFormPage from './pages/cliente/ClienteFormPage';
 import ArticuloPage from './pages/articulo/ArticuloPage';
@@ -27,6 +28,8 @@ function App() {
                         <Route path="/ventas/:pk" element={<VentaDetailPage/>}></Route>
                         <Route path="/ventas/form" element={<VentaFormPage/>}></Route>
                         <Route path="/ventas/form/:pk" element={<VentaFormPage/>}></Route>
+                        <Route path="/ventas/orden" element={<OrdenVentaFormPage/>}></Route>
+                        <Route path="/ventas/orden/:pk" element={<OrdenVentaFormPage/>}></Route>
                         <Route path="/clientes" element={<ClientePage/>}></Route>
                         <Route path="/clientes/form" element={<ClienteFormPage/>}></Route>
                         <Route path="/clientes/form/:pk" element={<ClienteFormPage/>}></Route>

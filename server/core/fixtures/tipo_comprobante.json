@@ -65,13 +65,6 @@
     {
         "id": 10,
         "codigo_afip": null,
-        "descripcion": "Remito",
-        "abreviatura": "R",
-        "letra": "R"
-    },
-    {
-        "id": 11,
-        "codigo_afip": null,
         "descripcion": "Presupuesto",
         "abreviatura": "P",
         "letra": "P"

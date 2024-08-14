@@ -36,10 +36,14 @@ def venta_json_to_model(venta_json: dict) -> dict:
     for key, value in venta_json.items():
         if value == '':
             venta_json[key] = None
-    venta_json['fecha_hora'] = datetime.fromisoformat(
-        venta_json['fecha_hora']).astimezone(local_tz)
-    venta_json['vencimiento_cae'] = datetime.fromisoformat(
-        venta_json['vencimiento_cae']).astimezone(local_tz) if venta_json['vencimiento_cae'] else None
+    if 'fecha_hora' in venta_json and venta_json['fecha_hora'] is not None:
+        venta_json['fecha_hora'] = datetime.fromisoformat(
+            venta_json['fecha_hora']).astimezone(local_tz)
+    else:
+        venta_json['fecha_hora'] = datetime.now().astimezone(local_tz)
+    if 'vencimiento_cae' in venta_json and venta_json['vencimiento_cae'] is not None:
+        venta_json['vencimiento_cae'] = datetime.fromisoformat(
+            venta_json['vencimiento_cae']).astimezone(local_tz)
     # TODO agregar funcionalidad para elegir punto de venta
     venta_json['punto_venta'] = 1
     venta_json['nombre_cliente'] = Cliente.query.get(
@@ -233,8 +237,62 @@ def pdf(pk):
         buffer.seek(0)
     return send_file(buffer, as_attachment=True, download_name=f'venta_{venta.numero}.pdf', mimetype='application/pdf')
 
+
+@venta_bp.route('/ventas/orden/create', methods=['GET', 'POST'])
+def create_orden():
+    if request.method == 'GET':
+        return jsonify({'select_options': get_select_options()}), 200
+    if request.method == 'POST':
+        data = request.json
+        venta_json = venta_json_to_model(data['venta'])
+        try:
+            venta = Venta(
+                **venta_json,
+                tipo_comprobante_id=9,
+                estado='orden'
+            )
+            venta.numero = venta.get_last_number() + 1
+            db.session.add(venta)
+            db.session.flush()  # para obtener el id de la venta creada
+            renglones = data['renglones']
+            for item in renglones:
+                articulo = Articulo.query.get(item['articulo_id'])
+                ventaItem = VentaItem(
+                    articulo=articulo,
+                    venta_id=venta.id,
+                    **item
+                )
+                db.session.add(ventaItem)
+                venta.total_iva += float(item['subtotal_iva'])
+                venta.gravado += float(item['subtotal_gravado'])
+                venta.total += float(item['subtotal'])
+            db.session.commit()
+            return jsonify({'venta_id': venta.id}), 201
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({'error': str(e)}), 400
+        finally:
+            db.session.close()
+
+
+@venta_bp.route('/ventas/orden/<int:pk>/update', methods=['GET', 'PUT'])
+def update_orden(pk):
+    venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
+    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
+    if request.method == 'GET':
+        return jsonify({'select_options': get_select_options(), 'venta': venta.to_json(),
+                        'renglones': list(map(lambda x: x.to_json(), venta_items))}), 200
+    if request.method == 'PUT':
+        data = request.json
+        venta_json = data['venta']
+        for key, value in venta_json.items():
+            if value == '':
+                venta_json[key] = None
+        
+
+
+
 # TODO agregar funcionalidad para eliminar venta
 
 # TODO agregar funcionalidad para anular venta
-
-# TODO agregar funcionalidad para crear pdf de venta
