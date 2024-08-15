@@ -4,7 +4,7 @@ import click
 import pandas as pd
 from server.config import db, app
 from server.core.models import Genero, Provincia, TipoDocumento, TipoResponsable, TipoComprobante, Moneda, \
-    TipoPago, AlicuotaIVA, TipoArticulo, TipoUnidad, TipoTributo, Tributo, Comercio
+    TipoPago, AlicuotaIVA, TipoArticulo, TipoUnidad, TipoTributo, Tributo, Comercio, Usuario, Rol
 
 
 @app.cli.command("load_fixtures")
@@ -43,3 +43,36 @@ def import_model(model_name):
         module.import_data()
     except ImportError:
         click.echo(f"No import script found for model: {model_name}")
+
+
+@app.cli.command("create_user")
+@click.argument("username")
+@click.argument("password")
+@click.argument("email")
+def create_user(username, password, email):
+    """Create a new user in the database."""
+    new_user = Usuario(
+        username=username,
+        password=password,
+        email=email
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    click.echo("User created successfully!")
+
+
+@app.cli.command("create_superuser")
+@click.argument("username")
+@click.argument("password")
+@click.argument("email")
+def create_superuser(username, password, email):
+    """Create a new superuser in the database."""
+    new_user = Usuario(
+        username=username,
+        password=password,
+        email=email,
+        is_superuser=True
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    click.echo("Superuser created successfully!")

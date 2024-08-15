@@ -6,3 +6,4 @@ from .tributo import Tributo
 from .comercio import Comercio, PuntoVenta
 from .parametros import *
 from .association_table import *
+from .usuario import Usuario, Rol

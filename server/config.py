@@ -5,6 +5,7 @@ from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 
 
 class Base(DeclarativeBase):
@@ -29,8 +30,6 @@ CORS(
     },
 )
 
-app.config["CORS_HEADERS"] = "Content-Type"
-
 convention = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
@@ -47,9 +46,16 @@ database_path = os.path.join(BASE_DIR, "instance", "datos.db")
 if not os.path.exists(os.path.join(BASE_DIR, "instance")):
     os.makedirs(os.path.join(BASE_DIR, "instance"))
 
+app.config["CORS_HEADERS"] = "Content-Type"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ECHO"] = False
+app.config["JWT_SECRET_KEY"] = "my-secret-key"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
+
 db = SQLAlchemy(model_class=Base, metadata=metadata)
 migrate = Migrate(app, db)
+jwt = JWTManager(app)
 
 # Config for Production
 # app.config['SQLALCHEMY_DATABASE_URI'] = ('mssql+pyodbc://sa:Admin-181020@localhost:1433/Datos?driver=ODBC+Driver+18+for'
