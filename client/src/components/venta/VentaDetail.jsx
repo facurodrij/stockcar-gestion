@@ -21,6 +21,8 @@ import {
 import {Link} from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import fetchWithAuth from '../../utils/fetchWithAuth';
+
 
 
 const PaperSizeButton = ({ handlePrint }) => {
@@ -82,7 +84,7 @@ export default function VentaDetail({ pk }) {
     useEffect(() => {
         const fetchData = async () => {
             const url = `${API}/ventas/${pk}`;
-            const res = await fetch(url);
+            const res = await fetchWithAuth(url);
             if (!res.ok) {
                 throw new Error('Error al obtener la venta');
             }
@@ -113,7 +115,7 @@ export default function VentaDetail({ pk }) {
 
     const handlePrint = (size = 'A4') => {
         const url = `${API}/ventas/${pk}/pdf?size=${size}`;
-        fetch(url)
+        fetchWithAuth(url)
             .then(response => response.blob())
             .then(blob => {
                 const url = window.URL.createObjectURL(blob);

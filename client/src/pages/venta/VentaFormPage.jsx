@@ -1,11 +1,16 @@
-import React from 'react';
-import {useParams} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Typography from "@mui/material/Typography";
-import {VentaForm} from "../../components/venta";
+import { VentaForm } from "../../components/venta";
+import { checkAuth } from '../../utils/checkAuth';
 
 export default function VentaFormPage() {
     const routeParams = useParams();
     const pk = routeParams.pk;
+
+    useEffect(() => {
+        checkAuth();
+    }, []);
 
     return (
         <>
@@ -20,7 +25,7 @@ export default function VentaFormPage() {
             >
                 {pk ? 'Editar' : 'Agregar'} Venta
             </Typography>
-            <VentaForm pk={pk}/>
+            <VentaForm pk={pk} />
         </>
     );
 };

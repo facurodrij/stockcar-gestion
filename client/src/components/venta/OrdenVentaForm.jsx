@@ -30,6 +30,8 @@ import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import { esES } from "@mui/x-data-grid/locales";
 import InputAdornment from '@mui/material/InputAdornment';
 import TributoDataGrid from "../tributo/TributoDataGrid";
+import fetchWithAuth from '../../utils/fetchWithAuth';
+
 
 const CustomToolbar = ({ onOpen }) => {
     return (
@@ -83,7 +85,7 @@ export default function OrdenVentaForm({ pk }) {
     useEffect(() => {
         const fetchData = async () => {
             const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
-            const res = await fetch(url);
+            const res = await fetchWithAuth(url);
             if (!res.ok) {
                 const message = Boolean(pk) ? 'Error al obtener la venta' : 'Error al obtener los datos';
                 throw new Error(message);
@@ -139,13 +141,8 @@ export default function OrdenVentaForm({ pk }) {
             if (ventaRenglones.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ venta: data, renglones: ventaRenglones})
+            const response = await fetchWithAuth(url, method, {
+                venta: data, renglones: ventaRenglones
             });
             const responseJson = await response.json();
             if (!response.ok) {

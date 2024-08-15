@@ -1,11 +1,16 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import Typography from "@mui/material/Typography";
 import {VentaDetail} from "../../components/venta";
+import {checkAuth} from '../../utils/checkAuth';
 
 export default function VentaDetailPage() {
     const routeParams = useParams();
     const pk = routeParams.pk;
+
+    useEffect(() => {
+        checkAuth();
+    }, []);
 
     return (
         <>

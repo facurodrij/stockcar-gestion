@@ -3,6 +3,7 @@ import pytz
 from io import BytesIO
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request, send_file
+from flask_jwt_extended import jwt_required
 
 from server.config import db
 from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo
@@ -56,6 +57,7 @@ def venta_json_to_model(venta_json: dict) -> dict:
 
 
 @venta_bp.route('/ventas', methods=['GET'])
+@jwt_required()
 def index():
     fecha_desde = request.args.get('desde')
     fecha_hasta = request.args.get('hasta')
@@ -78,6 +80,7 @@ def index():
 
 
 @venta_bp.route('/ventas/create', methods=['GET', 'POST'])
+@jwt_required()
 def create():
     if request.method == 'GET':
         return jsonify({'select_options': get_select_options()}), 200
@@ -143,6 +146,7 @@ def create():
 
 
 @venta_bp.route('/ventas/<int:pk>/update', methods=['GET', 'PUT'])
+@jwt_required()
 def update(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
@@ -215,6 +219,7 @@ def update(pk):
 
 
 @venta_bp.route('/ventas/<int:pk>', methods=['GET'])
+@jwt_required()
 def detail(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
@@ -222,6 +227,7 @@ def detail(pk):
 
 
 @venta_bp.route('/ventas/<int:pk>/pdf', methods=['GET'])
+@jwt_required()
 def pdf(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
@@ -239,6 +245,7 @@ def pdf(pk):
 
 
 @venta_bp.route('/ventas/orden/create', methods=['GET', 'POST'])
+@jwt_required()
 def create_orden():
     if request.method == 'GET':
         return jsonify({'select_options': get_select_options()}), 200
@@ -277,6 +284,7 @@ def create_orden():
 
 
 @venta_bp.route('/ventas/orden/<int:pk>/update', methods=['GET', 'PUT'])
+@jwt_required()
 def update_orden(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
@@ -290,9 +298,3 @@ def update_orden(pk):
             if value == '':
                 venta_json[key] = None
         
-
-
-
-# TODO agregar funcionalidad para eliminar venta
-
-# TODO agregar funcionalidad para anular venta

@@ -1,9 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import {VentaList} from "../../components/venta";
+import { checkAuth } from '../../utils/checkAuth';
 
+function VentaPage() {
+    useEffect(() => {
+        checkAuth(); // Check if user is logged in
+        // TODO checkRoles(['admin', 'user']); // Check if user has roles
+    }, []);
 
-export default function VentaPage() {
     return (
         <>
             <Typography
@@ -20,3 +25,5 @@ export default function VentaPage() {
         </>
     )
 }
+
+export default VentaPage;

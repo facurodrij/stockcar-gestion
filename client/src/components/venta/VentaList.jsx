@@ -20,7 +20,7 @@ import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {Button} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
-
+import fetchWithAuth from '../../utils/fetchWithAuth';
 
 const CustomToolbar = () => {
     return (
@@ -55,9 +55,16 @@ export default function VentaList() {
         const fromStr = from ? from.toISOString() : null;
         const toStr = to ? to.toISOString() : null;
         const url = (from || to) ? `${API}/ventas?desde=${fromStr}&hasta=${toStr}` : `${API}/ventas`;
-        const res = await fetch(url);
-        const data = await res.json();
-        setList(data['ventas']);
+        try {
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(`${res.status} (${res.statusText})`);
+            }
+            setList(data['ventas']);
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     const columns = [
