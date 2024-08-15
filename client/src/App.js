@@ -13,6 +13,9 @@ import ArticuloPage from './pages/articulo/ArticuloPage';
 import ArticuloFormPage from './pages/articulo/ArticuloFormPage';
 import ComercioPage from './pages/comercio/ComercioPage';
 import ComercioFormPage from './pages/comercio/ComercioFormPage';
+import LoginPage from "./pages/auth/LoginPage";
+import ProfilePage from "./pages/auth/ProfilePage";
+import Unauthorized from "./pages/auth/Unauthorized";
 
 
 export const API = process.env.REACT_APP_API_URL;
@@ -24,6 +27,9 @@ function App() {
                 <Header/>
                 <Container sx={{mt: 8}}>
                     <Routes>
+                        <Route path="/login" element={<LoginPage/>}></Route>
+                        <Route path="/profile" element={<ProfilePage/>}></Route>
+                        <Route path="/unauthorized" element={<Unauthorized/>}></Route>
                         <Route path="/ventas" element={<VentaPage/>}></Route>
                         <Route path="/ventas/:pk" element={<VentaDetailPage/>}></Route>
                         <Route path="/ventas/form" element={<VentaFormPage/>}></Route>
