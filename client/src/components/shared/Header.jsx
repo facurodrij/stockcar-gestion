@@ -1,22 +1,8 @@
-import React from 'react';
-import {styled, useTheme} from '@mui/material/styles';
-import MuiDrawer from '@mui/material/Drawer';
-import MuiAppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
-import {Link} from "react-router-dom";
-import {Inventory2, LocalShipping, People, Person, PointOfSale, Settings} from "@mui/icons-material";
+import React, { useEffect } from 'react';
+import { Link } from "react-router-dom";
+import { styled, useTheme } from '@mui/material/styles';
+import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button } from '@mui/material';
+import { AccountCircle, Inbox as InboxIcon, Mail as MailIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, LocalShipping, Inventory2, PointOfSale } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
@@ -41,7 +27,7 @@ const closedMixin = (theme) => ({
     },
 });
 
-const DrawerHeader = styled('div')(({theme}) => ({
+const DrawerHeader = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -52,7 +38,7 @@ const DrawerHeader = styled('div')(({theme}) => ({
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
-})(({theme, open}) => ({
+})(({ theme, open }) => ({
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
         easing: theme.transitions.easing.sharp,
@@ -68,8 +54,8 @@ const AppBar = styled(MuiAppBar, {
     }),
 }));
 
-const Drawer = styled(MuiDrawer, {shouldForwardProp: (prop) => prop !== 'open'})(
-    ({theme, open}) => ({
+const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+    ({ theme, open }) => ({
         width: drawerWidth,
         flexShrink: 0,
         whiteSpace: 'nowrap',
@@ -89,32 +75,32 @@ const Drawer = styled(MuiDrawer, {shouldForwardProp: (prop) => prop !== 'open'})
 const pagesList = [
     {
         title: 'Ventas',
-        icon: <PointOfSale/>,
+        icon: <PointOfSale />,
         path: '/ventas',
     },
     {
         title: 'Articulos',
-        icon: <Inventory2/>,
+        icon: <Inventory2 />,
         path: '/articulos',
     },
     {
         title: 'Clientes',
-        icon: <People/>,
+        icon: <People />,
         path: '/clientes',
     },
     {
         title: 'Proveedores',
-        icon: <LocalShipping/>,
+        icon: <LocalShipping />,
         path: '/proveedores',
     },
     {
         title: 'Usuarios',
-        icon: <Person/>,
+        icon: <Person />,
         path: '/usuarios',
     },
     {
         title: 'Configuración',
-        icon: <Settings/>,
+        icon: <Settings />,
         path: '/config',
     },
 ];
@@ -122,6 +108,7 @@ const pagesList = [
 export default function Header() {
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
+    const [auth, setAuth] = React.useState(false);
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -130,6 +117,30 @@ export default function Header() {
     const handleDrawerClose = () => {
         setOpen(false);
     };
+
+    const [anchorEl, setAnchorEl] = React.useState(null);
+
+    const handleMenu = (event) => {
+        setAnchorEl(event.currentTarget);
+    }
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    }
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    }
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            setAuth(true);
+        } else {
+            setAuth(false);
+        }
+    }, []);
 
     return (
         <>
@@ -142,23 +153,60 @@ export default function Header() {
                         edge="start"
                         sx={{
                             marginRight: 5,
-                            ...(open && {display: 'none'}),
+                            ...(open && { display: 'none' }),
                         }}
                     >
-                        <MenuIcon/>
+                        <MenuIcon />
                     </IconButton>
+                    <Box sx={{ flexGrow: 1 }} />
+                    {auth ? (
+                        <div>
+                            <IconButton
+                                aria-label="account of current user"
+                                aria-controls="menu-appbar"
+                                aria-haspopup="true"
+                                onClick={handleMenu}
+                                edge="end"
+                                color="inherit"
+                            >
+                                <AccountCircle />
+                            </IconButton>
+                            <Menu
+                                id="menu-appbar"
+                                anchorEl={anchorEl}
+                                anchorOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                keepMounted
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                open={Boolean(anchorEl)}
+                                onClose={handleClose}
+                            >
+                                <MenuItem component={Link} to="/profile" onClick={handleClose}>Mi Perfil</MenuItem>
+                                <MenuItem onClick={handleClose}>My account</MenuItem>
+                                <Divider />
+                                <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
+                            </Menu>
+                        </div>
+                    ) : (
+                        <Button color="inherit" component={Link} to="/login">Login</Button>
+                    )}
                 </Toolbar>
             </AppBar>
             <Drawer variant="permanent" open={open}>
                 <DrawerHeader>
                     <IconButton onClick={handleDrawerClose}>
-                        {theme.direction === 'rtl' ? <ChevronRightIcon/> : <ChevronLeftIcon/>}
+                        {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
                     </IconButton>
                 </DrawerHeader>
-                <Divider/>
+                <Divider />
                 <List>
                     {pagesList.map((page, index) => (
-                        <ListItem key={page.title} disablePadding sx={{display: 'block'}}>
+                        <ListItem key={page.title} disablePadding sx={{ display: 'block' }}>
                             <ListItemButton
                                 component={Link} to={page.path}
                                 sx={{
@@ -176,15 +224,15 @@ export default function Header() {
                                 >
                                     {page.icon}
                                 </ListItemIcon>
-                                <ListItemText primary={page.title} sx={{opacity: open ? 1 : 0}}/>
+                                <ListItemText primary={page.title} sx={{ opacity: open ? 1 : 0 }} />
                             </ListItemButton>
                         </ListItem>
                     ))}
                 </List>
-                <Divider/>
+                <Divider />
                 <List>
                     {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                        <ListItem key={text} disablePadding sx={{display: 'block'}}>
+                        <ListItem key={text} disablePadding sx={{ display: 'block' }}>
                             <ListItemButton
                                 sx={{
                                     minHeight: 48,
@@ -199,9 +247,9 @@ export default function Header() {
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    {index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}
+                                    {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
                                 </ListItemIcon>
-                                <ListItemText primary={text} sx={{opacity: open ? 1 : 0}}/>
+                                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
                             </ListItemButton>
                         </ListItem>
                     ))}
