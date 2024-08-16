@@ -80,6 +80,13 @@ class Rol(db.Model):
 
     usuarios = relationship("Usuario", secondary="usuario_rol", back_populates="roles")
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "descripcion": self.descripcion,
+        }
+
 
 usuario_rol = db.Table(
     "usuario_rol",

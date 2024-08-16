@@ -16,6 +16,8 @@ import ComercioFormPage from './pages/comercio/ComercioFormPage';
 import LoginPage from "./pages/auth/LoginPage";
 import ProfilePage from "./pages/auth/ProfilePage";
 import Unauthorized from "./pages/auth/Unauthorized";
+import UsuarioPage from "./pages/usuario/UsuarioPage";
+import UsuarioFormPage from "./pages/usuario/UsuarioFormPage";
 
 
 export const API = process.env.REACT_APP_API_URL;
@@ -45,6 +47,9 @@ function App() {
                         <Route path="/comercios" element={<ComercioPage/>}></Route>
                         <Route path="/comercios/form" element={<ComercioFormPage/>}></Route>
                         <Route path="/comercios/form/:pk" element={<ComercioFormPage/>}></Route>
+                        <Route path="/usuarios" element={<UsuarioPage/>}></Route>
+                        <Route path="/usuarios/form" element={<UsuarioFormPage/>}></Route>
+                        <Route path="/usuarios/form/:pk" element={<UsuarioFormPage/>}></Route>
                     </Routes>
                 </Container>
             </Box>
