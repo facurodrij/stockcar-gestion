@@ -27,6 +27,7 @@ export default function LoginPage() {
             if (redirect_to) {
                 window.location.href = redirect_to;
             }
+            window.location.href = '/';
         } catch (error) {
             console.error(error);
         }
