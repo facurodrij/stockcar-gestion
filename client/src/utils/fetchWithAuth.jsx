@@ -1,6 +1,5 @@
 const fetchWithAuth = async (url, method = 'GET', body = null) => {
     const token = localStorage.getItem('token');
-    console.log('method', method);
     const headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
