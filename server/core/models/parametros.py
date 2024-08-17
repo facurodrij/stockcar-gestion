@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric
+from sqlalchemy import Column, Integer, String, Numeric, Boolean
 from sqlalchemy.orm import relationship
 
 from server.config import db
@@ -85,6 +85,8 @@ class TipoComprobante(db.Model):
     descripcion = Column(String, nullable=False)
     letra = Column(String(1), nullable=False)
     abreviatura = Column(String(5), nullable=True)
+    # Indica si el comprobante debe descontarse del stock de los productos
+    descontar_stock = Column(Boolean, default=True)
 
     # Relación muchos a muchos con TipoResponsable
     responsables = relationship('TipoResponsable', secondary='responsable_comprobante',
@@ -97,7 +99,8 @@ class TipoComprobante(db.Model):
             'codigo_afip': self.codigo_afip,
             'descripcion': self.descripcion,
             'letra': self.letra,
-            'abreviatura': self.abreviatura
+            'abreviatura': self.abreviatura,
+            'descontar_stock': self.descontar_stock
         }
 
 
