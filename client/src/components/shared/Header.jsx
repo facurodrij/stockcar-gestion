@@ -79,6 +79,11 @@ const pagesList = [
         path: '/ventas',
     },
     {
+        title: 'Ordenes de Venta',
+        icon: <PointOfSale />,
+        path: '/ventas-orden',
+    },
+    {
         title: 'Articulos',
         icon: <Inventory2 />,
         path: '/articulos',
@@ -87,11 +92,6 @@ const pagesList = [
         title: 'Clientes',
         icon: <People />,
         path: '/clientes',
-    },
-    {
-        title: 'Proveedores',
-        icon: <LocalShipping />,
-        path: '/proveedores',
     },
     {
         title: 'Usuarios',

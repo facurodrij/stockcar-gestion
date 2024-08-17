@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import jwt_required
 
 from server.config import db
-from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo
+from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo, EstadoVenta
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
 from server.core.services import AfipService, A4PDFGenerator, TicketPDFGenerator
@@ -244,7 +244,29 @@ def pdf(pk):
     return send_file(buffer, as_attachment=True, download_name=f'venta_{venta.numero}.pdf', mimetype='application/pdf')
 
 
-@venta_bp.route('/ventas/orden/create', methods=['GET', 'POST'])
+@venta_bp.route('/ventas-orden', methods=['GET'])
+@jwt_required()
+def index_orden():
+    fecha_desde = request.args.get('desde')
+    fecha_hasta = request.args.get('hasta')
+
+    if fecha_desde and fecha_hasta:
+        ventas = Venta.query.filter(Venta.fecha.between(
+            datetime.fromisoformat(fecha_desde),
+            (datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1))))
+    elif fecha_desde:
+        ventas = Venta.query.filter(
+            Venta.fecha >= datetime.fromisoformat(fecha_desde))
+    elif fecha_hasta:
+        ventas = Venta.query.filter(
+            Venta.fecha <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1))
+    else:
+        ventas = Venta.query.filter_by(estado='orden').all()
+
+    ventas_json = list(map(lambda x: x.to_json(), ventas))
+    return jsonify({'ventas': ventas_json}), 200
+
+@venta_bp.route('/ventas-orden/create', methods=['GET', 'POST'])
 @jwt_required()
 def create_orden():
     if request.method == 'GET':
@@ -283,18 +305,56 @@ def create_orden():
             db.session.close()
 
 
-@venta_bp.route('/ventas/orden/<int:pk>/update', methods=['GET', 'PUT'])
+@venta_bp.route('/ventas-orden/<int:pk>/update', methods=['GET', 'PUT'])
 @jwt_required()
 def update_orden(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
+    if venta.estado != EstadoVenta.orden:
+            return jsonify({'error': 'La venta no está en estado orden'}), 400
     if request.method == 'GET':
         return jsonify({'select_options': get_select_options(), 'venta': venta.to_json(),
                         'renglones': list(map(lambda x: x.to_json(), venta_items))}), 200
     if request.method == 'PUT':
         data = request.json
-        venta_json = data['venta']
-        for key, value in venta_json.items():
-            if value == '':
-                venta_json[key] = None
-        
+        venta_json = venta_json_to_model(data['venta'])
+        try:
+            for key, value in venta_json.items():
+                setattr(venta, key, value)
+            current_articulo_ids = list(
+                map(lambda x: x.articulo_id, venta_items))
+            renglones = data['renglones']
+            for item in renglones:
+                articulo_id = item['articulo_id']
+                if articulo_id in current_articulo_ids:
+                    venta_item = VentaItem.query.filter_by(
+                        venta_id=pk, articulo_id=articulo_id).first()
+                    for key, value in item.items():
+                        setattr(venta_item, key, value)
+                    current_articulo_ids.remove(articulo_id)
+                else:
+                    articulo = Articulo.query.get(articulo_id)
+                    venta.items.append(VentaItem(
+                        articulo=articulo,
+                        descripcion=item['descripcion'],
+                        cantidad=item['cantidad'],
+                        precio_unidad=item['precio_unidad'],
+                        subtotal_iva=item['subtotal_iva'],
+                        subtotal_gravado=item['subtotal_gravado'],
+                        subtotal=item['subtotal']
+                    ))
+                venta.total_iva += float(item['subtotal_iva'])
+                venta.gravado += float(item['subtotal_gravado'])
+                venta.total += float(item['subtotal'])
+            for articulo_id in current_articulo_ids:
+                venta_item = VentaItem.query.filter_by(
+                    venta_id=pk, articulo_id=articulo_id).first()
+                db.session.delete(venta_item)
+            db.session.commit()
+            return jsonify({'venta_id': venta.id}), 201
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({'error': str(e)}), 400
+        finally:
+            db.session.close()

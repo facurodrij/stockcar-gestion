@@ -3,10 +3,9 @@ import Typography from '@mui/material/Typography';
 import {VentaList} from "../../components/venta";
 import { checkAuth } from '../../utils/checkAuth';
 
-function VentaPage() {
+export default function OrdenVentaPage() {
     useEffect(() => {
-        checkAuth(); // Check if user is logged in
-        // TODO checkRoles(['admin', 'user']); // Check if user has roles
+        checkAuth();
     }, []);
 
     return (
@@ -19,11 +18,9 @@ function VentaPage() {
                     color: 'inherit'
                 }}
             >
-                Ventas
+                Ordenes de Venta
             </Typography>
-            <VentaList onlyOrders={false}/>
+            <VentaList onlyOrders={true}/>
         </>
     )
 }
-
-export default VentaPage;

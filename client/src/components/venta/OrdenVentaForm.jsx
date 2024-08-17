@@ -75,7 +75,7 @@ export default function OrdenVentaForm({ pk }) {
         setTabValue(newValue);
     }
 
-    const handleCloseSnackbar = (redirect, url = '/ventas') => {
+    const handleCloseSnackbar = (redirect, url = '/ventas-orden') => {
         setOpenSnackbar(false);
         if (redirect) {
             window.location.href = url;
@@ -84,13 +84,14 @@ export default function OrdenVentaForm({ pk }) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
+            const url = Boolean(pk) ? `${API}/ventas-orden/${pk}/update` : `${API}/ventas-orden/create`;
             const res = await fetchWithAuth(url);
+            const data = await res.json();
             if (!res.ok) {
-                const message = Boolean(pk) ? 'Error al obtener la venta' : 'Error al obtener los datos';
+                const message = Boolean(pk) ? `Error al cargar la orden de venta: ${data['error']}` : 'Error al cargar los datos';
                 throw new Error(message);
             }
-            return await res.json();
+            return data;
         }
         const loadData = async () => {
             try {
@@ -122,7 +123,7 @@ export default function OrdenVentaForm({ pk }) {
             } catch (e) {
                 console.error('Error en la carga de datos:', e);
                 setSnackbar({
-                    message: 'Error al cargar los datos',
+                    message: e.message,
                     severity: 'error',
                     onClose: () => handleCloseSnackbar(false)
                 });
@@ -135,7 +136,7 @@ export default function OrdenVentaForm({ pk }) {
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
-        const url = Boolean(pk) ? `${API}/ventas/orden/${pk}/update` : `${API}/ventas/orden/create`;
+        const url = Boolean(pk) ? `${API}/ventas-orden/${pk}/update` : `${API}/ventas-orden/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
             if (ventaRenglones.length === 0) {
@@ -152,7 +153,7 @@ export default function OrdenVentaForm({ pk }) {
                 message: 'Orden de Venta guardada correctamente',
                 severity: 'success',
                 autoHideDuration: 4000,
-                onClose: () => handleCloseSnackbar(false)
+                onClose: () => handleCloseSnackbar(true)
             });
         } catch (e) {
             setSnackbar({
@@ -370,6 +371,7 @@ export default function OrdenVentaForm({ pk }) {
                         >
                             Guardar Orden de Venta
                         </Button>
+                        {/* TODO: Revisar como implementar Presupuestos */}
                         <Button
                             variant="contained"
                             startIcon={<SaveIcon />}

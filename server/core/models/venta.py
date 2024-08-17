@@ -23,13 +23,11 @@ class EstadoVenta(enum.Enum):
     Enumeración para los estados de una venta.
     """
 
-    orden = ("Orden",)  # Estado inicial de la venta, cuando se crea una orden de venta
-    ticket = (
-        "Ticket",
-    )  # Estado de la venta cuando se emite un ticket o comprobante no fiscal, no requiere facturación electrónica
-    # Estado de la venta cuando se emite una factura, requiere facturación electrónica
+    orden = ("Orden",),
+    # Cuando se emite un ticket o comprobante que no requiere facturación electrónica
+    ticket = ("Ticket",)
     facturado = ("Facturado",)
-    anulado = "Anulado"  # Estado de la venta cuando se anula una venta
+    anulado = "Anulado"
 
 
 class Venta(db.Model):
@@ -155,6 +153,7 @@ class Venta(db.Model):
                 self.vencimiento_cae.isoformat() if self.vencimiento_cae else None
             ),
             "observacion": self.observacion,
+            "estado": self.estado.value,
             "tributos": tributos,
             "fecha_alta": self.fecha_alta.isoformat(),
         }
