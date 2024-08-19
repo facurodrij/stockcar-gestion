@@ -37,9 +37,8 @@ const CustomToolbar = ({ onOpen }) => {
     return (
         <GridToolbarContainer>
             <Button
+                color='primary'
                 startIcon={<AddIcon />}
-                size="small"
-                variant="contained"
                 onClick={() => onOpen(true)}
             >
                 Seleccionar Artículos
