@@ -18,7 +18,7 @@ import {
     Menu,
     MenuItem
 } from "@mui/material";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import fetchWithAuth from '../../utils/fetchWithAuth';
@@ -202,24 +202,42 @@ export default function VentaDetail({ pk }) {
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={6}>
                                         <ListItem>
-                                            <ListItemText primary="CUIT" secondary={venta.cliente && venta.cliente['cuit'] ? venta.cliente['cuit'] : 'CUIT no disponible'} />
+                                            <ListItemText
+                                                primary={venta.cliente && venta.cliente['tipo_documento'] ? venta.cliente['tipo_documento']['descripcion'] : 'Tipo de documento no disponible'}
+                                                secondary={venta.cliente && venta.cliente['nro_documento'] ? venta.cliente['nro_documento'] : 'Nro. de documento no disponible'}
+                                            />
                                         </ListItem>
                                         <ListItem>
-                                            <ListItemText primary="Condición de IVA" secondary={venta.cliente && venta.cliente['condicion_iva'] ? venta.cliente['condicion_iva'] : 'Condición de IVA no disponible'} />
+                                            <ListItemText
+                                                primary="Tipo de responsable"
+                                                secondary={venta.cliente && venta.cliente['tipo_responsable'] ? venta.cliente['tipo_responsable']['descripcion'] : 'Condición de IVA no disponible'}
+                                            />
                                         </ListItem>
                                         <ListItem>
-                                            <ListItemText primary="Domicilio" secondary={venta.cliente && venta.cliente['domicilio'] ? venta.cliente['domicilio'] : 'Domicilio no disponible'} />
+                                            <ListItemText
+                                                primary="Domicilio"
+                                                secondary={venta.cliente && venta.cliente['direccion'] ? venta.cliente['direccion'] : 'Domicilio no disponible'}
+                                            />
                                         </ListItem>
                                     </Grid>
                                     <Grid item xs={12} md={6}>
                                         <ListItem>
-                                            <ListItemText primary="Localidad" secondary={venta.cliente && venta.cliente['localidad'] ? venta.cliente['localidad'] : 'Localidad no disponible'} />
+                                            <ListItemText
+                                                primary="Localidad"
+                                                secondary={venta.cliente && venta.cliente['localidad'] ? venta.cliente['localidad'] : 'Localidad no disponible'}
+                                            />
                                         </ListItem>
                                         <ListItem>
-                                            <ListItemText primary="Provincia" secondary={venta.cliente && venta.cliente['provincia'] ? venta.cliente['provincia'] : 'Provincia no disponible'} />
+                                            <ListItemText
+                                                primary="Provincia"
+                                                secondary={venta.cliente && venta.cliente['provincia'] ? venta.cliente['provincia']['nombre'] : 'Provincia no disponible'}
+                                            />
                                         </ListItem>
                                         <ListItem>
-                                            <ListItemText primary="Código postal" secondary={venta.cliente && venta.cliente['codigo_postal'] ? venta.cliente['codigo_postal'] : 'Código postal no disponible'} />
+                                            <ListItemText
+                                                primary="Código postal"
+                                                secondary={venta.cliente && venta.cliente['codigo_postal'] ? venta.cliente['codigo_postal'] : 'Código postal no disponible'}
+                                            />
                                         </ListItem>
                                     </Grid>
                                 </Grid>

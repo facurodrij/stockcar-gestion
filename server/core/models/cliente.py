@@ -62,6 +62,11 @@ class Cliente(db.Model):
             'razon_social': self.razon_social,
             'tipo_documento': self.tipo_documento.to_json(),
             'nro_documento': self.nro_documento,
+            'tipo_responsable': self.tipo_responsable.to_json(),
+            'direccion': self.direccion,
+            'localidad': self.localidad,
+            'provincia': self.provincia.to_json(),
+            'codigo_postal': self.codigo_postal
         }
 
     def to_json(self):
