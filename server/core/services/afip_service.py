@@ -39,7 +39,7 @@ class AfipService:
         try:
             data = {
                 "CantReg": 1,  # Cantidad de facturas a registrar
-                "PtoVta": venta.punto_venta,  # Punto de venta
+                "PtoVta": venta.punto_venta.numero,  # Punto de venta
                 # Tipo de comprobante (ver tipos disponibles)
                 "CbteTipo": venta.tipo_comprobante.codigo_afip,
                 # Concepto del Comprobante: (1)Productos, (2)Servicios, (3)Productos y Servicios

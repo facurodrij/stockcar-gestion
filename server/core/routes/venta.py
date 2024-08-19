@@ -171,15 +171,12 @@ def update(pk):
                     current_articulo_ids.remove(articulo_id)
                 else:
                     articulo = Articulo.query.get(articulo_id)
-                    venta.items.append(VentaItem(
+                    ventaItem = VentaItem(
                         articulo=articulo,
-                        descripcion=item['descripcion'],
-                        cantidad=item['cantidad'],
-                        precio_unidad=item['precio_unidad'],
-                        subtotal_iva=item['subtotal_iva'],
-                        subtotal_gravado=item['subtotal_gravado'],
-                        subtotal=item['subtotal']
-                    ))
+                        venta_id=venta.id,
+                        **item
+                    )
+                    db.session.add(ventaItem)
                 venta.total_iva += float(item['subtotal_iva'])
                 venta.gravado += float(item['subtotal_gravado'])
                 venta.total += float(item['subtotal'])
@@ -207,6 +204,17 @@ def update(pk):
                     )
                 )
             venta.total += venta.total_tributos
+            if venta.estado.value == "Orden": # Si la venta es una orden, se debe facturar
+                if not venta.tipo_comprobante.codigo_afip is None:
+                    afip = AfipService()
+                    res = afip.obtener_cae(venta)
+                    venta.numero = res['numero']
+                    venta.cae = res['cae']
+                    venta.vencimiento_cae = datetime.fromisoformat(
+                        res['vencimiento_cae'])
+                    venta.estado = 'facturado'
+                else:
+                    venta.estado = 'ticket'
             db.session.commit()
             return jsonify({'venta_id': venta.id}), 201
         except Exception as e:
