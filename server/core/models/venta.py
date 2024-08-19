@@ -23,10 +23,10 @@ class EstadoVenta(enum.Enum):
     Enumeración para los estados de una venta.
     """
 
-    orden = ("Orden",),
+    orden = "Orden"
     # Cuando se emite un ticket o comprobante que no requiere facturación electrónica
-    ticket = ("Ticket",)
-    facturado = ("Facturado",)
+    ticket = "Ticket"
+    facturado = "Facturado"
     anulado = "Anulado"
 
 
@@ -41,7 +41,6 @@ class Venta(db.Model):
     __tablename__ = "venta"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    punto_venta = Column(Integer, nullable=False)
     numero = Column(Integer, nullable=False)
     nombre_cliente = Column(String, nullable=False)
     fecha_hora = Column(DateTime, default=func.now(), nullable=False)
@@ -64,6 +63,8 @@ class Venta(db.Model):
         Integer, ForeignKey("tipo_comprobante.id"), nullable=False
     )
     tipo_comprobante = relationship("TipoComprobante", backref="ventas")
+    punto_venta_id = Column(Integer, ForeignKey("punto_venta.id"), nullable=False)
+    punto_venta = relationship("PuntoVenta", backref="ventas")
     cliente_id = Column(Integer, ForeignKey("cliente.id"), nullable=False)
     cliente = relationship("Cliente", backref="ventas")
     moneda_id = Column(Integer, ForeignKey("moneda.id"), default=1, nullable=False)
@@ -87,7 +88,7 @@ class Venta(db.Model):
         """
         Devuelve el número de documento en formato 0000-00000000.
         """
-        return f"{self.punto_venta:04d}-{self.numero:08d}"
+        return f"{self.punto_venta.numero:04d}-{self.numero:08d}"
 
     def get_last_number(self):
         """
@@ -97,7 +98,7 @@ class Venta(db.Model):
             db.session.query(func.max(Venta.numero))
             .filter(
                 Venta.tipo_comprobante_id == self.tipo_comprobante_id,
-                Venta.punto_venta == self.punto_venta,
+                Venta.punto_venta_id == self.punto_venta_id,
             )
             .scalar()
         )
@@ -137,7 +138,7 @@ class Venta(db.Model):
             "tipo_comprobante": self.tipo_comprobante.to_json(),
             "moneda": self.moneda.to_json(),
             "tipo_pago": self.tipo_pago.to_json(),
-            "punto_venta": self.punto_venta,
+            "punto_venta": self.punto_venta.to_json(),
             "numero": self.numero,
             "nro_comprobante": self.nro_comprobante(),
             "nombre_cliente": self.nombre_cliente,

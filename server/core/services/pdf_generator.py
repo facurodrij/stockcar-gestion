@@ -70,7 +70,7 @@ class A4PDFGenerator(BasePDFGenerator):
         elif self.venta.estado == EstadoVenta.anulado:
             self.drawString(340, 800, "NOTA DE CREDITO")
         self.setFontSize(10)
-        self.drawString(340, 780, f"Punto de Venta: {self.venta.punto_venta:04d}")
+        self.drawString(340, 780, f"Punto de Venta: {self.venta.punto_venta.numero:04d}")
         self.drawString(460, 780, f"Nro. Comp: {self.venta.numero:08d}")
         self.drawString(
             340,

@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import jwt_required
 
 from server.config import db
-from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo, EstadoVenta
+from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobante, Articulo, TipoPago, Tributo, EstadoVenta, PuntoVenta
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
 from server.core.services import AfipService, A4PDFGenerator, TicketPDFGenerator
@@ -24,12 +24,15 @@ def get_select_options():
     tipo_pago = TipoPago.query.all()
     moneda = Moneda.query.all()
     tributo = Tributo.query.all()
+    punto_venta = PuntoVenta.query.all()
+    # TODO: Punto Venta, cargar los puntos de ventas de los comercios asociados al usuario actual
     return {
         'cliente': list(map(lambda x: x.to_json_min(), cliente)),
         'tipo_comprobante': list(map(lambda x: x.to_json(), tipo_comprobante)),
         'tipo_pago': list(map(lambda x: x.to_json(), tipo_pago)),
         'moneda': list(map(lambda x: x.to_json(), moneda)),
-        'tributo': list(map(lambda x: x.to_json(), tributo))
+        'tributo': list(map(lambda x: x.to_json(), tributo)),
+        'punto_venta': list(map(lambda x: x.to_json(), punto_venta))
     }
 
 
@@ -45,8 +48,6 @@ def venta_json_to_model(venta_json: dict) -> dict:
     if 'vencimiento_cae' in venta_json and venta_json['vencimiento_cae'] is not None:
         venta_json['vencimiento_cae'] = datetime.fromisoformat(
             venta_json['vencimiento_cae']).astimezone(local_tz)
-    # TODO agregar funcionalidad para elegir punto de venta
-    venta_json['punto_venta'] = 1
     venta_json['nombre_cliente'] = Cliente.query.get(
         venta_json['cliente_id']).razon_social
     venta_json['gravado'] = 0
@@ -88,9 +89,7 @@ def create():
         data = request.json
         venta_json = venta_json_to_model(data['venta'])
         try:
-            venta = Venta(
-                **venta_json
-            )
+            venta = Venta(**venta_json)
             venta.numero = venta.get_last_number() + 1
             db.session.add(venta)
             db.session.flush()  # para obtener el id de la venta creada
@@ -230,7 +229,6 @@ def detail(pk):
 @jwt_required()
 def pdf(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
-    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
     size = request.args.get('size')
     buffer = BytesIO()
     if size == 'A4':
@@ -278,11 +276,12 @@ def create_orden():
             venta = Venta(
                 **venta_json,
                 tipo_comprobante_id=9,
+                punto_venta_id=1, # TODO: Crear parámetro para el punto de venta por defecto
                 estado='orden'
             )
             venta.numero = venta.get_last_number() + 1
             db.session.add(venta)
-            db.session.flush()  # para obtener el id de la venta creada
+            db.session.flush()
             renglones = data['renglones']
             for item in renglones:
                 articulo = Articulo.query.get(item['articulo_id'])

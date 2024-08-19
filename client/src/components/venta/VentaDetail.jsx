@@ -95,8 +95,6 @@ export default function VentaDetail({ pk }) {
                 const data = await fetchData();
                 setVenta(data['venta']);
                 setRenglones(data['renglones']);
-                console.log(venta);
-                console.log(renglones);
             }
             catch (error) {
                 setSnackbar({
@@ -167,7 +165,7 @@ export default function VentaDetail({ pk }) {
                                             <ListItemText primary="Fecha" secondary={venta.fecha_hora} />
                                         </ListItem>
                                         <ListItem>
-                                            <ListItemText primary="Punto de venta" secondary={venta.punto_venta} />
+                                            <ListItemText primary="Punto de venta" secondary={venta.punto_venta && venta.punto_venta['numero'] ? venta.punto_venta['numero'] : 'Punto de venta no disponible'} />
                                         </ListItem>
                                         <ListItem>
                                             <ListItemText primary="Número" secondary={venta.numero} />

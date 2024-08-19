@@ -4,6 +4,14 @@ import React from "react";
 
 
 export default function TributoDataGrid({tributos, selectedTributo, setSelectedTributo}) {
+    const rows = tributos && tributos.length > 0 ? tributos.map((item) => {
+        return {
+            id: item.id,
+            descripcion: item.descripcion,
+            alicuota: item.alicuota,
+        }
+    }) : [];
+    
     return (
         <div style={{width: '100%'}}>
             <DataGrid
@@ -16,13 +24,7 @@ export default function TributoDataGrid({tributos, selectedTributo, setSelectedT
                     {field: 'descripcion', headerName: 'Descripción', width: 250},
                     {field: 'alicuota', headerName: 'Alícuota', width: 250},
                 ]}
-                rows={tributos.map((item) => {
-                    return {
-                        id: item.id,
-                        descripcion: item.descripcion,
-                        alicuota: item.alicuota,
-                    }
-                })}
+                rows={rows}
                 rowSelectionModel={selectedTributo}
                 onRowSelectionModelChange={(newRowSelectionModel) => {
                     setSelectedTributo(newRowSelectionModel);

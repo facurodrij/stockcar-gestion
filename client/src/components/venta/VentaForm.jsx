@@ -60,7 +60,8 @@ export default function VentaForm({ pk }) {
         tipo_comprobante: [],
         tipo_pago: [],
         moneda: [],
-        tributo: []
+        tributo: [],
+        punto_venta: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -75,6 +76,7 @@ export default function VentaForm({ pk }) {
     const [ventaRenglones, setVentaRenglones] = useState([]);
     const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [estadoVenta, setEstadoVenta] = useState('');
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -107,12 +109,14 @@ export default function VentaForm({ pk }) {
                     tipo_pago: selectOptions.tipo_pago,
                     moneda: selectOptions.moneda,
                     tributo: selectOptions.tributo,
+                    punto_venta: selectOptions.punto_venta
                 });
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     const tributos = venta['tributos'];
                     setValue('cliente_id', venta.cliente.id);
                     setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
+                    setValue('punto_venta_id', venta.punto_venta.id);
                     setValue('fecha_hora', dayjs(venta.fecha_hora));
                     setValue('descuento', venta.descuento);
                     setValue('recargo', venta.recargo);
@@ -121,6 +125,7 @@ export default function VentaForm({ pk }) {
                     if (venta.cae) setValue('cae', venta.cae);
                     if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
                     if (venta.observacion) setValue('observacion', venta.observacion);
+                    setEstadoVenta(venta.estado);
 
                     // Cargar renglones de venta y articulos seleccionados
                     const renglonesArray = data['renglones'].map((r) => {
@@ -229,7 +234,7 @@ export default function VentaForm({ pk }) {
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
                     <Grid container spacing={2}>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <Controller
                                     name="cliente_id"
@@ -264,6 +269,29 @@ export default function VentaForm({ pk }) {
                                 />
                             </FormControl>
                         </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth required error={Boolean(errors.punto_venta_id)}>
+                                <InputLabel id="punto_venta_label">Punto de Venta</InputLabel>
+                                <Controller
+                                    name="punto_venta_id"
+                                    control={control}
+                                    defaultValue=""
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
+                                        <Select
+                                            {...field}
+                                            id="punto_venta"
+                                            labelId="punto_venta_label"
+                                            label="Punto de Venta"
+                                        >
+                                            {selectOptions.punto_venta.map((item) => (
+                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                        </Select>
+                                    )}
+                                />
+                                <FormHelperText>{errors.punto_venta_id && errors.punto_venta_id.message}</FormHelperText>
+                            </FormControl>
+                        </Grid>
                     </Grid>
                     <br />
                     <Grid container spacing={2}>
@@ -287,6 +315,7 @@ export default function VentaForm({ pk }) {
                                         </Select>
                                     )}
                                 />
+                                <FormHelperText>{errors.tipo_comprobante_id && errors.tipo_comprobante_id.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                         <Grid item xs={6}>
@@ -600,15 +629,27 @@ export default function VentaForm({ pk }) {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
                         {/* TODO Agregar funcionalidad de Guardar Borrador, Generar Factura */}
-                        <Button
-                            variant="contained"
-                            startIcon={<SaveIcon />}
-                            type="button"
-                            onClick={handleSubmit(onSubmit, onError)}
-                            disabled={isSubmitting}
-                        >
-                            Guardar
-                        </Button>
+                        {estadoVenta === 'Orden' ? (
+                            <Button
+                                variant="contained"
+                                startIcon={<SaveIcon />}
+                                type="button"
+                                onClick={handleSubmit(onSubmit, onError)}
+                                disabled={isSubmitting}
+                            >
+                                Facturar Orden y Guardar
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="contained"
+                                startIcon={<SaveIcon />}
+                                type="button"
+                                onClick={handleSubmit(onSubmit, onError)}
+                                disabled={isSubmitting}
+                            >
+                                Guardar
+                            </Button>
+                        )}
                     </Box>
                 </Box>
             </Paper>
