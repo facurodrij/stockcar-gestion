@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { styled, useTheme } from '@mui/material/styles';
 import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button } from '@mui/material';
-import { AccountCircle, Inbox as InboxIcon, Mail as MailIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, LocalShipping, Inventory2, PointOfSale } from '@mui/icons-material';
+import { AccountCircle, Inbox as InboxIcon, Mail as MailIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, LocalShipping, Inventory2, PointOfSale, Store } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
@@ -97,6 +97,11 @@ const pagesList = [
         title: 'Usuarios',
         icon: <Person />,
         path: '/usuarios',
+    },
+    {
+        title: 'Comercios',
+        icon: <Store />,
+        path: '/comercios',
     },
     {
         title: 'Configuración',
