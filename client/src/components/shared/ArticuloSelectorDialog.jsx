@@ -71,7 +71,7 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
             open={open}
             onClose={onClose}
             fullWidth={true}
-            maxWidth={'md'}
+            maxWidth={'lg'}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
@@ -95,12 +95,11 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                 <div style={{height: 400, width: '100%'}}>
                     <DataGrid
                         columns={[
-                            {field: 'id', headerName: 'ID', width: 75},
-                            {field: 'descripcion', headerName: 'Descripción', width: 500},
-                            {field: 'codigo_barras', headerName: 'Código de Barras', width: 200},
-                            {field: 'codigo_fabricante', headerName: 'Código de Fabricante', width: 200},
-                            {field: 'codigo_proveedor', headerName: 'Código de Proveedor', width: 200},
-                            {field: 'codigo_interno', headerName: 'Código Interno', width: 200}
+                            {field: 'descripcion', headerName: 'Descripción', flex: 1.5},
+                            {field: 'codigo_barras', headerName: 'Código de Barras', flex: 1},
+                            {field: 'codigo_fabricante', headerName: 'Código de Fabricante', flex: 1},
+                            {field: 'codigo_proveedor', headerName: 'Código de Proveedor', flex: 1},
+                            {field: 'codigo_interno', headerName: 'Código Interno', flex: 1},
                         ]}
                         rows={filteredArticulo.map((item) => {
                             return {
@@ -116,6 +115,7 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                         pageSize={5}
                         rowsPerPageOptions={[5, 10, 20]}
                         checkboxSelection
+                        disableRowSelectionOnClick
                         onRowSelectionModelChange={(newSelection) => {
                             const rowSelectionArticulo = newSelection.map((row) => {
                                 return listArticulo.find((item) => item.id === row);

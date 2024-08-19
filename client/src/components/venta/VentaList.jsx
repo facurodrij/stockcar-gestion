@@ -68,7 +68,6 @@ export default function VentaList({ onlyOrders }) {
     }
 
     const columns = [
-        { field: 'id', headerName: 'ID', flex: 0.5 },
         {
             field: 'fecha_hora', headerName: 'Fecha y hora', type: 'dateTime', flex: 1,
             valueFormatter: (value) => {
@@ -180,6 +179,7 @@ export default function VentaList({ onlyOrders }) {
                 <DataGrid
                     columns={columns}
                     rows={rows}
+                    disableRowSelectionOnClick
                     rowHeight={30}
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
