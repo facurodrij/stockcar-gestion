@@ -60,7 +60,6 @@ export default function ComercioList() {
     }, []);
 
     const columns = [
-        {field: 'id', headerName: 'ID', flex: 0.5},
         {field: 'tipo_responsable', headerName: 'Tipo responsable', flex: 1.5},
         {field: 'razon_social', headerName: 'Razón social', flex: 1.5},
         {field: 'cuit', headerName: 'CUIT', flex: 1},
@@ -97,10 +96,10 @@ export default function ComercioList() {
                 <DataGrid
                     columns={columns}
                     rows={rows}
+                    disableRowSelectionOnClick
                     rowHeight={30}
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
-                    checkboxSelection
                     initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{toolbar: CustomToolbar}}

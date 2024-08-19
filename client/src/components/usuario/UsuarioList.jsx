@@ -61,7 +61,6 @@ export default function UsuarioList() {
     } , []);
 
     const columns = [
-        {field: 'id', headerName: 'ID', flex: 0.5},
         {field: 'username', headerName: 'Usuario', flex: 1},
         {field: 'email', headerName: 'Email', flex: 2},
         {field: 'first_name', headerName: 'Nombre', flex: 1},
@@ -106,10 +105,10 @@ export default function UsuarioList() {
                 <DataGrid
                     columns={columns}
                     rows={rows}
+                    disableRowSelectionOnClick
                     rowHeight={30}
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
-                    checkboxSelection
                     initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{toolbar: CustomToolbar}}

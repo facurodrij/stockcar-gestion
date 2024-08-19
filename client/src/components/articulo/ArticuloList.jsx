@@ -60,12 +60,11 @@ export default function ArticuloList() {
     }, []);
 
     const columns = [
-        {field: 'id', headerName: 'ID', flex: 0.5},
+        {field: 'descripcion', headerName: 'Descripción', flex: 1.5},
         {field: 'codigo_barras', headerName: 'Código de barras', flex: 1},
         {field: 'codigo_fabricante', headerName: 'Código de fabricante', flex: 1},
         {field: 'codigo_proveedor', headerName: 'Código de proveedor', flex: 1},
         {field: 'codigo_interno', headerName: 'Código interno', flex: 1},
-        {field: 'descripcion', headerName: 'Descripción', flex: 1.5},
         {
             field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
             getActions: (params) => [
@@ -96,10 +95,10 @@ export default function ArticuloList() {
             <DataGrid
                 columns={columns}
                 rows={rows}
+                disableRowSelectionOnClick
                 rowHeight={30}
                 pageSize={5}
                 rowsPerPageOptions={[5, 10, 20]}
-                checkboxSelection
                 initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                 localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                 slots={{toolbar: CustomToolbar}}
