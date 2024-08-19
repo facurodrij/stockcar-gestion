@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
 
 from server.config import db
-from server.core.models import Comercio, TipoResponsable, Provincia
+from server.core.models import Comercio, TipoResponsable, Provincia, PuntoVenta
 
 comercio_bp = Blueprint("comercio_bp", __name__)
 
@@ -45,9 +45,19 @@ def create():
     if request.method == "POST":
         data = request.json
         comercio_json = comercio_json_to_model(data["comercio"])
-        comercio = Comercio(**comercio_json)
         try:
+            comercio = Comercio(**comercio_json)
             db.session.add(comercio)
+            db.session.flush()
+            puntos_venta = data["puntos_venta"]
+            for item in puntos_venta:
+                punto_venta = PuntoVenta(
+                    numero=item["numero"],
+                    nombre_fantasia=item["nombre_fantasia"],
+                    domicilio=item["domicilio"],
+                    comercio_id=comercio.id
+                )
+                db.session.add(punto_venta)
             db.session.commit()
             return jsonify({"comercio_id": comercio.id}), 201
         except Exception as e:
@@ -58,22 +68,47 @@ def create():
             db.session.close()
 
 
-@comercio_bp.route("/comercios/<int:id>/update", methods=["GET", "PUT"])
-def update(id):
-    comercio = Comercio.query.get_or_404(id, "Comercio no encontrado")
+@comercio_bp.route("/comercios/<int:pk>/update", methods=["GET", "PUT"])
+def update(pk):
+    comercio = Comercio.query.get_or_404(pk, "Comercio no encontrado")
+    puntos_venta = PuntoVenta.query.filter_by(comercio_id=pk).all()
     if request.method == "GET":
         return (
             jsonify(
-                {"select_options": get_select_options(), "comercio": comercio.to_json()}
+                {
+                    "select_options": get_select_options(),
+                    "comercio": comercio.to_json(),
+                    "puntos_venta": list(map(lambda x: x.to_json(), puntos_venta)),
+                }
             ),
             200,
         )
     if request.method == "PUT":
         data = request.json
         comercio_json = comercio_json_to_model(data["comercio"])
+        punto_venta_json = data["puntos_venta"]
         try:
             for key, value in comercio_json.items():
                 setattr(comercio, key, value)
+            current_puntos_venta_ids = list(map(lambda x: x.id, puntos_venta))
+            new_puntos_venta = data["puntos_venta"]
+            for item in new_puntos_venta:
+                if item["id"] in current_puntos_venta_ids:
+                    punto_venta = PuntoVenta.query.get(item["id"])
+                    for key, value in item.items():
+                        setattr(punto_venta, key, value)
+                    current_puntos_venta_ids.remove(item["id"])
+                else:
+                    punto_venta = PuntoVenta(
+                        numero=item["numero"],
+                        nombre_fantasia=item["nombre_fantasia"],
+                        domicilio=item["domicilio"],
+                        comercio_id=comercio.id
+                    )
+                    db.session.add(punto_venta)
+            for id in current_puntos_venta_ids:
+                punto_venta = PuntoVenta.query.get(id)
+                db.session.delete(punto_venta)
             db.session.commit()
             return jsonify({"comercio_id": comercio.id}), 201
         except Exception as e:

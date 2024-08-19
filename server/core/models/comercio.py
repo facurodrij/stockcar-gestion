@@ -44,7 +44,7 @@ class Comercio(db.Model):
             'cuit': self.cuit,
             'ingresos_brutos': self.ingresos_brutos,
             'nombre_fantasia': self.nombre_fantasia,
-            'inicio_actividades': self.inicio_actividades,
+            'inicio_actividades': self.inicio_actividades.isoformat(),
             'direccion': self.direccion,
             'localidad': self.localidad,
             'codigo_postal': self.codigo_postal,
@@ -67,11 +67,9 @@ class PuntoVenta(db.Model):
     __tablename__ = 'punto_venta'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    numero = Column(Integer, nullable=False)
-    letra = Column(CHAR(1), nullable=False)
-    descripcion = Column(String, nullable=False)
-    habilitado = Column(Boolean, default=True)
-    observacion = Column(String, nullable=True)
+    numero = Column(Integer, nullable=False) # El número debe ser obtenido de la AFIP
+    nombre_fantasia = Column(String, nullable=False)
+    domicilio = Column(String, nullable=False)
 
     # Relaciones con otras tablas
     comercio_id = Column(Integer, ForeignKey('comercio.id'), nullable=False)
@@ -84,9 +82,7 @@ class PuntoVenta(db.Model):
         return {
             'id': self.id,
             'numero': self.numero,
-            'letra': self.letra,
-            'descripcion': self.descripcion,
-            'habilitado': self.habilitado,
-            'observacion': self.observacion,
-            'comercio': self.comercio.to_json()
+            'nombre_fantasia': self.nombre_fantasia,
+            'domicilio': self.domicilio,
+            'descripcion': "{:04d} - {}".format(self.numero, self.nombre_fantasia)
         }

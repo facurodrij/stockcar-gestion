@@ -29,6 +29,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import { API } from "../../App";
 import SnackbarAlert from "../shared/SnackbarAlert";
+import PuntoVentaDataGrid from "./PuntoVentaDataGrid";
 
 
 export default function ComercioForm({ pk }) {
@@ -51,6 +52,7 @@ export default function ComercioForm({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [puntoVenta, setPuntoVenta] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleTabChange = (event, newValue) => {
@@ -97,6 +99,16 @@ export default function ComercioForm({ pk }) {
                     if (comercio.telefono) setValue('telefono', comercio.telefono);
                     if (comercio.email) setValue('email', comercio.email);
                     if (comercio.observacion) setValue('observacion', comercio.observacion);
+                    // Cargar puntos de venta
+                    const puntoVentaArray = data['puntos_venta'].map((r) => {
+                        return {
+                            id: r.id,
+                            numero: r.numero,
+                            nombre_fantasia: r.nombre_fantasia,
+                            domicilio: r.domicilio
+                        };
+                    });
+                    setPuntoVenta(puntoVentaArray);
                 }
             }
             catch (e) {
@@ -123,7 +135,7 @@ export default function ComercioForm({ pk }) {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ comercio: data })
+                body: JSON.stringify({ comercio: data, puntos_venta: puntoVenta })
             });
             const responseJson = await response.json();
             if (!response.ok) {
@@ -164,6 +176,7 @@ export default function ComercioForm({ pk }) {
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} centered>
                         <Tab label="Principal" />
+                        <Tab label="Puntos de Venta" />
                         <Tab label="Observaciones" />
                     </Tabs>
                 </Box>
@@ -445,6 +458,16 @@ export default function ComercioForm({ pk }) {
                     </Grid>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <PuntoVentaDataGrid
+                                rows={puntoVenta}
+                                setRows={setPuntoVenta}
+                            />
+                        </Grid>
+                    </Grid>
+                </SimpleTabPanel>
+                <SimpleTabPanel value={tabValue} index={2}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormControl fullWidth>
