@@ -1,16 +1,17 @@
-import os
+import segno
+import base64
+import json
+import io
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm, inch
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, Frame, Table, TableStyle
+from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
+from reportlab.lib.utils import ImageReader
 from num2words import num2words
 
 from server.core.models import Venta, EstadoVenta
 
-
-# TODO: Generar codigo QR con la informacion de la venta
 
 class BasePDFGenerator(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -22,6 +23,43 @@ class BasePDFGenerator(canvas.Canvas):
         if len(text) > max_length:
             return text[: max_length - 3] + "..."
         return text
+
+    def generate_qr_code(self):
+        """
+        El código QR deberá codificar el siguiente texto:
+        {URL}?p={DATOS_CMP_BASE_64}
+
+        {URL} = https://www.afip.gob.ar/fe/qr/
+        DATOS_CMP_BASE_64} = JSON con datos del comprobante codificado en Base64
+
+        JSON ejemplo con datos del comprobante:
+        {"ver":1,"fecha":"2020-10-13","cuit":30000000007,"ptoVta":10,"tipoCmp":1,"nroCmp":94,"importe":12100,"moneda":"DOL","ctz":65,"tipoDocRec":80,"nroDocRec":20000000001,"tipoCodAut":"E","codAut":70417054367476}
+        """
+        url = "https://www.afip.gob.ar/fe/qr/"
+        data = {
+            "ver": 1,
+            "fecha": self.venta.fecha_hora.strftime("%Y-%m-%d"),
+            "cuit": int(self.venta.punto_venta.comercio.cuit),
+            "ptoVta": self.venta.punto_venta.numero,
+            "tipoCmp": self.venta.tipo_comprobante.codigo_afip,
+            "nroCmp": self.venta.numero,
+            # importe: 	Decimal hasta 13 enteros y 2 decimales
+            "importe": float(self.venta.total),
+            "moneda": self.venta.moneda.codigo_afip,
+            "ctz": 1, # TODO: Agregar campo cotización
+            "tipoDocRec": int(self.venta.cliente.tipo_documento.codigo_afip),
+            "nroDocRec": int(self.venta.cliente.nro_documento),
+            "tipoCodAut": "E",
+            "codAut": int(self.venta.cae),
+        }
+        data_json = json.dumps(data)
+        data_base64 = base64.b64encode(data_json.encode()).decode()
+        qr_code = segno.make(f"{url}?p={data_base64}")
+        qr_code_io = io.BytesIO()
+        qr_code.save(qr_code_io, kind='png', scale=3)
+        #"/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/codigo-qr.png", scale=3.42)
+        qr_code_io.seek(0)
+        return qr_code_io
 
 
 class A4PDFGenerator(BasePDFGenerator):
@@ -77,11 +115,11 @@ class A4PDFGenerator(BasePDFGenerator):
             765,
             f"Fecha de Emisión: {self.venta.fecha_hora.strftime('%d/%m/%Y %H:%M:%S')}",
         )
-        self.drawString(340, 745, "CUIT: 30-12345678-0")
-        self.drawString(460, 745, "IIBB: 12345678912")
+        self.drawString(340, 745, f"CUIT: {self.venta.punto_venta.comercio.cuit}")
+        self.drawString(460, 745, f"IIBB: {self.venta.punto_venta.comercio.ingresos_brutos}") 
         self.drawString(
-            340, 730, "Inicio de Actividades: 01/01/2021"
-        )  # TODO: Obtener de la base de datos
+            340, 730, f"Inicio de Actividades: {self.venta.punto_venta.comercio.inicio_actividades.strftime('%d/%m/%Y')}"
+        )
         # Agregar logo de la empresa (475px x 150px)
         self.drawImage(
             self.header_image, 30, 700, width=240, height=None, preserveAspectRatio=True
@@ -213,7 +251,8 @@ class A4PDFGenerator(BasePDFGenerator):
     def draw_CAE(self):
         "Draw CAE section"
         afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
-        codigo_qr_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/codigo-qr.png"
+        qrcode_io = self.generate_qr_code() # QR code with AFIP data
+        qrcode_img = ImageReader(qrcode_io) # ImageReader object for the QR code
 
         self.setFont("Helvetica-Bold", 10)
         self.drawRightString(440, 110, "CAE N°:")
@@ -235,7 +274,7 @@ class A4PDFGenerator(BasePDFGenerator):
             "Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación",
         )
         self.drawImage(
-            codigo_qr_path, 30, -35, width=60, height=None, preserveAspectRatio=True
+            qrcode_img, 30, -20, width=70, height=None, preserveAspectRatio=True
         )
 
     def generate_pdf(self, venta: Venta):
@@ -337,7 +376,7 @@ class TicketPDFGenerator(BasePDFGenerator):
         self.drawRightString(210, self.total_y_max - 10, f"$ {self.venta.gravado:.2f}")
         self.drawString(10, self.total_y_max - 20, "Importe IVA:")
         self.drawRightString(210, self.total_y_max - 20, f"$ {self.venta.total_iva:.2f}")
-        self.drawString(10, self.total_y_max - 30, "Importe Otros Tributos:")
+        self.drawString(10, self.total_y_max - 30, "Importe otros tributos:")
         self.drawRightString(210, self.total_y_max - 30, f"$ {self.venta.total_tributos:.2f}")
         self.setFont("Helvetica-Bold", 8)
         self.drawString(10, self.total_y_max - 45, "TOTAL:")
@@ -350,37 +389,38 @@ class TicketPDFGenerator(BasePDFGenerator):
     def draw_CAE(self):
         "Draw CAE section"
         afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
-        codigo_qr_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/codigo-qr.png"
+        qrcode_io = self.generate_qr_code() # QR code with AFIP data
+        qrcode_img = ImageReader(qrcode_io) # ImageReader object for the QR code
 
         self.drawImage(
-            codigo_qr_path,
-            70,
-            self.cae_y_max - 160,
+            qrcode_img,
+            10,
+            self.cae_y_max - 150,
             width=80,
             height=None,
             preserveAspectRatio=True,
         )
         self.setFont("Helvetica", 8)
-        self.drawCentredString(
-            110, self.cae_y_max - 90, "CAE N°: {}".format(self.venta.cae)
+        self.drawString(
+            95, self.cae_y_max - 15, "CAE N°: {}".format(self.venta.cae)
         )
-        self.drawCentredString(
-            110,
-            self.cae_y_max - 100,
-            "Fecha de Vto. de CAE: {}".format(
+        self.drawString(
+            95,
+            self.cae_y_max - 30,
+            "Fecha Vto. CAE: {}".format(
                 self.venta.vencimiento_cae.strftime("%d/%m/%Y")
             ),
         )
         self.drawImage(
             afip_logo_path,
-            70,
-            self.cae_y_max - 220,
+            110,
+            self.cae_y_max - 150,
             width=80,
             height=None,
             preserveAspectRatio=True,
         )
         self.setFont("Helvetica-BoldOblique", 8)
-        self.drawCentredString(110, self.cae_y_max - 145, "Comprobante Autorizado")
+        self.drawCentredString(150, self.cae_y_max - 75, "Comprobante Autorizado")
 
     def generate_pdf(self, venta: Venta):
         self.venta = venta
