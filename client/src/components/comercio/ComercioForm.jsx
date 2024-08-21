@@ -30,6 +30,7 @@ import SimpleTabPanel from "../shared/SimpleTabPanel";
 import { API } from "../../App";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import PuntoVentaDataGrid from "./PuntoVentaDataGrid";
+import fetchWithAuth from '../../utils/fetchWithAuth';
 
 
 export default function ComercioForm({ pk }) {
@@ -69,7 +70,7 @@ export default function ComercioForm({ pk }) {
     useEffect(() => {
         const fetchData = async () => {
             const url = Boolean(pk) ? `${API}/comercios/${pk}/update` : `${API}/comercios/create`;
-            const res = await fetch(url);
+            const res = await fetchWithAuth(url);
             if (!res.ok) {
                 const message = Boolean(pk) ? 'Error al obtener los datos del comercio' : 'Error al obtener los datos';
                 throw new Error(message);
@@ -129,13 +130,8 @@ export default function ComercioForm({ pk }) {
         const url = Boolean(pk) ? `${API}/comercios/${pk}/update` : `${API}/comercios/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ comercio: data, puntos_venta: puntoVenta })
+            const response = await fetchWithAuth(url, method, {
+                comercio: data, puntos_venta: puntoVenta
             });
             const responseJson = await response.json();
             if (!response.ok) {
