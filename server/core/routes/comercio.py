@@ -2,9 +2,11 @@ import pytz
 
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 
 from server.config import db
 from server.core.models import Comercio, TipoResponsable, Provincia, PuntoVenta
+from server.core.decorators import admin_required
 
 comercio_bp = Blueprint("comercio_bp", __name__)
 
@@ -32,6 +34,8 @@ def comercio_json_to_model(comercio_json: dict) -> dict:
 
 
 @comercio_bp.route("/comercios", methods=["GET"])
+@jwt_required()
+@admin_required
 def index():
     comercios = Comercio.query.all()
     comercios_json = list(map(lambda x: x.to_json(), comercios))
@@ -39,6 +43,8 @@ def index():
 
 
 @comercio_bp.route("/comercios/create", methods=["GET", "POST"])
+@jwt_required()
+@admin_required
 def create():
     if request.method == "GET":
         return jsonify({"select_options": get_select_options()}), 200
@@ -69,6 +75,8 @@ def create():
 
 
 @comercio_bp.route("/comercios/<int:pk>/update", methods=["GET", "PUT"])
+@jwt_required()
+@admin_required
 def update(pk):
     comercio = Comercio.query.get_or_404(pk, "Comercio no encontrado")
     puntos_venta = PuntoVenta.query.filter_by(comercio_id=pk).all()
@@ -86,7 +94,6 @@ def update(pk):
     if request.method == "PUT":
         data = request.json
         comercio_json = comercio_json_to_model(data["comercio"])
-        punto_venta_json = data["puntos_venta"]
         try:
             for key, value in comercio_json.items():
                 setattr(comercio, key, value)

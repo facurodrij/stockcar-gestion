@@ -8,6 +8,7 @@ from flask_jwt_extended import (
 )
 from server.core.models import Usuario, Rol
 from server.config import db
+from server.core.decorators import admin_required
 
 usuario_bp = Blueprint("usuario_bp", __name__)
 
@@ -28,7 +29,15 @@ def login():
         user and user.password == data["password"]
     ):  # En un caso real, verifica la contraseña hasheada
         access_token = create_access_token(identity={"email": user.email})
-        return jsonify(access_token=access_token), 200
+        roles = list(map(lambda x: x.nombre, user.roles))
+        return jsonify(
+            {
+                "access_token": access_token,
+                "roles": roles,
+                "is_superuser": user.is_superuser,
+                #"usuario": user.to_json(),
+            }
+        ), 200
     return jsonify({"message": "Invalid credentials"}), 401
 
 
@@ -42,6 +51,7 @@ def profile():
 
 @usuario_bp.route("/usuarios", methods=["GET"])
 @jwt_required()
+@admin_required
 def index():
     users = Usuario.query.all()
     users_json = list(map(lambda x: x.to_json(), users))
@@ -50,6 +60,7 @@ def index():
 
 @usuario_bp.route("/usuarios/create", methods=["GET","POST"])
 @jwt_required()
+@admin_required
 def create():
     if request.method == "GET":
         return jsonify({"select_options": get_select_options()}), 200
@@ -70,6 +81,7 @@ def create():
 
 @usuario_bp.route("/usuarios/<int:pk>/update", methods=["GET", "PUT"])
 @jwt_required()
+@admin_required
 def update(pk):
     user = Usuario.query.get(pk)
     if request.method == "GET":

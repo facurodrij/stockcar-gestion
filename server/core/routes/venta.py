@@ -10,6 +10,7 @@ from server.core.models import Venta, VentaItem, Moneda, Cliente, TipoComprobant
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
 from server.core.services import AfipService, A4PDFGenerator, TicketPDFGenerator
+from server.core.decorators import admin_required, role_required
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -59,6 +60,7 @@ def venta_json_to_model(venta_json: dict) -> dict:
 
 @venta_bp.route('/ventas', methods=['GET'])
 @jwt_required()
+@role_required(['admin', 'cobranza'])
 def index():
     fecha_desde = request.args.get('desde')
     fecha_hasta = request.args.get('hasta')
@@ -82,6 +84,7 @@ def index():
 
 @venta_bp.route('/ventas/create', methods=['GET', 'POST'])
 @jwt_required()
+@role_required(['admin', 'cobranza'])
 def create():
     if request.method == 'GET':
         return jsonify({'select_options': get_select_options()}), 200
@@ -146,6 +149,7 @@ def create():
 
 @venta_bp.route('/ventas/<int:pk>/update', methods=['GET', 'PUT'])
 @jwt_required()
+@role_required(['admin', 'cobranza'])
 def update(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
@@ -227,6 +231,7 @@ def update(pk):
 
 @venta_bp.route('/ventas/<int:pk>', methods=['GET'])
 @jwt_required()
+@role_required(['admin', 'cobranza'])
 def detail(pk):
     venta = Venta.query.get_or_404(pk, 'Venta no encontrada')
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
