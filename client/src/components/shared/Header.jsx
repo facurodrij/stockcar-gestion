@@ -135,6 +135,8 @@ export default function Header() {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('roles');
+        localStorage.removeItem('is_superuser');
         window.location.href = '/login';
     }
 
