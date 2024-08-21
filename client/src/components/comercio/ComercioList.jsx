@@ -19,6 +19,7 @@ import {esES} from "@mui/x-data-grid/locales";
 import {Button} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
+import fetchWithAuth from '../../utils/fetchWithAuth';
 
 const CustomToolbar = () => {
     return (
@@ -49,14 +50,22 @@ export default function ComercioList() {
     const [itemsSelectedList, setItemsSelectedList] = useState([]);
 
     const fetchData = async () => {
-        const res = await fetch(`${API}/comercios`);
-        return await res.json();
+        const url = `${API}/comercios`;
+        try {
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(`${res.status} (${res.statusText})`);
+            }
+            setList(data['comercios']);
+        } catch (error) {
+            console.error(error);
+            alert('Error al cargar los datos');
+        }
     }
 
     useEffect(() => {
-        fetchData().then(data => {
-            setList(data['comercios']);
-        });
+        fetchData();
     }, []);
 
     const columns = [
