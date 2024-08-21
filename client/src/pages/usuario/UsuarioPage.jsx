@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import { UsuarioList } from '../../components/usuario';
-import { checkAuth } from '../../utils/checkAuth';
+import { checkAuth, checkRoles } from '../../utils/checkAuth';
 
 export default function UsuarioPage() {
     useEffect(() => {
         checkAuth();
+        checkRoles(['admin']);
     }, []);
 
     return (

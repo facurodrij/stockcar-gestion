@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Typography from "@mui/material/Typography";
 import { UsuarioForm } from '../../components/usuario';
-import { checkAuth } from '../../utils/checkAuth';
+import { checkAuth, checkRoles } from '../../utils/checkAuth';
 
 export default function UsuarioFormPage() {
     const routeParams = useParams();
@@ -10,6 +10,7 @@ export default function UsuarioFormPage() {
 
     useEffect(() => {
         checkAuth();
+        checkRoles(['admin']);
     }, []);
 
     return (

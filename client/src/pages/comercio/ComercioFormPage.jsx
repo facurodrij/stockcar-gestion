@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {useParams} from 'react-router-dom';
 import Typography from "@mui/material/Typography";
 import {ComercioForm} from '../../components/comercio';
+import { checkAuth, checkRoles } from '../../utils/checkAuth';
 
 export default function ComercioFormPage() {
-    // Obtener el id de la URL, si es undefined es porque se está agregando un nuevo comercio
     const routeParams = useParams();
     const pk = routeParams.pk;
+
+    useEffect(() => {
+        checkAuth();
+        checkRoles(['admin']);
+    } , []);
 
     return (
         <>

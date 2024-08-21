@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import {ComercioList} from "../../components/comercio";
+import { checkAuth, checkRoles } from '../../utils/checkAuth';
 
 
 export default function ComercioPage() {
+    useEffect(() => {
+        checkAuth();
+        checkRoles(['admin']);
+    }, []);
     return (
         <>
             <Typography
