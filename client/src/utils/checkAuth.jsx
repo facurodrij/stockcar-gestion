@@ -5,3 +5,14 @@ export const checkAuth = () => {
         window.location.href = '/login?redirect_to=' + redirect_to;
     }
 };
+
+export const checkRoles = (roles) => {
+    const rolesList = JSON.parse(localStorage.getItem('roles'));
+    const is_superuser = localStorage.getItem('is_superuser');
+    if (is_superuser === 'true') {
+        return;
+    }
+    if (!rolesList || !rolesList.some(role => roles.includes(role))) {
+        window.location.href = '/unauthorized';
+    }
+}
