@@ -92,11 +92,12 @@ export default function VentaForm({ pk }) {
         const fetchData = async () => {
             const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
             const res = await fetchWithAuth(url);
+            const data = await res.json();
             if (!res.ok) {
-                const message = Boolean(pk) ? 'Error al obtener la venta' : 'Error al obtener los datos';
+                const message = `Error al obtener datos: ${data['error']}`
                 throw new Error(message);
             }
-            return await res.json();
+            return data;
         }
         const loadData = async () => {
             try {
@@ -152,7 +153,7 @@ export default function VentaForm({ pk }) {
             } catch (e) {
                 console.error('Error en la carga de datos:', e);
                 setSnackbar({
-                    message: 'Error al cargar los datos',
+                    message: e.message,
                     severity: 'error',
                     onClose: () => handleCloseSnackbar(false)
                 });
