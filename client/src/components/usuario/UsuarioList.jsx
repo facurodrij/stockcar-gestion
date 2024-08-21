@@ -53,6 +53,7 @@ export default function UsuarioList() {
             setList(data['usuarios']);
         } catch (error) {
             console.error(error);
+            alert('Error al cargar los datos');
         }
     }
 
