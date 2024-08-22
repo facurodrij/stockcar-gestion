@@ -1,12 +1,25 @@
-from pysimplesoap.client import (
-    SimpleXMLElement,
-    SoapClient,
-    SoapFault,
-    parse_proxy,
-    set_http_wrapper,
-)
+import zeep
+import ssl
 
+from requests import Session
+from requests.adapters import HTTPAdapter
+from zeep.transports import Transport
+from urllib3.poolmanager import PoolManager
 from .wsaa import WSAA
+
+
+class TLSAdapter(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False):
+        """Create and initialize the urllib3 PoolManager."""
+        ctx = ssl.create_default_context()
+        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_version=ssl.PROTOCOL_TLS,
+            ssl_context=ctx,
+        )
 
 
 class WSFEv1:
@@ -15,40 +28,56 @@ class WSFEv1:
     WSDL_TEST = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL"
     URL_TEST = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx"
     SERVICE = "wsfe"
+    CACERT = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/afipws/cacert.pem"
 
     def __init__(self, options: dict):
-        if not (options.get("CUIT")) or not (options.get("cert") and options.get("key")):
+        if not (options.get("CUIT")) or not (
+            options.get("cert") and options.get("key")
+        ):
             raise Exception("Faltan datos de configuración (CUIT, cert, key)")
         self.CUIT = options.get("CUIT")
 
         if options.get("production"):
             "!Produccion"
-            self.client = SoapClient(wsdl=self.WSDL)
+            session = Session()
+            session.verify = self.CACERT
+            adapter = TLSAdapter()
+            session.mount("https://", adapter)
+            transport = Transport(session=session)
+            self.client = zeep.Client(wsdl=self.WSDL, transport=transport)
             self.production = True
         else:
-            # self.client = SoapClient(wsdl=self.WSDL_TEST, trace=True)
-            self.client = SoapClient(wsdl=self.WSDL_TEST)
+            self.client = zeep.Client(wsdl=self.WSDL_TEST)
             self.production = False
 
-        # self.environment: str = "prod" if self.production == True else "dev"
+        self.wsaa = WSAA(
+            {
+                "cert": options.get("cert"),
+                "key": options.get("key"),
+                "passphrase": (
+                    options.get("passphrase") if options.get("passphrase") else ""
+                ),
+                "service": self.SERVICE,
+                "production": self.production,
+            }
+        ).get_ticket_access()
 
-        self.wsaa = WSAA({
-            "cert": options.get("cert"),
-            "key": options.get("key"),
-            "passphrase": options.get("passphrase") if options.get("passphrase") else "",
-            "service": self.SERVICE,
-            "production": self.production
-        }).get_ticket_access()
+        self.token = str(
+            self.wsaa.credentials.token
+        )  # Token de acceso obtenido por WSAA
+        self.sign = str(self.wsaa.credentials.sign)  # Sign obtenido por WSAA
+        self.expiration_time = str(
+            self.wsaa.header.expirationTime
+        )  # Fecha de expiración del token
 
-        self.token = str(self.wsaa.credentials.token) # Token de acceso obtenido por WSAA
-        self.sign = str(self.wsaa.credentials.sign) # Sign obtenido por WSAA
-        self.expiration_time = str(self.wsaa.header.expirationTime) # Fecha de expiración del token
+    def CAESolicitar(
+        self, data: dict, return_response: bool = False, fetch_last_cbte: bool = False
+    ):
+        """Solicitar CAE a AFIP para un comprobante.
 
-    def CAESolicitar(self, data: dict, return_response: bool = False, fetch_last_cbte: bool = False):
-        """Solicitar CAE a AFIP para un comprobante
-        data: dict con los datos del comprobante
-        return_response: bool, si se debe devolver la respuesta completa o solo los datos del CAE
-        fetch_last_cbte: bool, si se debe obtener el último comprobante autorizado
+        :param data: dict con los datos del comprobante
+        :param return_response: bool, si se debe devolver la respuesta completa o solo los datos del CAE
+        :param fetch_last_cbte: bool, si se debe obtener el último comprobante autorizado
         """
         data = data.copy()
 
@@ -61,15 +90,19 @@ class WSFEv1:
             "FeCabReq": {
                 "CantReg": 1,  # int
                 "PtoVta": data["PtoVta"],  # int
-                "CbteTipo": data["CbteTipo"]  # int
+                "CbteTipo": data["CbteTipo"],  # int
             },
             "FeDetReq": {
                 "FECAEDetRequest": {
                     "Concepto": data["Concepto"],  # int
                     "DocTipo": data["DocTipo"],  # int
                     "DocNro": data["DocNro"],  # long
-                    "CbteDesde": last_cbte + 1 if fetch_last_cbte else data["CbteDesde"],  # long
-                    "CbteHasta": last_cbte + 1 if fetch_last_cbte else data["CbteHasta"],  # long
+                    "CbteDesde": (
+                        last_cbte + 1 if fetch_last_cbte else data["CbteDesde"]
+                    ),  # long
+                    "CbteHasta": (
+                        last_cbte + 1 if fetch_last_cbte else data["CbteHasta"]
+                    ),  # long
                     # string
                     "CbteFch": data["CbteFch"] if data.get("CbteFch") else None,
                     "ImpTotal": data["ImpTotal"],  # double
@@ -79,15 +112,21 @@ class WSFEv1:
                     "ImpTrib": data["ImpTrib"],  # double
                     "ImpIVA": data["ImpIVA"],  # double
                     # string
-                    "FchServDesde": data["FchServDesde"] if data.get("FchServDesde") else None,
+                    "FchServDesde": (
+                        data["FchServDesde"] if data.get("FchServDesde") else None
+                    ),
                     # string
-                    "FchServHasta": data["FchServHasta"] if data.get("FchServHasta") else None,
+                    "FchServHasta": (
+                        data["FchServHasta"] if data.get("FchServHasta") else None
+                    ),
                     # string
-                    "FchVtoPago": data["FchVtoPago"] if data.get("FchVtoPago") else None,
+                    "FchVtoPago": (
+                        data["FchVtoPago"] if data.get("FchVtoPago") else None
+                    ),
                     "MonId": data["MonId"],  # string
                     "MonCotiz": data["MonCotiz"],  # double
                 }
-            }
+            },
         }
 
         if data.get("CbtesAsoc"):
@@ -98,7 +137,7 @@ class WSFEv1:
                     "Nro": cbte["Nro"],  # long
                     "Cuit": cbte["Cuit"] if cbte.get("Cuit") else None,  # long
                     # string
-                    "CbteFch": cbte["CbteFch"] if cbte.get("CbteFch") else None
+                    "CbteFch": cbte["CbteFch"] if cbte.get("CbteFch") else None,
                 }
                 for cbte in data["CbtesAsoc"]
             }
@@ -110,7 +149,7 @@ class WSFEv1:
                     "Desc": tributo["Desc"],  # string
                     "BaseImp": tributo["BaseImp"],  # double
                     "Alic": tributo["Alic"],  # double
-                    "Importe": tributo["Importe"]  # double
+                    "Importe": tributo["Importe"],  # double
                 }
                 for tributo in data["Tributos"]
             }
@@ -120,7 +159,7 @@ class WSFEv1:
                 "AlicIva": {
                     "Id": iva["Id"],  # int
                     "BaseImp": iva["BaseImp"],  # double
-                    "Importe": iva["Importe"]  # double
+                    "Importe": iva["Importe"],  # double
                 }
                 for iva in data["Iva"]
             }
@@ -129,7 +168,7 @@ class WSFEv1:
             Req["FeDetReq"]["FECAEDetRequest"]["Opcionales"] = {
                 "Opcional": {
                     "Id": opcional["Id"],  # int
-                    "Valor": opcional["Valor"]  # string
+                    "Valor": opcional["Valor"],  # string
                 }
                 for opcional in data["Opcionales"]
             }
@@ -139,7 +178,7 @@ class WSFEv1:
                 "Comprador": {
                     "DocTipo": comprador["DocTipo"],  # int
                     "DocNro": comprador["DocNro"],  # long
-                    "Porcentaje": comprador["Porcentaje"]  # double
+                    "Porcentaje": comprador["Porcentaje"],  # double
                 }
                 for comprador in data["Compradores"]
             }
@@ -147,56 +186,59 @@ class WSFEv1:
         if data.get("PeriodoAsoc"):
             Req["FeDetReq"]["FECAEDetRequest"]["PeriodoAsoc"] = {
                 "FchDesde": data["PeriodoAsoc"]["FchDesde"],  # string
-                "FchHasta": data["PeriodoAsoc"]["FchHasta"]  # string
+                "FchHasta": data["PeriodoAsoc"]["FchHasta"],  # string
             }
 
         if data.get("Actividades"):
             Req["FeDetReq"]["FECAEDetRequest"]["Actividades"] = {
-                "Actividad": {
-                    "Id": actividad["Id"]  # int
-                }
+                "Actividad": {"Id": actividad["Id"]}  # int
                 for actividad in data["Actividades"]
             }
 
-        res = self.client.FECAESolicitar(Auth=Auth, FeCAEReq=Req)
+        res = self.client.service.FECAESolicitar(Auth=Auth, FeCAEReq=Req)
 
         if return_response:
             return res
 
-        if not res["FECAESolicitarResult"]["FeCabResp"]["Resultado"] == "A":
-            if "Errors" in res["FECAESolicitarResult"]:
-                raise Exception(res["FECAESolicitarResult"]["Errors"])
-            if "Observaciones" in res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"][0]:
-                raise Exception(res["FECAESolicitarResult"]["FeDetResp"]
-                                ["FECAEDetResponse"][0]["Observaciones"])
+        if not res["FeCabResp"]["Resultado"] == "A":
+            if "Errors" in res:
+                raise Exception(res["Errors"])
+            if (
+                "Observaciones"
+                in res["FeDetResp"]["FECAEDetResponse"][0]
+            ):
+                raise Exception(
+                    res["FeDetResp"]["FECAEDetResponse"][0][
+                        "Observaciones"
+                    ]
+                )
             raise Exception("Error desconocido:", res)
 
         events = []
-        if "Events" in res["FECAESolicitarResult"]:
-            for event in res["FECAESolicitarResult"]["Events"]["Evt"]:
-                events.append({
-                    "Code": event["Code"],
-                    "Msg": event["Msg"]
-                })
+        if "Events" in res and res["Events"] is not None:
+            for event in res["Events"]["Evt"]:
+                events.append({"Code": event["Code"], "Msg": event["Msg"]})
 
-        if type(res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"]) == list:
-            det = res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"][0]
+        if type(res["FeDetResp"]["FECAEDetResponse"]) == list:
+            det = res["FeDetResp"]["FECAEDetResponse"][0]
         else:
-            det = res["FECAESolicitarResult"]["FeDetResp"]["FECAEDetResponse"]
+            det = res["FeDetResp"]["FECAEDetResponse"]
 
         return {
             "NroCbte": det["CbteDesde"],
             "CAE": det["CAE"],
-            "CAEFchVto": det["CAEFchVto"]
+            "CAEFchVto": det["CAEFchVto"],
         }
 
-    def CompUltimoAutorizado(self, PtoVta: int, CbteTipo: int, return_respose: bool = False) -> int:
+    def CompUltimoAutorizado(
+        self, PtoVta: int, CbteTipo: int, return_response: bool = False
+    ) -> int:
         "Obtener el ultimo comprobante autorizado"
-        res = self.client.FECompUltimoAutorizado(
+        res = self.client.service.FECompUltimoAutorizado(
             Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT},
             PtoVta=PtoVta,
-            CbteTipo=CbteTipo
+            CbteTipo=CbteTipo,
         )
-        if return_respose:
+        if return_response:
             return res
-        return res["FECompUltimoAutorizadoResult"]["CbteNro"]
+        return res["CbteNro"]
