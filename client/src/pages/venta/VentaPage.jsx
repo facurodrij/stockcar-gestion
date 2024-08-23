@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography';
 import {VentaList} from "../../components/venta";
 import { checkAuth, checkRoles } from '../../utils/checkAuth';
 
-function VentaPage() {
+export default function VentaPage() {
     useEffect(() => {
         checkAuth();
         checkRoles(['admin', 'cobranza']);
@@ -25,5 +25,3 @@ function VentaPage() {
         </>
     )
 }
-
-export default VentaPage;
