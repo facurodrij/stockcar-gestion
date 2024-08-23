@@ -1,10 +1,14 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import Typography from '@mui/material/Typography';
 import {ArticuloList} from "../../components/articulo";
+import {checkAuth, checkRoles} from '../../utils/checkAuth';
 
+export default function ArticuloPage() {
+    useEffect(() => {
+        checkAuth();
+        checkRoles(['admin', 'vendedor']);
+    }, []);
 
-
-export default function ClientePage() {
     return (
         <>
             <Typography
