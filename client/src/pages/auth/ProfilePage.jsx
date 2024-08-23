@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import { API } from "../../App";
+import { checkAuth } from '../../utils/checkAuth';
 
 export default function ProfilePage() {
     const [profileData, setProfileData] = useState(null);
 
-    const getProfile = async () => {
+    const getProfileData = async () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${API}/profile`, {
@@ -23,7 +24,8 @@ export default function ProfilePage() {
     }
 
     useEffect(() => {
-        getProfile();
+        checkAuth();
+        getProfileData();
     }, []);
 
     return (
