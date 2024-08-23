@@ -1,12 +1,17 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import Typography from "@mui/material/Typography";
 import {ClienteForm} from '../../components/cliente';
+import {checkAuth, checkRoles} from '../../utils/checkAuth';
 
 export default function ClienteFormPage() {
-    // Obtener el id de la URL, si es undefined es porque se está agregando un nuevo cliente
     const routeParams = useParams();
     const pk = routeParams.pk;
+
+    useEffect(() => {
+        checkAuth();
+        checkRoles(['admin', 'cobranza', 'vendedor']);
+    } , []);
 
     return (
         <>

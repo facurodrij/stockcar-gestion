@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import {ClienteList} from "../../components/cliente";
+import { checkAuth, checkRoles } from '../../utils/checkAuth';
 
 
 export default function ClientePage() {
+    useEffect(() => {
+        checkAuth();
+        checkRoles(['admin', 'cobranza', 'vendedor']);
+    }, []);
+
     return (
         <>
             <Typography
