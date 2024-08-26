@@ -10,7 +10,9 @@ export default function ClienteFormPage() {
 
     useEffect(() => {
         checkAuth();
-        checkPermissions(['cliente.create', 'cliente.update']);
+        if (!checkPermissions(['cliente.create', 'cliente.update'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (

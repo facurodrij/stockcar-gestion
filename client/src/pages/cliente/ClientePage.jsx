@@ -7,7 +7,9 @@ import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 export default function ClientePage() {
     useEffect(() => {
         checkAuth();
-        checkPermissions('cliente.view_all');
+        if (!checkPermissions(['cliente.view_all'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (
