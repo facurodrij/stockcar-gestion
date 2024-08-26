@@ -3,7 +3,7 @@ import {Button, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/ma
 import {
     DataGrid,
     GridToolbarColumnsButton,
-    GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport,
+    GridToolbarContainer,
     GridToolbarFilterButton,
     GridToolbarQuickFilter
 } from '@mui/x-data-grid';
@@ -15,7 +15,7 @@ import {Link} from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import RefreshIcon from '@mui/icons-material/Refresh';
-
+import fetchWithAuth from '../../utils/fetchWithAuth';
 
 const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones}) => {
     const [listArticulo, setListArticulo] = useState([]);
@@ -56,14 +56,22 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
     }
 
     const fetchData = async () => {
-        const res = await fetch(`${API}/articulos`);
-        return await res.json();
+        const url = `${API}/articulos`;
+        try {
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(`${res.status} (${res.statusText})`);
+            }
+            setListArticulo(data['articulos']);
+        } catch (error) {
+            console.error(error);
+            alert('Error al cargar los datos');
+        }
     }
 
     useEffect(() => {
-        fetchData().then(data => {
-            setListArticulo(data['articulos']);
-        });
+        fetchData();
     }, []);
 
     return (
@@ -78,11 +86,7 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
             <DialogTitle id="alert-dialog-title">Seleccionar Artículos</DialogTitle>
             <IconButton
                 aria-label="reload"
-                onClick={() => {
-                    fetchData().then(data => {
-                        setListArticulo(data['articulos']);
-                    });
-                }}
+                onClick={() => fetchData()}
                 sx={{
                     position: 'absolute',
                     right: 8,
