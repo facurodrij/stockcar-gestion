@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Typography from "@mui/material/Typography";
 import { UsuarioForm } from '../../components/usuario';
-import { checkAuth, checkRoles } from '../../utils/checkAuth';
+import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
 export default function UsuarioFormPage() {
     const routeParams = useParams();
@@ -10,7 +10,9 @@ export default function UsuarioFormPage() {
 
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin']);
+        if (!checkPermissions(['usuario.create', 'usuario.update'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (

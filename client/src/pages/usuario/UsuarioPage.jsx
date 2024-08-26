@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import { UsuarioList } from '../../components/usuario';
-import { checkAuth, checkRoles } from '../../utils/checkAuth';
+import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
 export default function UsuarioPage() {
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin']);
+        if (!checkPermissions(['usuario.view_all'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (
@@ -22,7 +24,7 @@ export default function UsuarioPage() {
             >
                 Usuarios
             </Typography>
-            <UsuarioList/>
+            <UsuarioList />
         </>
     )
 }
