@@ -1,12 +1,14 @@
 import React, {useEffect} from 'react';
 import Typography from '@mui/material/Typography';
 import {ArticuloList} from "../../components/articulo";
-import {checkAuth, checkRoles} from '../../utils/checkAuth';
+import {checkAuth, checkPermissions} from '../../utils/checkAuth';
 
 export default function ArticuloPage() {
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin', 'vendedor']);
+        if (!checkPermissions(['articulo.view_all'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (

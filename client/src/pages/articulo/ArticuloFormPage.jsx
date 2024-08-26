@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {ArticuloForm} from "../../components/articulo";
 import Typography from "@mui/material/Typography";
-import {checkAuth, checkRoles} from '../../utils/checkAuth';
+import {checkAuth, checkPermissions} from '../../utils/checkAuth';
 
 export default function ArticuloFormPage() {
     const routeParams = useParams();
@@ -10,7 +10,9 @@ export default function ArticuloFormPage() {
 
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin', 'vendedor']);
+        if (!checkPermissions(['articulo.create', 'articulo.update'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (
