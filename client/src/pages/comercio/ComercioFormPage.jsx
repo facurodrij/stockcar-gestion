@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import {useParams} from 'react-router-dom';
 import Typography from "@mui/material/Typography";
 import {ComercioForm} from '../../components/comercio';
-import { checkAuth, checkRoles } from '../../utils/checkAuth';
+import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
 export default function ComercioFormPage() {
     const routeParams = useParams();
@@ -10,7 +10,9 @@ export default function ComercioFormPage() {
 
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin']);
+        if (!checkPermissions(['comercio.create', 'comercio.update'])) {
+            window.location.href = '/unauthorized';
+        }
     } , []);
 
     return (

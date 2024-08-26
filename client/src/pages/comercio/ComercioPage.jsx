@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import {ComercioList} from "../../components/comercio";
-import { checkAuth, checkRoles } from '../../utils/checkAuth';
+import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
 
 export default function ComercioPage() {
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin']);
+        if (!checkPermissions(['comercio.view_all'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
     return (
         <>
