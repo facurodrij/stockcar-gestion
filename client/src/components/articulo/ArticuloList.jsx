@@ -2,8 +2,6 @@ import React, {useEffect, useState} from 'react'
 import {
     DataGrid,
     GridActionsCellItem,
-    GridRowParams,
-    GridRowsProp,
     GridToolbarColumnsButton,
     GridToolbarContainer,
     GridToolbarDensitySelector,
@@ -17,6 +15,7 @@ import {esES} from "@mui/x-data-grid/locales";
 import {Button} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
+import fetchWithAuth from '../../utils/fetchWithAuth';
 
 
 const CustomToolbar = () => {
@@ -44,19 +43,24 @@ const CustomToolbar = () => {
 
 export default function ArticuloList() {
     const [list, setList] = useState([]);
-    const [itemSelected, setItemSelected] = useState(null);
-    const [itemsSelectedList, setItemsSelectedList] = useState([]);
-    const [showDetail, setShowDetail] = useState(false);
 
     const fetchData = async () => {
-        const res = await fetch(`${API}/articulos`);
-        return await res.json();
+        const url = `${API}/articulos`;
+        try {
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(`${res.status} (${res.statusText})`);
+            }
+            setList(data['articulos']);
+        } catch (error) {
+            console.error(error);
+            alert('Error al cargar los datos');
+        }
     }
 
     useEffect(() => {
-        fetchData().then(data => {
-            setList(data['articulos']);
-        });
+        fetchData();
     }, []);
 
     const columns = [
@@ -79,7 +83,7 @@ export default function ArticuloList() {
         }
     ];
 
-    const rows = list.map(item => {
+    let rows = list.map(item => {
         return {
             id: item.id,
             codigo_barras: item.codigo_barras,
@@ -102,7 +106,7 @@ export default function ArticuloList() {
                 initialState={{sorting: {sortModel: [{field: 'id', sort: 'desc'}]}}}
                 localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                 slots={{toolbar: CustomToolbar}}
-                ignoreDiacritics // Para ignorar acentos en la búsqueda
+                ignoreDiacritics
             />
         </div>
     );
