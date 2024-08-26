@@ -1,18 +1,4 @@
-# TODO: Crear modelo Usuario
-# TODO - Relacionar con el modelo Rol
-# TODO - Relacionar con el modelo PuntoVenta
 # TODO - Relacionar con el modelo Comercio
-
-# TODO - El usuario con Rol de Administrador puede crear, modificar y eliminar todas las instancias de Usuario
-# TODO - El usuario con Rol de Vendedor debe solamente poder crear borradores de Ventas
-# TODO - El usuario con Rol de Vendedor debe poder ver solamente las Ventas que él creó
-# TODO - El usuario con Rol de Cajero debe poder ver todas las Ventas y cobrarlas
-# TODO - El usuario con Rol de Cajero no puede modificar ni eliminar Ventas
-
-# TODO - Crear un endpoint para obtener la lista de Usuarios
-# TODO - Crear un endpoint para obtener un Usuario por ID
-# TODO - Crear un endpoint para crear un Usuario
-
 from sqlalchemy import (
     Column,
     String,
@@ -45,13 +31,16 @@ class Usuario(db.Model):
     password = Column(String, nullable=False)
     nombre = Column(String, nullable=True)
     apellido = Column(String, nullable=True)
-
     is_superuser = Column(Boolean, default=False)
-    is_staff = Column(Boolean, default=False)
 
     roles = relationship("Rol", secondary="usuario_rol", back_populates="usuarios")
+    permisos = relationship("Permiso", secondary="usuario_permiso", back_populates="usuarios")
 
     def to_json(self):
+        permisos = []
+        for permiso in self.permisos:
+            permisos.append(permiso.to_json())
+
         return {
             "id": self.id,
             "username": self.username,
@@ -59,8 +48,33 @@ class Usuario(db.Model):
             "nombre": self.nombre,
             "apellido": self.apellido,
             "is_superuser": self.is_superuser,
-            "is_staff": self.is_staff,
             "roles": [rol.nombre for rol in self.roles],
+            "permisos": permisos
+        }
+
+
+class Permiso(db.Model):
+    """
+    Modelo de datos para los permisos de usuario.
+
+    Los permisos se cargarán automáticamente utilizando las rutas Blueprint de Flask. Cada permiso se corresponderá
+    con una ruta. Por ejemplo, el permiso /ventas se corresponderá con la ruta /ventas.
+    """
+
+    __tablename__ = "permiso"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    nombre = Column(String, nullable=False)
+    descripcion = Column(String, nullable=True)
+
+    roles = relationship("Rol", secondary="rol_permiso", back_populates="permisos")
+    usuarios = relationship("Usuario", secondary="usuario_permiso", back_populates="permisos")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "descripcion": self.descripcion,
         }
 
 
@@ -79,6 +93,7 @@ class Rol(db.Model):
     descripcion = Column(String, nullable=True)
 
     usuarios = relationship("Usuario", secondary="usuario_rol", back_populates="roles")
+    permisos = relationship("Permiso", secondary="rol_permiso", back_populates="roles")
 
     def to_json(self):
         return {
@@ -92,4 +107,16 @@ usuario_rol = db.Table(
     "usuario_rol",
     Column("usuario_id", Integer, ForeignKey("usuario.id"), primary_key=True),
     Column("rol_id", Integer, ForeignKey("rol.id"), primary_key=True),
+)
+
+rol_permiso = db.Table(
+    "rol_permiso",
+    Column("rol_id", Integer, ForeignKey("rol.id"), primary_key=True),
+    Column("permiso_id", Integer, ForeignKey("permiso.id"), primary_key=True),
+)
+
+usuario_permiso = db.Table(
+    "usuario_permiso",
+    Column("usuario_id", Integer, ForeignKey("usuario.id"), primary_key=True),
+    Column("permiso_id", Integer, ForeignKey("permiso.id"), primary_key=True),
 )
