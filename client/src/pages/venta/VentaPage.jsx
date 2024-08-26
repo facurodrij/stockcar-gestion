@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import {VentaList} from "../../components/venta";
-import { checkAuth, checkRoles } from '../../utils/checkAuth';
+import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
 export default function VentaPage() {
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin', 'cobranza']);
+        if (!checkPermissions(['venta.view_all'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (

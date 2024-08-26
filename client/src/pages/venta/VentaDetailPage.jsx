@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Typography from "@mui/material/Typography";
 import { VentaDetail } from "../../components/venta";
-import { checkAuth, checkRoles } from '../../utils/checkAuth';
+import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
 export default function VentaDetailPage() {
     const routeParams = useParams();
@@ -10,7 +10,9 @@ export default function VentaDetailPage() {
 
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin', 'cobranza']);
+        if (!checkPermissions(['venta.view'])) {
+            window.location.href = '/unauthorized';
+        }
     }, []);
 
     return (
