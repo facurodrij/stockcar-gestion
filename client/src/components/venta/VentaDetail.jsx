@@ -112,8 +112,8 @@ export default function VentaDetail({ pk }) {
     }, [pk]);
 
     const handlePrint = (size = 'A4') => {
-        const url = `${API}/ventas/${pk}/pdf?size=${size}`;
-        fetchWithAuth(url)
+        const url = `${API}/ventas/${pk}`;
+        fetchWithAuth(url, 'POST', { size: size })
             .then(response => response.blob())
             .then(blob => {
                 const url = window.URL.createObjectURL(blob);
