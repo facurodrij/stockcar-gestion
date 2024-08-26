@@ -9,12 +9,17 @@ export const checkAuth = () => {
 
 export const checkRoles = (roles) => {
     const rolesList = JSON.parse(localStorage.getItem('roles'));
-    const is_superuser = localStorage.getItem('is_superuser');
-    if (is_superuser === 'true') {
-        return true;
-    }
     if (!rolesList || !rolesList.some(role => roles.includes(role))) {
         window.location.href = '/unauthorized';
+    }
+    return true;
+}
+
+
+export const checkPermissions = (permissions) => {
+    const permissionsList = JSON.parse(localStorage.getItem('permissions'));
+    if (!permissionsList || !permissionsList.some(permission => permissions.includes(permission))) {
+        return false;
     }
     return true;
 }
