@@ -160,9 +160,8 @@ export default function VentaForm({ pk }) {
                 setOpenSnackbar(true);
             }
         }
-
         loadData();
-    }, [pk, setValue]);
+    }, []);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -172,24 +171,25 @@ export default function VentaForm({ pk }) {
             if (ventaRenglones.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
-            const response = await fetchWithAuth(url, method, {
+            const res = await fetchWithAuth(url, method, {
                 venta: data, renglones: ventaRenglones, tributos: selectedTributo
             });
-            const responseJson = await response.json();
-            if (!response.ok) {
-                throw new Error(`${responseJson['error']}`);
+            const resJson = await res.json();
+            if (!res.ok) {
+                throw new Error(`${resJson['error']}`);
             }
             setSnackbar({
                 message: 'Venta guardada correctamente',
                 severity: 'success',
                 autoHideDuration: 4000,
-                onClose: () => handleCloseSnackbar(true, `/ventas/${responseJson['venta_id']}`)
+                onClose: () => handleCloseSnackbar(true, `/ventas/${resJson['venta_id']}`)
             });
         } catch (e) {
+            console.error('Error al guardar la venta:', e);
             setSnackbar({
                 message: e.message,
                 severity: 'error',
-                autoHideDuration: null, // No cerrar el snackbar
+                autoHideDuration: null,
                 onClose: () => handleCloseSnackbar(false)
             });
             setIsSubmitting(false);
@@ -628,7 +628,6 @@ export default function VentaForm({ pk }) {
                         </Grid>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
-                        {/* TODO Agregar funcionalidad de Guardar Borrador, Generar Factura */}
                         {estadoVenta === 'Orden' ? (
                             <Button
                                 variant="contained"
