@@ -1,23 +1,20 @@
-from datetime import timedelta
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
-from server.core.models import Usuario, Rol, Permiso, usuario_permiso
+from flask_jwt_extended import jwt_required
+from server.core.models import Usuario, Permiso, usuario_permiso
 from server.config import db
-from server.core.decorators import admin_required
+from server.core.decorators import permission_required
 
 usuario_bp = Blueprint("usuario_bp", __name__)
 
-model = "usuarios"
 
 def get_select_options():
     permisos = Permiso.query.all()
-    return {
-        "permisos": list(map(lambda x: x.to_json(), permisos))
-    }
+    return {"permisos": list(map(lambda x: x.to_json(), permisos))}
 
 
 @usuario_bp.route("/usuarios", methods=["GET"])
 @jwt_required()
+@permission_required("usuario.view_all")
 def index():
     users = Usuario.query.all()
     users_json = list(map(lambda x: x.to_json(), users))
@@ -26,6 +23,7 @@ def index():
 
 @usuario_bp.route("/usuarios/create", methods=["GET", "POST"])
 @jwt_required()
+@permission_required("usuario.create")
 def create():
     if request.method == "GET":
         return jsonify({"select_options": get_select_options()}), 200
@@ -35,14 +33,12 @@ def create():
             user = Usuario(**data["usuario"])
             db.session.add(user)
             db.session.flush()
-            permisos = data['permisos']
-            permisos = Permiso.query.filter(
-                Permiso.id.in_(data['permisos'])).all()
+            permisos = data["permisos"]
+            permisos = Permiso.query.filter(Permiso.id.in_(data["permisos"])).all()
             for permiso in permisos:
                 db.session.execute(
                     usuario_permiso.insert().values(
-                        usuario_id=user.id,
-                        permiso_id=permiso.id
+                        usuario_id=user.id, permiso_id=permiso.id
                     )
                 )
             db.session.commit()
@@ -57,35 +53,38 @@ def create():
 
 @usuario_bp.route("/usuarios/<int:pk>/update", methods=["GET", "PUT"])
 @jwt_required()
+@permission_required("usuario.update")
 def update(pk):
     user = Usuario.query.get(pk)
     if request.method == "GET":
-        return jsonify({"select_options": get_select_options(),
-                        "usuario": user.to_json()}), 200
+        return (
+            jsonify(
+                {"select_options": get_select_options(), "usuario": user.to_json()}
+            ),
+            200,
+        )
     if request.method == "PUT":
         data = request.json
         try:
             for key, value in data["usuario"].items():
                 setattr(user, key, value)
-            current_permiso_ids = list(
-                map(lambda x: x.id, user.permisos))
+            current_permiso_ids = list(map(lambda x: x.id, user.permisos))
             new_permiso_ids = data["permisos"]
             for item in new_permiso_ids:
                 permiso = Permiso.query.get(item)
                 if item not in current_permiso_ids:
                     db.session.execute(
                         usuario_permiso.insert().values(
-                            usuario_id=user.id,
-                            permiso_id=permiso.id
+                            usuario_id=user.id, permiso_id=permiso.id
                         )
                     )
             for item in current_permiso_ids:
                 permiso = Permiso.query.get(item)
                 if item not in new_permiso_ids:
                     db.session.execute(
-                        usuario_permiso.delete().where(
-                            usuario_permiso.c.usuario_id == user.id).where(
-                            usuario_permiso.c.permiso_id == permiso.id)
+                        usuario_permiso.delete()
+                        .where(usuario_permiso.c.usuario_id == user.id)
+                        .where(usuario_permiso.c.permiso_id == permiso.id)
                     )
             db.session.commit()
             return jsonify({"usuario_id": user.id}), 200
