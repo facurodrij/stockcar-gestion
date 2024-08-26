@@ -7,10 +7,10 @@ import {
     Grid,
     Paper,
     TextField,
-    FormLabel,
     FormGroup,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    Typography
 } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DataGrid, GridToolbarContainer } from '@mui/x-data-grid';
@@ -36,13 +36,6 @@ export default function UsuarioForm({ pk }) {
         formState: { errors },
         setValue
     } = useForm();
-    const [selectOptions, setSelectOptions] = useState({
-        cliente: [],
-        tipo_comprobante: [],
-        tipo_pago: [],
-        moneda: [],
-        tributo: []
-    });
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
@@ -50,9 +43,9 @@ export default function UsuarioForm({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [ventaRenglones, setVentaRenglones] = useState([]);
+    const [availablePermissions, setAvailablePermissions] = useState([]);
+    const [selectedPermissions, setSelectedPermissions] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
 
     const handleCloseSnackbar = (redirect, url = '/usuarios') => {
         setOpenSnackbar(false);
@@ -74,15 +67,21 @@ export default function UsuarioForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const usuario = data['usuario'];
+                const selectOptions = data['select_options'];
+                setAvailablePermissions(selectOptions['permisos']);
                 if (Boolean(pk)) {
+                    const usuario = data['usuario'];
+                    const permisos = usuario['permisos']
                     setValue('username', usuario['username']);
                     setValue('email', usuario['email']);
                     setValue('password', usuario['password']);
                     setValue('is_superuser', usuario['is_superuser']);
-                    setValue('is_staff', usuario['is_staff']);
                     if (usuario['nombre']) setValue('nombre', usuario['nombre']);
                     if (usuario['apellido']) setValue('apellido', usuario['apellido']);
+                    setSelectedPermissions([]);
+                    permisos.forEach((p) => {
+                        setSelectedPermissions(selectedPermissions => [...selectedPermissions, p.id]);
+                    });
                 }
             } catch (e) {
                 console.error('Error en la carga de datos:', e);
@@ -104,7 +103,7 @@ export default function UsuarioForm({ pk }) {
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
             const response = await fetchWithAuth(url, method, {
-                usuario: data
+                usuario: data, permisos: selectedPermissions
             });
             const responseJson = await response.json();
             if (!response.ok) {
@@ -220,23 +219,6 @@ export default function UsuarioForm({ pk }) {
                             </FormGroup>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={3}>
-                        <FormControl component="fieldset" variant="standard">
-                            <FormGroup>
-                                <Controller
-                                    name="is_staff"
-                                    control={control}
-                                    defaultValue={false}
-                                    render={({ field: { onChange, value } }) => (
-                                        <FormControlLabel
-                                            control={<Checkbox checked={value} onChange={onChange} />}
-                                            label="Staff"
-                                        />
-                                    )}
-                                />
-                            </FormGroup>
-                        </FormControl>
-                    </Grid>
                 </Grid>
                 <br />
                 <Grid container spacing={2}>
@@ -277,6 +259,22 @@ export default function UsuarioForm({ pk }) {
                         </FormControl>
                     </Grid>
                 </Grid>
+                <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Seleccionar Permisos</Typography>
+                <Box sx={{ height: 500, width: '100%' }}>
+                    <DataGrid
+                        columns={[
+                            { field: 'nombre', headerName: 'Nombre', flex: 2 },
+                            { field: 'descripcion', headerName: 'Descripción', flex: 2 },
+                        ]}
+                        rows={availablePermissions}
+                        checkboxSelection
+                        rowSelectionModel={selectedPermissions}
+                        onRowSelectionModelChange={(newRowSelectionModel) => {
+                            setSelectedPermissions(newRowSelectionModel)
+                        }}
+                        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                    />
+                </Box>
                 <br />
                 <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
