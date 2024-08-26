@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { styled, useTheme } from '@mui/material/styles';
-import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button } from '@mui/material';
+import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button, Typography } from '@mui/material';
 import { AccountCircle, Inbox as InboxIcon, Mail as MailIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, LocalShipping, Inventory2, PointOfSale, Store } from '@mui/icons-material';
+import { set } from 'react-hook-form';
 
 const drawerWidth = 240;
 
@@ -76,43 +77,43 @@ const pagesList = [
         title: 'Ventas',
         icon: <PointOfSale />,
         path: '/ventas',
-        roles_required: ['admin', 'cobranza'],
+        required_permissions: ['venta.view_all'],
     },
     {
         title: 'Ordenes de Venta',
         icon: <PointOfSale />,
         path: '/ventas-orden',
-        roles_required: [],
+        required_permissions: [],
     },
     {
         title: 'Articulos',
         icon: <Inventory2 />,
         path: '/articulos',
-        roles_required: ['admin'],
+        required_permissions: ['articulo.view_all'],
     },
     {
         title: 'Clientes',
         icon: <People />,
         path: '/clientes',
-        roles_required: ['admin', 'cobranza'],
+        required_permissions: ['cliente.view_all'],
     },
     {
         title: 'Usuarios',
         icon: <Person />,
         path: '/usuarios',
-        roles_required: ['admin'],
+        required_permissions: ['usuario.view_all'],
     },
     {
         title: 'Comercios',
         icon: <Store />,
         path: '/comercios',
-        roles_required: ['admin'],
+        required_permissions: ['comercio.view_all'],
     },
     {
         title: 'Configuración',
         icon: <Settings />,
         path: '/config',
-        roles_required: ['admin'],
+        required_permissions: ['configuracion.view_all'],
     },
 ];
 
@@ -120,8 +121,8 @@ export default function Header() {
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
     const [auth, setAuth] = React.useState(false);
-    const [roles, setRoles] = React.useState([]);
-    const [is_superuser, setIsSuperuser] = React.useState(false);
+    const [user, setUser] = React.useState({});
+    const [permissions, setPermissions] = React.useState([]);
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -150,17 +151,16 @@ export default function Header() {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        const roleList = JSON.parse(localStorage.getItem('roles'));
-        const is_superuser = localStorage.getItem('is_superuser');
-        if (token && roleList) {
+        const permissionsList = JSON.parse(localStorage.getItem('permissions'));
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (token) {
             setAuth(true);
-            setRoles(roleList);
-            if (is_superuser === 'true') {
-                setIsSuperuser(true);
-            }
+            setUser(user);
+            setPermissions(permissionsList);
         } else {
             setAuth(false);
-            setRoles([]);
+            setUser({});
+            setPermissions([]);
         }
     }, []);
 
@@ -183,6 +183,9 @@ export default function Header() {
                                 <MenuIcon />
                             </IconButton>
                             <Box sx={{ flexGrow: 1 }} />
+                            <Typography variant="h6" color="inherit" component="div">
+                                {user.username}
+                            </Typography>
                             <IconButton
                                 aria-label="account of current user"
                                 aria-controls="menu-appbar"
@@ -216,8 +219,8 @@ export default function Header() {
                         </>
                     ) : (
                         <>
-                        <Box sx={{ flexGrow: 1 }} />
-                        <Button color="inherit" component={Link} to="/login">Iniciar sesión</Button>
+                            <Box sx={{ flexGrow: 1 }} />
+                            <Button color="inherit" component={Link} to="/login">Iniciar sesión</Button>
                         </>
                     )}
                 </Toolbar>
@@ -232,8 +235,8 @@ export default function Header() {
                     <Divider />
                     <List>
                         {pagesList.map((page, index) => (
-                            is_superuser ||
-                                page.roles_required.length === 0 || page.roles_required.some(role => roles.includes(role)) ? (
+                            page.required_permissions.length === 0 ||
+                                page.required_permissions.some(permission => permissions.includes(permission)) ? (
                                 <ListItem key={page.title} disablePadding sx={{ display: 'block' }}>
                                     <ListItemButton
                                         component={Link} to={page.path}

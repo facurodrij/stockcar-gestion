@@ -21,8 +21,8 @@ export default function LoginPage() {
                 throw new Error(response.statusText);
             }
             localStorage.setItem('token', data.access_token);
-            localStorage.setItem('roles', JSON.stringify(data.roles));
-            localStorage.setItem('is_superuser', data.is_superuser);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('permissions', JSON.stringify(data.permissions));
             // Get argument from URL redirect_to
             const urlParams = new URLSearchParams(window.location.search);
             const redirect_to = urlParams.get('redirect_to');
