@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from 'react';
-import {Controller, useForm} from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
-    Alert,
     Box,
     Button,
     FormControl,
@@ -11,7 +10,6 @@ import {
     MenuItem,
     Paper,
     Select,
-    Snackbar,
     Tab,
     Tabs,
     TextField,
@@ -19,15 +17,17 @@ import {
 } from "@mui/material";
 import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
-import {API} from "../../App";
+import { API } from "../../App";
 import TributoDataGrid from "../tributo/TributoDataGrid";
+import fetchWithAuth from '../../utils/fetchWithAuth';
+import SnackbarAlert from '../shared/SnackbarAlert';
 
 
-export default function ArticuloForm({pk}) {
+export default function ArticuloForm({ pk }) {
     const {
         handleSubmit,
         control,
-        formState: {errors},
+        formState: { errors },
         setValue
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
@@ -40,10 +40,12 @@ export default function ArticuloForm({pk}) {
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
+        autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [selectedTributo, setSelectedTributo] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -56,38 +58,20 @@ export default function ArticuloForm({pk}) {
         }
     }
 
-    const fetchData = async () => {
-        if (Boolean(pk) === false) {
-            const res = await fetch(`${API}/articulos/create`);
-            return await res.json();
-        } else {
-            const res = await fetch(`${API}/articulos/${pk}/update`);
-            if (res.status === 404) {
-                setSnackbar({
-                    message: 'Artículo no encontrado',
-                    severity: 'error',
-                    onClose: () => handleCloseSnackbar(true)
-                });
-                setOpenSnackbar(true);
-                return;
-            }
-            if (!res.ok) {
-                setSnackbar({
-                    message: 'Error al obtener los datos del artículo',
-                    severity: 'error',
-                    onClose: () => handleCloseSnackbar(false)
-                });
-                setOpenSnackbar(true);
-                console.log(res);
-                return;
-            }
-            return await res.json();
-        }
-    }
-
     useEffect(() => {
-        fetchData().then((data) => {
-            if (data) {
+        const fetchData = async () => {
+            const url = Boolean(pk) ? `${API}/articulos/${pk}/update` : `${API}/articulos/create`;
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                const message = `Error al obtener datos: ${data['error']}`
+                throw new Error(message);
+            }
+            return data;
+        }
+        const loadData = async () => {
+            try {
+                const data = await fetchData();
                 const selectOptions = data['select_options'];
                 setSelectOptions({
                     tipo_articulo: selectOptions.tipo_articulo,
@@ -113,60 +97,48 @@ export default function ArticuloForm({pk}) {
                     });
                 }
             }
-        });
+            catch (e) {
+                console.error('Error en la carga de datos:', e);
+                setSnackbar({
+                    message: e.message,
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(true)
+                });
+                setOpenSnackbar(true);
+            }
+        }
+        loadData();
     }, []);
 
-    const onSubmit = (data) => {
-        if (Boolean(pk) === false) {
-            fetch(`${API}/articulos/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({articulo: data, tributos: selectedTributo})
-            }).then(res => {
-                if (res.ok) {
-                    setSnackbar({
-                        message: 'Artículo creado correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(true)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    console.log(res);
-                    setSnackbar({
-                        message: 'Error al crear el artículo',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
+    const onSubmit = async (data) => {
+        setIsSubmitting(true);
+        const url = Boolean(pk) ? `${API}/articulos/${pk}/update` : `${API}/articulos/create`;
+        const method = Boolean(pk) ? 'PUT' : 'POST';
+        try {
+            const res = await fetchWithAuth(url, method, {
+                articulo: data, tributos: selectedTributo
             });
-        } else {
-            fetch(`${API}/articulos/${pk}/update`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({articulo: data, tributos: selectedTributo})
-            }).then(res => {
-                if (res.ok) {
-                    setSnackbar({
-                        message: 'Artículo actualizado correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(true)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    console.log(res);
-                    setSnackbar({
-                        message: 'Error al actualizar el artículo',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
+            const resJson = await res.json();
+            if (!res.ok) {
+                throw new Error(resJson['error']);
+            }
+            setSnackbar({
+                message: 'Cliente guardado correctamente',
+                severity: 'success',
+                autoHideDuration: 4000,
+                onClose: () => handleCloseSnackbar(true)
             });
+        } catch (e) {
+            console.error('Error al guardar el artículo:', e);
+            setSnackbar({
+                message: e.message,
+                severity: 'error',
+                autoHideDuration: null,
+                onClose: () => handleCloseSnackbar(false)
+            });
+            setIsSubmitting(false);
+        } finally {
+            setOpenSnackbar(true);
         }
     }
 
@@ -183,12 +155,12 @@ export default function ArticuloForm({pk}) {
     return (
         <>
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
-                   sx={{mt: 2, padding: 2}}>
-                <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
+                sx={{ mt: 2, padding: 2 }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} centered>
-                        <Tab label="Principal"/>
-                        <Tab label="Facturación"/>
-                        <Tab label="Observaciones"/>
+                        <Tab label="Principal" />
+                        <Tab label="Facturación" />
+                        <Tab label="Observaciones" />
                     </Tabs>
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
@@ -199,8 +171,8 @@ export default function ArticuloForm({pk}) {
                                     name="codigo_barras"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
@@ -220,7 +192,7 @@ export default function ArticuloForm({pk}) {
                                     name="codigo_fabricante"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="codigo_fabricante"
@@ -237,7 +209,7 @@ export default function ArticuloForm({pk}) {
                                     name="codigo_proveedor"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="codigo_proveedor"
@@ -254,7 +226,7 @@ export default function ArticuloForm({pk}) {
                                     name="codigo_interno"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="codigo_interno"
@@ -271,8 +243,8 @@ export default function ArticuloForm({pk}) {
                                     name="descripcion"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
@@ -299,8 +271,8 @@ export default function ArticuloForm({pk}) {
                                     name="tipo_articulo_id"
                                     control={control}
                                     defaultValue="1"
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="tipo_articulo"
@@ -323,8 +295,8 @@ export default function ArticuloForm({pk}) {
                                     name="tipo_unidad_id"
                                     control={control}
                                     defaultValue="1"
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="tipo_unidad"
@@ -347,8 +319,8 @@ export default function ArticuloForm({pk}) {
                                     name="alicuota_iva_id"
                                     control={control}
                                     defaultValue="1"
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="alicuota_iva"
@@ -357,7 +329,7 @@ export default function ArticuloForm({pk}) {
                                         >
                                             {selectOptions.alicuota_iva.map((option) => (
                                                 <MenuItem key={option.id}
-                                                          value={option.id}>{option.descripcion}</MenuItem>
+                                                    value={option.id}>{option.descripcion}</MenuItem>
                                             ))}
                                         </Select>
                                     )}
@@ -366,7 +338,7 @@ export default function ArticuloForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{mt: 2}}>Tributos adicionales</Typography>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Tributos adicionales</Typography>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <TributoDataGrid
@@ -385,7 +357,7 @@ export default function ArticuloForm({pk}) {
                                     name="observacion"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="observacion"
@@ -400,17 +372,27 @@ export default function ArticuloForm({pk}) {
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
-                <Box sx={{display: 'flex', justifyContent: 'right', mt: 2}}>
-                    <Button variant="contained" startIcon={<SaveIcon/>} type="submit">
-                        Guardar
-                    </Button>
+                <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<SaveIcon />}
+                            type="button"
+                            onClick={handleSubmit(onSubmit, onError)}
+                            disabled={isSubmitting}
+                        >
+                            Guardar
+                        </Button>
+                    </Box>
                 </Box>
             </Paper>
-            <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={snackbar.onClose}>
-                <Alert onClose={snackbar.onClose} severity={snackbar.severity} sx={{width: '100%'}}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+            <SnackbarAlert
+                open={openSnackbar}
+                autoHideDuration={snackbar.autoHideDuration}
+                onClose={snackbar.onClose}
+                severity={snackbar.severity}
+                message={snackbar.message}
+            />
         </>
     );
 }
