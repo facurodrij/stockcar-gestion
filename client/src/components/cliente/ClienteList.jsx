@@ -2,24 +2,20 @@ import React, {useEffect, useState} from 'react'
 import {
     DataGrid,
     GridActionsCellItem,
-    GridRowParams,
-    GridRowsProp,
     GridToolbarColumnsButton,
     GridToolbarContainer,
     GridToolbarDensitySelector,
     GridToolbarExport,
     GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
-import dayjs from "dayjs";
 import {API} from "../../App";
-import ClienteDetailDialog from "./ClienteDetailDialog";
 import {Link} from "react-router-dom";
 import {esES} from "@mui/x-data-grid/locales";
 import {Button} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
+import fetchWithAuth from '../../utils/fetchWithAuth';
 
 const CustomToolbar = () => {
     return (
@@ -46,19 +42,24 @@ const CustomToolbar = () => {
 
 export default function ClienteList() {
     const [list, setList] = useState([]);
-    const [itemSelected, setItemSelected] = useState(null);
-    const [itemsSelectedList, setItemsSelectedList] = useState([]);
-    const [showDetail, setShowDetail] = useState(false);
 
     const fetchData = async () => {
-        const res = await fetch(`${API}/clientes`);
-        return await res.json();
+        const url = `${API}/clientes`;
+        try {
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(`${res.status} (${res.statusText})`);
+            }
+            setList(data['clientes']);
+        } catch (error) {
+            console.error(error);
+            alert('Error al cargar los datos');
+        }
     }
 
     useEffect(() => {
-        fetchData().then(data => {
-            setList(data['clientes']);
-        });
+        fetchData();
     }, []);
 
     const columns = [
@@ -71,12 +72,6 @@ export default function ClienteList() {
         {
             field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
             getActions: (params) => [
-                <GridActionsCellItem
-                    icon={<VisibilityIcon/>}
-                    label="Detalle"
-                    onClick={() => handleShowDetail(params.row)}
-                    showInMenu
-                />,
                 <GridActionsCellItem
                     icon={<EditIcon/>}
                     label="Editar"
@@ -100,16 +95,6 @@ export default function ClienteList() {
         }
     });
 
-    const handleShowDetail = (item) => {
-        setItemSelected(item);
-        setShowDetail(true);
-    }
-
-    const handleCloseDetail = () => {
-        setItemSelected(null);
-        setShowDetail(false);
-    }
-
     return (
         <>
             <div style={{height: 500, width: '100%'}}>
@@ -126,7 +111,6 @@ export default function ClienteList() {
                     ignoreDiacritics
                 />
             </div>
-            <ClienteDetailDialog item={itemSelected} open={showDetail} onClose={handleCloseDetail}/>
         </>
     );
 };

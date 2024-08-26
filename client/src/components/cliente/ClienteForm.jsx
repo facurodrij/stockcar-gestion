@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from 'react';
-import {Controller, useForm} from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
-    Alert,
     Box,
     Button,
     Checkbox,
@@ -16,26 +15,27 @@ import {
     MenuItem,
     Paper,
     Select,
-    Snackbar,
     Tab,
     Tabs,
     TextField,
     Typography
 } from "@mui/material";
-import {DatePicker, LocalizationProvider} from '@mui/x-date-pickers';
-import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
-import {API} from "../../App";
+import { API } from "../../App";
 import TributoDataGrid from "../tributo/TributoDataGrid";
+import fetchWithAuth from '../../utils/fetchWithAuth';
+import SnackbarAlert from '../shared/SnackbarAlert';
 
 
-export default function ClienteForm({pk}) {
+export default function ClienteForm({ pk }) {
     const {
         handleSubmit,
         control,
-        formState: {errors},
+        formState: { errors },
         setValue
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
@@ -51,10 +51,12 @@ export default function ClienteForm({pk}) {
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
+        autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [selectedTributo, setSelectedTributo] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -67,38 +69,20 @@ export default function ClienteForm({pk}) {
         }
     }
 
-    const fetchData = async () => {
-        if (Boolean(pk) === false) {
-            const res = await fetch(`${API}/clientes/create`);
-            return await res.json();
-        } else {
-            const res = await fetch(`${API}/clientes/${pk}/update`);
-            if (res.status === 404) {
-                setSnackbar({
-                    message: 'Cliente no encontrado',
-                    severity: 'error',
-                    onClose: () => handleCloseSnackbar(true)
-                });
-                setOpenSnackbar(true);
-                return;
-            }
-            if (!res.ok) {
-                setSnackbar({
-                    message: 'Error al obtener los datos del cliente',
-                    severity: 'error',
-                    onClose: () => handleCloseSnackbar(true)
-                });
-                setOpenSnackbar(true);
-                console.log(res);
-                return;
-            }
-            return await res.json();
-        }
-    }
-
     useEffect(() => {
-        fetchData().then((data) => {
-            if (data) {
+        const fetchData = async () => {
+            const url = Boolean(pk) ? `${API}/clientes/${pk}/update` : `${API}/clientes/create`;
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                const message = `Error al obtener datos: ${data['error']}`
+                throw new Error(message);
+            }
+            return data;
+        }
+        const loadData = async () => {
+            try {
+                const data = await fetchData();
                 const selectOptions = data['select_options'];
                 setSelectOptions({
                     tipo_documento: selectOptions.tipo_documento,
@@ -138,60 +122,48 @@ export default function ClienteForm({pk}) {
                     });
                 }
             }
-        });
+            catch (e) {
+                console.error('Error en la carga de datos:', e);
+                setSnackbar({
+                    message: e.message,
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(true)
+                });
+                setOpenSnackbar(true);
+            }
+        }
+        loadData();
     }, []);
 
-    const onSubmit = (data) => {
-        if (Boolean(pk) === false) {
-            fetch(`${API}/clientes/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({cliente: data, tributos: selectedTributo})
-            }).then(res => {
-                if (res.ok) {
-                    setSnackbar({
-                        message: 'Cliente creado correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(true)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    console.log(res);
-                    setSnackbar({
-                        message: 'Error al crear el cliente',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
+    const onSubmit = async (data) => {
+        setIsSubmitting(true);
+        const url = Boolean(pk) ? `${API}/clientes/${pk}/update` : `${API}/clientes/create`;
+        const method = Boolean(pk) ? 'PUT' : 'POST';
+        try {
+            const res = await fetchWithAuth(url, method, {
+                cliente: data, tributos: selectedTributo
             });
-        } else {
-            fetch(`${API}/clientes/${pk}/update`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({cliente: data, tributos: selectedTributo})
-            }).then(res => {
-                if (res.ok) {
-                    setSnackbar({
-                        message: 'Cliente actualizado correctamente',
-                        severity: 'success',
-                        onClose: () => handleCloseSnackbar(true)
-                    });
-                    setOpenSnackbar(true);
-                } else {
-                    console.log(res);
-                    setSnackbar({
-                        message: 'Error al actualizar el cliente',
-                        severity: 'error',
-                        onClose: () => handleCloseSnackbar(false)
-                    });
-                    setOpenSnackbar(true);
-                }
+            const resJson = await res.json();
+            if (!res.ok) {
+                throw new Error(resJson['error']);
+            }
+            setSnackbar({
+                message: 'Cliente guardado correctamente',
+                severity: 'success',
+                autoHideDuration: 4000,
+                onClose: () => handleCloseSnackbar(true)
             });
+        } catch (e) {
+            console.error('Error al guardar el cliente:', e);
+            setSnackbar({
+                message: e.message,
+                severity: 'error',
+                autoHideDuration: null,
+                onClose: () => handleCloseSnackbar(false)
+            });
+            setIsSubmitting(false);
+        } finally {
+            setOpenSnackbar(true);
         }
     }
 
@@ -210,12 +182,12 @@ export default function ClienteForm({pk}) {
     return (
         <>
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
-                   sx={{mt: 2, padding: 2}}>
-                <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
+                sx={{ mt: 2, padding: 2 }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} centered>
-                        <Tab label="Principal"/>
-                        <Tab label="Facturación"/>
-                        <Tab label="Observaciones"/>
+                        <Tab label="Principal" />
+                        <Tab label="Facturación" />
+                        <Tab label="Observaciones" />
                     </Tabs>
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
@@ -227,8 +199,8 @@ export default function ClienteForm({pk}) {
                                     name="tipo_responsable_id"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="tipo_responsable"
@@ -249,8 +221,8 @@ export default function ClienteForm({pk}) {
                                     name="razon_social"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
@@ -271,8 +243,8 @@ export default function ClienteForm({pk}) {
                                     name="tipo_documento_id"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="tipo_documento"
@@ -300,7 +272,7 @@ export default function ClienteForm({pk}) {
                                             message: "El número de documento debe ser numérico"
                                         }
                                     }}
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
@@ -328,7 +300,7 @@ export default function ClienteForm({pk}) {
                                             return selectedDate < currentDate || "La fecha de nacimiento no puede ser futura";
                                         }
                                     }}
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
                                             <DatePicker
                                                 {...field}
@@ -349,7 +321,7 @@ export default function ClienteForm({pk}) {
                                     name="genero_id"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="genero"
@@ -364,7 +336,7 @@ export default function ClienteForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{mt: 3}}>Domicilio</Typography>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Domicilio</Typography>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormControl fullWidth>
@@ -372,8 +344,8 @@ export default function ClienteForm({pk}) {
                                     name="direccion"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
@@ -393,8 +365,8 @@ export default function ClienteForm({pk}) {
                                     name="localidad"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
@@ -414,8 +386,8 @@ export default function ClienteForm({pk}) {
                                     name="codigo_postal"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
@@ -436,8 +408,8 @@ export default function ClienteForm({pk}) {
                                     name="provincia_id"
                                     control={control}
                                     defaultValue=""
-                                    rules={{required: "Este campo es requerido"}}
-                                    render={({field}) => (
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="provincia"
@@ -453,7 +425,7 @@ export default function ClienteForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{mt: 3}}>Contacto</Typography>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Contacto</Typography>
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
                             <FormControl fullWidth>
@@ -461,7 +433,7 @@ export default function ClienteForm({pk}) {
                                     name="telefono"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="telefono"
@@ -484,7 +456,7 @@ export default function ClienteForm({pk}) {
                                             message: "Email inválido"
                                         }
                                     }}
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="email"
@@ -507,7 +479,7 @@ export default function ClienteForm({pk}) {
                                     name="descuento"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="descuento"
@@ -528,7 +500,7 @@ export default function ClienteForm({pk}) {
                                     name="recargo"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="recargo"
@@ -550,7 +522,7 @@ export default function ClienteForm({pk}) {
                                     name="tipo_pago_id"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="tipo_pago"
@@ -571,7 +543,7 @@ export default function ClienteForm({pk}) {
                                     name="moneda_id"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <Select
                                             {...field}
                                             id="moneda"
@@ -591,7 +563,7 @@ export default function ClienteForm({pk}) {
                                     name="limite_credito"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="limite_credito"
@@ -611,9 +583,9 @@ export default function ClienteForm({pk}) {
                                         name="exento_iva"
                                         control={control}
                                         defaultValue={false}
-                                        render={({field: {onChange, value}}) => (
+                                        render={({ field: { onChange, value } }) => (
                                             <FormControlLabel
-                                                control={<Checkbox checked={value} onChange={onChange}/>}
+                                                control={<Checkbox checked={value} onChange={onChange} />}
                                                 label="Exento de IVA"
                                             />
                                         )}
@@ -622,9 +594,9 @@ export default function ClienteForm({pk}) {
                                         name="duplicado_factura"
                                         control={control}
                                         defaultValue={false}
-                                        render={({field: {onChange, value}}) => (
+                                        render={({ field: { onChange, value } }) => (
                                             <FormControlLabel
-                                                control={<Checkbox checked={value} onChange={onChange}/>}
+                                                control={<Checkbox checked={value} onChange={onChange} />}
                                                 label="Factura duplicado"
                                             />
                                         )}
@@ -633,7 +605,7 @@ export default function ClienteForm({pk}) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{mt: 2}}>Tributos adicionales</Typography>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Tributos adicionales</Typography>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <TributoDataGrid
@@ -652,7 +624,7 @@ export default function ClienteForm({pk}) {
                                     name="observacion"
                                     control={control}
                                     defaultValue=""
-                                    render={({field}) => (
+                                    render={({ field }) => (
                                         <TextField
                                             {...field}
                                             id="observacion"
@@ -667,17 +639,27 @@ export default function ClienteForm({pk}) {
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
-                <Box sx={{display: 'flex', justifyContent: 'right', mt: 2}}>
-                    <Button variant="contained" startIcon={<SaveIcon/>} type="submit">
-                        Guardar
-                    </Button>
+                <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<SaveIcon />}
+                            type="button"
+                            onClick={handleSubmit(onSubmit, onError)}
+                            disabled={isSubmitting}
+                        >
+                            Guardar
+                        </Button>
+                    </Box>
                 </Box>
             </Paper>
-            <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={snackbar.onClose}>
-                <Alert onClose={snackbar.onClose} severity={snackbar.severity} sx={{width: '100%'}}>
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+            <SnackbarAlert
+                open={openSnackbar}
+                autoHideDuration={snackbar.autoHideDuration}
+                onClose={snackbar.onClose}
+                severity={snackbar.severity}
+                message={snackbar.message}
+            />
         </>
     );
 }

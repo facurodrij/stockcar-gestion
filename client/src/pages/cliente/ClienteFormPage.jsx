@@ -1,8 +1,8 @@
-import React, {useEffect} from 'react';
-import {useParams} from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Typography from "@mui/material/Typography";
-import {ClienteForm} from '../../components/cliente';
-import {checkAuth, checkRoles} from '../../utils/checkAuth';
+import { ClienteForm } from '../../components/cliente';
+import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
 export default function ClienteFormPage() {
     const routeParams = useParams();
@@ -10,8 +10,8 @@ export default function ClienteFormPage() {
 
     useEffect(() => {
         checkAuth();
-        checkRoles(['admin', 'cobranza', 'vendedor']);
-    } , []);
+        checkPermissions(['cliente.create', 'cliente.update']);
+    }, []);
 
     return (
         <>
@@ -26,7 +26,7 @@ export default function ClienteFormPage() {
             >
                 {pk ? 'Editar' : 'Agregar'} Cliente
             </Typography>
-            <ClienteForm pk={pk}/>
+            <ClienteForm pk={pk} />
         </>
     );
 };
