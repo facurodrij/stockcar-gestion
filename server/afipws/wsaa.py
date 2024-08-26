@@ -31,7 +31,7 @@ import zeep
 
 from datetime import datetime, timezone
 from pysimplesoap.client import SimpleXMLElement
-from cryptography import __version__ as x509
+from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
