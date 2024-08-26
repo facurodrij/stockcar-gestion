@@ -17,8 +17,6 @@ from server.core.decorators import permission_required
 
 cliente_bp = Blueprint("cliente_bp", __name__)
 
-model = "clientes"
-
 
 def get_select_options():
     tipo_documento = TipoDocumento.query.all()
