@@ -29,8 +29,9 @@ def import_data():
     for index, row in df.iterrows():
         articulo = Articulo(
             id=row['id'],
-            codigo_barras=row['codigo_barras'],
+            codigo_principal=row['codigo_barras'],
             descripcion=row['descripcion'],
+            linea_factura=row['descripcion'][:30],
         )
         articulo_list.append(articulo)
 
