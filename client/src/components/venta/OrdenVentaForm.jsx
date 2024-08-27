@@ -360,26 +360,28 @@ export default function OrdenVentaForm({ pk }) {
                             </Grid>
                         </Grid>
                     </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
-                        <Button
-                            variant="contained"
-                            startIcon={<SaveIcon />}
-                            type="button"
-                            onClick={handleSubmit(onSubmit, onError)}
-                            disabled={isSubmitting}
-                        >
-                            Guardar Orden de Venta
-                        </Button>
-                        {/* TODO: Revisar como implementar Presupuestos */}
-                        <Button
-                            variant="contained"
-                            startIcon={<SaveIcon />}
-                            type="button"
-                            onClick={handleSubmit(onSubmit, onError)}
-                            disabled={isSubmitting}
-                        >
-                            Presupuesto
-                        </Button>
+                    <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                            <Button
+                                variant="contained"
+                                startIcon={<SaveIcon />}
+                                type="button"
+                                onClick={handleSubmit(onSubmit, onError)}
+                                disabled={isSubmitting}
+                            >
+                                Guardar Orden de Venta
+                            </Button>
+                            {/* TODO: Revisar como implementar Presupuestos */}
+                            <Button
+                                variant="contained"
+                                startIcon={<SaveIcon />}
+                                type="button"
+                                onClick={handleSubmit(onSubmit, onError)}
+                                disabled={isSubmitting}
+                            >
+                                Presupuesto
+                            </Button>
+                        </Box>
                     </Box>
                 </Box>
             </Paper>

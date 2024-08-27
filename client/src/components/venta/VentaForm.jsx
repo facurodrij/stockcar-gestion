@@ -627,28 +627,30 @@ export default function VentaForm({ pk }) {
                             </Grid>
                         </Grid>
                     </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
-                        {estadoVenta === 'Orden' ? (
-                            <Button
-                                variant="contained"
-                                startIcon={<SaveIcon />}
-                                type="button"
-                                onClick={handleSubmit(onSubmit, onError)}
-                                disabled={isSubmitting}
-                            >
-                                Facturar Orden y Guardar
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="contained"
-                                startIcon={<SaveIcon />}
-                                type="button"
-                                onClick={handleSubmit(onSubmit, onError)}
-                                disabled={isSubmitting}
-                            >
-                                Guardar
-                            </Button>
-                        )}
+                    <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                            {estadoVenta === 'Orden' ? (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<SaveIcon />}
+                                    type="button"
+                                    onClick={handleSubmit(onSubmit, onError)}
+                                    disabled={isSubmitting}
+                                >
+                                    Facturar Orden y Guardar
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<SaveIcon />}
+                                    type="button"
+                                    onClick={handleSubmit(onSubmit, onError)}
+                                    disabled={isSubmitting}
+                                >
+                                    Guardar
+                                </Button>
+                            )}
+                        </Box>
                     </Box>
                 </Box>
             </Paper>
