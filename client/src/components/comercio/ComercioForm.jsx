@@ -486,16 +486,18 @@ export default function ComercioForm({ pk }) {
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
-                <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
-                    <Button
-                        variant="contained"
-                        startIcon={<SaveIcon />}
-                        type="button"
-                        onClick={handleSubmit(onSubmit, onError)}
-                        disabled={isSubmitting}
-                    >
-                        Guardar
-                    </Button>
+                <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<SaveIcon />}
+                            type="button"
+                            onClick={handleSubmit(onSubmit, onError)}
+                            disabled={isSubmitting}
+                        >
+                            Guardar
+                        </Button>
+                    </Box>
                 </Box>
             </Paper>
             <SnackbarAlert
