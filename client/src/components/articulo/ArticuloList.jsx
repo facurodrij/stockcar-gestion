@@ -64,11 +64,12 @@ export default function ArticuloList() {
     }, []);
 
     const columns = [
-        {field: 'descripcion', headerName: 'Descripción', flex: 1.5},
-        {field: 'codigo_barras', headerName: 'Código de barras', flex: 1},
-        {field: 'codigo_fabricante', headerName: 'Código de fabricante', flex: 1},
-        {field: 'codigo_proveedor', headerName: 'Código de proveedor', flex: 1},
-        {field: 'codigo_interno', headerName: 'Código interno', flex: 1},
+        {field: 'descripcion', headerName: 'Descripción', flex: 2},
+        {field: 'codigo_principal', headerName: 'Código principal', flex: 1},
+        {field: 'codigo_secundario', headerName: 'Código secundario', flex: 0.75},
+        {field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75},
+        {field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75},
+        {field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75},
         {
             field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
             getActions: (params) => [
@@ -86,10 +87,11 @@ export default function ArticuloList() {
     let rows = list.map(item => {
         return {
             id: item.id,
-            codigo_barras: item.codigo_barras,
-            codigo_fabricante: item.codigo_fabricante,
-            codigo_proveedor: item.codigo_proveedor,
-            codigo_interno: item.codigo_interno,
+            codigo_principal: item.codigo_principal,
+            codigo_secundario: item.codigo_secundario,
+            codigo_terciario: item.codigo_terciario,
+            codigo_cuaternario: item.codigo_cuaternario,
+            codigo_adicional: item.codigo_adicional,
             descripcion: item.descripcion,
         }
     });

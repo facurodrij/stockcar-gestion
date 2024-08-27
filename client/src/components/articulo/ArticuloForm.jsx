@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, set, useForm } from 'react-hook-form';
 import {
     Box,
     Button,
@@ -82,15 +82,20 @@ export default function ArticuloForm({ pk }) {
                 if (Boolean(pk)) {
                     const articulo = data['articulo'];
                     const tributos = articulo['tributos'];
-                    setValue('codigo_barras', articulo.codigo_barras);
-                    if (articulo.codigo_fabricante) setValue('codigo_fabricante', articulo.codigo_fabricante);
-                    if (articulo.codigo_proveedor) setValue('codigo_proveedor', articulo.codigo_proveedor);
-                    if (articulo.codigo_interno) setValue('codigo_interno', articulo.codigo_interno);
+                    setValue('codigo_principal', articulo.codigo_principal);
+                    if (articulo.codigo_secundario) setValue('codigo_secundario', articulo.codigo_secundario);
+                    if (articulo.codigo_terciario) setValue('codigo_terciario', articulo.codigo_terciario);
+                    if (articulo.codigo_cuaternario) setValue('codigo_cuaternario', articulo.codigo_cuaternario);
+                    if (articulo.codigo_adicional) setValue('codigo_adicional', articulo.codigo_adicional.join(', '));  
+                    // Es necesario setear el valor de la descripción y la línea de factura
+                    setDescripcion(articulo.descripcion);
+                    setLineaFactura(articulo.linea_factura);
                     setValue('descripcion', articulo.descripcion);
+                    setValue('linea_factura', articulo.linea_factura);
                     setValue('tipo_articulo_id', articulo.tipo_articulo.id);
                     setValue('tipo_unidad_id', articulo.tipo_unidad.id);
                     setValue('alicuota_iva_id', articulo.alicuota_iva.id);
-                    setValue('observacion', articulo.observacion);
+                    if (articulo.observacion) setValue('observacion', articulo.observacion);
                     setSelectedTributo([])
                     tributos.map((t) => {
                         setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
@@ -115,6 +120,11 @@ export default function ArticuloForm({ pk }) {
         const url = Boolean(pk) ? `${API}/articulos/${pk}/update` : `${API}/articulos/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
+            if (data['codigo_adicional']) {
+                data['codigo_adicional'] = data['codigo_adicional'].split(',').map((c) => c.trim());
+                console.log(data['codigo_adicional']);
+            }
+            
             const res = await fetchWithAuth(url, method, {
                 articulo: data, tributos: selectedTributo
             });
@@ -123,7 +133,7 @@ export default function ArticuloForm({ pk }) {
                 throw new Error(resJson['error']);
             }
             setSnackbar({
-                message: 'Cliente guardado correctamente',
+                message: 'Artículo guardado correctamente',
                 severity: 'success',
                 autoHideDuration: 4000,
                 onClose: () => handleCloseSnackbar(true)
@@ -143,7 +153,7 @@ export default function ArticuloForm({ pk }) {
     }
 
     const onError = (errors) => {
-        if (errors['codigo_barras'] || errors['descripcion']) {
+        if (errors['codigo_principal'] || errors['descripcion']) {
             setTabValue(0);
             return;
         }
@@ -151,6 +161,14 @@ export default function ArticuloForm({ pk }) {
             setTabValue(1);
         }
     }
+
+    const [descripcion, setDescripcion] = useState('');
+    const [lineaFactura, setLineaFactura] = useState('');
+
+    useEffect(() => {
+        setLineaFactura(descripcion.substring(0, 30));
+        setValue('linea_factura', descripcion.substring(0, 30));
+    }, [descripcion]);
 
     return (
         <>
@@ -165,22 +183,84 @@ export default function ArticuloForm({ pk }) {
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
                     <Grid container spacing={2}>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <Controller
-                                    name="codigo_barras"
+                                    name="codigo_principal"
                                     control={control}
                                     defaultValue=""
-                                    rules={{ required: "Este campo es requerido" }}
+                                    rules={{
+                                        required: "Este campo es requerido",
+                                        maxLength: {
+                                            value: 20,
+                                            message: "Máximo 20 caracteres."
+                                        }
+                                    }}
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
                                             required
-                                            id="codigo_barras"
-                                            label="Código de barras"
+                                            id="codigo_principal"
+                                            label="Código principal"
                                             variant="outlined"
-                                            error={Boolean(errors.codigo_barras)}
-                                            helperText={errors.codigo_barras && errors.codigo_barras.message}
+                                            error={Boolean(errors.codigo_principal)}
+                                            helperText={
+                                                errors.codigo_principal
+                                                    ? errors.codigo_principal.message
+                                                    : "Máximo 20 caracteres. Será utilizado en los renglones de venta."
+                                            }
+                                            inputProps={{ maxLength: 20 }}
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="codigo_secundario"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="codigo_secundario"
+                                            label="Código secundario"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="codigo_terciario"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="codigo_terciario"
+                                            label="Código terciario"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="codigo_cuaternario"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="codigo_cuaternario"
+                                            label="Código cuaternario"
+                                            variant="outlined"
                                         />
                                     )}
                                 />
@@ -189,49 +269,16 @@ export default function ArticuloForm({ pk }) {
                         <Grid item xs={12}>
                             <FormControl fullWidth>
                                 <Controller
-                                    name="codigo_fabricante"
+                                    name="codigo_adicional"
                                     control={control}
                                     defaultValue=""
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
-                                            id="codigo_fabricante"
-                                            label="Código de fabricante"
+                                            id="codigo_adicional"
+                                            label="Códigos adicionales"
                                             variant="outlined"
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="codigo_proveedor"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            id="codigo_proveedor"
-                                            label="Código de proveedor"
-                                            variant="outlined"
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="codigo_interno"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            id="codigo_interno"
-                                            label="Código interno"
-                                            variant="outlined"
+                                            helperText={"(Opcional) Ingrese los códigos adicionales separados por comas."}
                                         />
                                     )}
                                 />
@@ -253,8 +300,44 @@ export default function ArticuloForm({ pk }) {
                                             variant="outlined"
                                             multiline
                                             rows={4}
+                                            value={descripcion}
+                                            onChange={(e) => {
+                                                setDescripcion(e.target.value);
+                                                field.onChange(e);
+                                            }}
                                             error={Boolean(errors.descripcion)}
                                             helperText={errors.descripcion && errors.descripcion.message}
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="linea_factura"
+                                    control={control}
+                                    defaultValue=""
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            required
+                                            id="linea_factura"
+                                            label="Línea de factura"
+                                            variant="outlined"
+                                            value={lineaFactura}
+                                            onChange={(e) => {
+                                                const value = e.target.value.substring(0, 30);
+                                                setLineaFactura(value);
+                                                field.onChange(value);
+                                            }}
+                                            error={Boolean(errors.linea_factura)}
+                                            helperText={
+                                                errors.linea_factura
+                                                    ? errors.linea_factura.message
+                                                    : "Máximo 30 caracteres. Será utilizado como descripción por defecto en los renglones de venta."
+                                            }
                                         />
                                     )}
                                 />

@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {Button, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
+import React, { useEffect, useState } from 'react';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import {
     DataGrid,
     GridToolbarColumnsButton,
@@ -7,17 +7,17 @@ import {
     GridToolbarFilterButton,
     GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import {API} from "../../App";
-import {esES} from "@mui/x-data-grid/locales";
+import { API } from "../../App";
+import { esES } from "@mui/x-data-grid/locales";
 import Box from "@mui/material/Box";
 import IconButton from '@mui/material/IconButton';
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import AddIcon from '@mui/icons-material/Add';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import fetchWithAuth from '../../utils/fetchWithAuth';
 
-const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones}) => {
+const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones }) => {
     const [listArticulo, setListArticulo] = useState([]);
     const [showSelected, setShowSelected] = useState(false);
 
@@ -28,11 +28,11 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
     const CustomToolbar = () => {
         return (
             <GridToolbarContainer>
-                <GridToolbarQuickFilter size={'small'}/>
-                <GridToolbarColumnsButton/>
-                <GridToolbarFilterButton/>
+                <GridToolbarQuickFilter size={'small'} />
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
                 <Button
-                    startIcon={<ChecklistIcon/>}
+                    startIcon={<ChecklistIcon />}
                     size="small"
                     onClick={() => {
                         setShowSelected(!showSelected);
@@ -40,9 +40,9 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                 >
                     {showSelected ? 'Ver Todos' : 'Ver Seleccionados'}
                 </Button>
-                <Box sx={{flexGrow: 1}}/>
+                <Box sx={{ flexGrow: 1 }} />
                 <Button
-                    startIcon={<AddIcon/>}
+                    startIcon={<AddIcon />}
                     component={Link}
                     to="/articulos/form"
                     target="_blank"
@@ -93,26 +93,29 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                     top: 8,
                 }}
             >
-                <RefreshIcon/>
+                <RefreshIcon />
             </IconButton>
             <DialogContent dividers>
-                <div style={{height: 400, width: '100%'}}>
+                <div style={{ height: 400, width: '100%' }}>
                     <DataGrid
                         columns={[
-                            {field: 'descripcion', headerName: 'Descripción', flex: 1.5},
-                            {field: 'codigo_barras', headerName: 'Código de Barras', flex: 1},
-                            {field: 'codigo_fabricante', headerName: 'Código de Fabricante', flex: 1},
-                            {field: 'codigo_proveedor', headerName: 'Código de Proveedor', flex: 1},
-                            {field: 'codigo_interno', headerName: 'Código Interno', flex: 1},
+                            { field: 'descripcion', headerName: 'Descripción', flex: 2 },
+                            { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
+                            { field: 'codigo_secundario', headerName: 'Código secundario', flex: 0.75 },
+                            { field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75 },
+                            { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
+                            { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
                         ]}
                         rows={filteredArticulo.map((item) => {
                             return {
                                 id: item.id,
                                 descripcion: item.descripcion,
-                                codigo_barras: item.codigo_barras,
-                                codigo_fabricante: item.codigo_fabricante,
-                                codigo_proveedor: item.codigo_proveedor,
-                                codigo_interno: item.codigo_interno
+                                codigo_principal: item.codigo_principal,
+                                codigo_secundario: item.codigo_secundario,
+                                codigo_terciario: item.codigo_terciario,
+                                codigo_cuaternario: item.codigo_cuaternario,
+                                codigo_adicional: item.codigo_adicional,
+                                linea_factura: item.linea_factura,
                             }
                         })}
                         rowHeight={30}
@@ -128,7 +131,7 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                                 const exist = renglones.find((r) => r.articulo_id === row.id);
                                 return exist || {
                                     articulo_id: row.id,
-                                    descripcion: row.descripcion,
+                                    descripcion: row.linea_factura,
                                     cantidad: 1,
                                     precio_unidad: 0,
                                     alicuota_iva: row.alicuota_iva.porcentaje,
@@ -141,7 +144,7 @@ const ArticuloSelectorDialog = ({open, onClose, selectedArticulo, setSelectedArt
                             setSelectedArticulo(newSelection);
                         }}
                         rowSelectionModel={selectedArticulo}
-                        slots={{toolbar: CustomToolbar}}
+                        slots={{ toolbar: CustomToolbar }}
                         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     />
                 </div>
