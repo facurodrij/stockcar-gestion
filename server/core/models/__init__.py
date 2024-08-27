@@ -1,7 +1,7 @@
 from .cliente import Cliente
 from .venta import Venta, EstadoVenta
 from .venta_item import VentaItem
-from .articulo import Articulo, ArticuloCodigo
+from .articulo import Articulo
 from .tributo import Tributo
 from .comercio import Comercio, PuntoVenta
 from .parametros import *

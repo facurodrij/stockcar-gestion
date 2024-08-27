@@ -1,5 +1,6 @@
-from sqlalchemy import ForeignKey, Column, Integer, String, Numeric, DateTime, Boolean, Enum, func
+from sqlalchemy import ForeignKey, Column, Integer, String, Numeric, DateTime, Boolean, func, PickleType
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.mutable import MutableList
 
 from server.config import db
 
@@ -13,11 +14,13 @@ class Articulo(db.Model):
     """
     __tablename__ = 'articulo'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    codigo_barras = Column(String, nullable=False)
-    codigo_fabricante = Column(String, nullable=True)
-    codigo_proveedor = Column(String, nullable=True)
-    codigo_interno = Column(String, nullable=True)
+    codigo_principal = Column(String, nullable=False)  # Código principal del artículo
+    codigo_secundario = Column(String, nullable=True)  # Código secundario (fabricante)
+    codigo_terciario = Column(String, nullable=True)   # Código terciario (proveedor)
+    codigo_cuaternario = Column(String, nullable=True) # Código cuaternario (interno)
+    codigo_adicional = Column(MutableList.as_mutable(PickleType), nullable=True)
     descripcion = Column(String, nullable=False)
+    linea_factura = Column(String(30), nullable=False)
     stock_minimo = Column(Numeric, nullable=True)
     stock_maximo = Column(Numeric, nullable=True)
     observacion = Column(String, nullable=True)
@@ -48,11 +51,13 @@ class Articulo(db.Model):
 
         return {
             'id': self.id,
-            'codigo_barras': self.codigo_barras,
-            'codigo_fabricante': self.codigo_fabricante,
-            'codigo_proveedor': self.codigo_proveedor,
-            'codigo_interno': self.codigo_interno,
+            'codigo_principal': self.codigo_principal,
+            'codigo_secundario': self.codigo_secundario,
+            'codigo_terciario': self.codigo_terciario,
+            'codigo_cuaternario': self.codigo_cuaternario,
+            'codigo_adicional': self.codigo_adicional,
             'descripcion': self.descripcion,
+            'linea_factura': self.linea_factura,
             'stock_minimo': self.stock_minimo,
             'stock_maximo': self.stock_maximo,
             'observacion': self.observacion,
@@ -65,21 +70,3 @@ class Articulo(db.Model):
             'baja': self.baja,
             'fecha_baja': self.fecha_baja,
         }
-
-
-class ArticuloCodigo(db.Model):
-    """
-    Modelo de datos para los códigos de los artículos.
-
-    Esta clase representa un código de artículo en la base de datos. Incluye campos para los datos principales del código
-    del artículo y las relaciones con otras tablas.
-    """
-    __tablename__ = 'articulo_codigo'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    descripcion = Column(String, nullable=False)
-    codigo = Column(String, nullable=False)
-
-    # Relaciones con otras tablas
-    articulo_id = Column(Integer, ForeignKey('articulo.id'), nullable=False)
-    articulo = relationship('Articulo', backref='articulo_codigo')
