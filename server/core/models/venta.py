@@ -47,6 +47,7 @@ class Venta(db.Model):
     fecha_hora = Column(DateTime, default=func.now(), nullable=False)
     descuento = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
     recargo = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
+    moneda_cotizacion = Column(Numeric(precision=10, scale=2), default=1, nullable=False)
     gravado = Column(
         Numeric(precision=10, scale=2), default=0, nullable=False
     )  # Total - IVA - Percepción
@@ -184,6 +185,7 @@ class Venta(db.Model):
             "cliente": self.cliente.to_json_min(),
             "tipo_comprobante": self.tipo_comprobante.to_json(),
             "moneda": self.moneda.to_json(),
+            "moneda_cotizacion": self.moneda_cotizacion,
             "tipo_pago": self.tipo_pago.to_json(),
             "punto_venta": self.punto_venta.to_json(),
             "numero": self.numero,

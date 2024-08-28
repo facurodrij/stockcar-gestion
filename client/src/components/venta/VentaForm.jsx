@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, set, useForm } from 'react-hook-form';
 import {
     Autocomplete,
     Box,
@@ -124,6 +124,7 @@ export default function VentaForm({ pk }) {
                     setValue('recargo', venta.recargo);
                     setValue('tipo_pago_id', venta.tipo_pago.id);
                     setValue('moneda_id', venta.moneda.id);
+                    setValue('moneda_cotizacion', venta.moneda_cotizacion);
                     if (venta.cae) setValue('cae', venta.cae);
                     if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
                     if (venta.observacion) setValue('observacion', venta.observacion);
@@ -506,27 +507,6 @@ export default function VentaForm({ pk }) {
                         </Grid>
                         <Grid item xs={6}>
                             <FormControl fullWidth>
-                                <InputLabel id="tipo_pago_label">Tipo de Pago</InputLabel>
-                                <Controller
-                                    name="tipo_pago_id"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <Select
-                                            {...field}
-                                            id="tipo_pago"
-                                            labelId="tipo_pago_label"
-                                            label="Tipo de Pago"
-                                        >
-                                            {selectOptions.tipo_pago.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
-                                        </Select>
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
                                 <InputLabel id="moneda_label">Moneda</InputLabel>
                                 <Controller
                                     name="moneda_id"
@@ -540,6 +520,52 @@ export default function VentaForm({ pk }) {
                                             label="Moneda"
                                         >
                                             {selectOptions.moneda.map((item) => (
+                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                        </Select>
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="moneda_cotizacion"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            label="Cotización"
+                                            variant="outlined"
+                                            type='number'
+                                            InputProps={{
+                                                startAdornment: <InputAdornment position="start">$</InputAdornment>
+                                            }}
+                                            error={Boolean(errors.moneda_cotizacion)}
+                                            helperText={errors.moneda_cotizacion 
+                                                ? errors.moneda_cotizacion.message 
+                                                : '1 si la moneda es ARS, caso contrario ingresar la cotización respecto al peso argentino'
+                                            }
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControl fullWidth>
+                                <InputLabel id="tipo_pago_label">Tipo de Pago</InputLabel>
+                                <Controller
+                                    name="tipo_pago_id"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <Select
+                                            {...field}
+                                            id="tipo_pago"
+                                            labelId="tipo_pago_label"
+                                            label="Tipo de Pago"
+                                        >
+                                            {selectOptions.tipo_pago.map((item) => (
                                                 <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
                                         </Select>
                                     )}

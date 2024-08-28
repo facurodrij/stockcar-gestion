@@ -48,7 +48,7 @@ class BasePDFGenerator(canvas.Canvas):
             "nroCmp": self.venta.numero,
             "importe": float(self.venta.total),
             "moneda": self.venta.moneda.codigo_afip,
-            "ctz": 1,  # TODO: Agregar campo cotización
+            "ctz": float(self.venta.moneda_cotizacion),
             "tipoDocRec": int(self.venta.cliente.tipo_documento.codigo_afip),
             "nroDocRec": int(self.venta.cliente.nro_documento),
             "tipoCodAut": "E",

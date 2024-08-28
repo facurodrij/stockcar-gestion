@@ -69,7 +69,7 @@ class AfipService:
                 # Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
                 "MonId": venta.moneda.codigo_afip,
                 # Cotización de la moneda usada (1 para pesos argentinos)
-                "MonCotiz": 1,
+                "MonCotiz": float(venta.moneda_cotizacion),
                 "Iva": (
                     [
                         {
