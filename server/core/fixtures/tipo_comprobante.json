@@ -21,13 +21,6 @@
         "letra": "A"
     },
     {
-        "id": 4,
-        "codigo_afip": 4,
-        "descripcion": "Recibo A",
-        "abreviatura": "RA",
-        "letra": "A"
-    },
-    {
         "id": 5,
         "codigo_afip": 6,
         "descripcion": "Factura B",
@@ -49,13 +42,6 @@
         "letra": "B"
     },
     {
-        "id": 8,
-        "codigo_afip": 9,
-        "descripcion": "Recibo B",
-        "abreviatura": "RB",
-        "letra": "B"
-    },
-    {
         "id": 9,
         "codigo_afip": null,
         "descripcion": "Remito",
@@ -67,6 +53,7 @@
         "codigo_afip": null,
         "descripcion": "Presupuesto",
         "abreviatura": "P",
-        "letra": "P"
+        "letra": "P",
+        "descontar_stock": false
     }
 ]
