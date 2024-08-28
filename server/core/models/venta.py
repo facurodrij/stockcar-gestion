@@ -16,6 +16,7 @@ from sqlalchemy.orm import relationship
 
 from server.config import db
 from server.core.models.association_table import tributo_venta
+from server.core.models.parametros import AlicuotaIVA
 
 
 class EstadoVenta(enum.Enum):
@@ -120,6 +121,45 @@ class Venta(db.Model):
             .scalar()
         )
         return float(importe)
+
+    def get_iva_alicuota(self) -> list:
+        """
+        Obtiene la lista de alícuotas de IVA según los items de la venta.
+        <ar:Iva>
+            <ar:AlicIva>
+                <ar:Id>5</ar:Id> -> 21%
+                <ar:BaseImp>100</ar:BaseImp>
+                <ar:Importe>21</ar:Importe>
+            </ar:AlicIva>
+            <ar:AlicIva>
+                <ar:Id>4</ar:Id> -> 10.5%
+                <ar:BaseImp>50</ar:BaseImp>
+                <ar:Importe>5.25</ar:Importe>
+            </ar:AlicIva>
+        </ar:Iva>
+        """
+        iva_alicuotas = []
+        for item in self.items:
+            alicuota = AlicuotaIVA.query.filter_by(porcentaje=item.alicuota_iva).first()
+            iva_alicuotas.append(
+                {
+                    "Id": alicuota.codigo_afip,
+                    "BaseImp": "{:.2f}".format(item.subtotal_gravado),
+                    "Importe": "{:.2f}".format(item.subtotal_iva),
+                }
+            )
+        # Sumar BaseImp e Importe y remover items con Id duplicados
+        for i, iva in enumerate(iva_alicuotas):
+            for j, iva2 in enumerate(iva_alicuotas):
+                if i != j and iva["Id"] == iva2["Id"]:
+                    iva["BaseImp"] = "{:.2f}".format(
+                        Decimal(iva["BaseImp"]) + Decimal(iva2["BaseImp"])
+                    )
+                    iva["Importe"] = "{:.2f}".format(
+                        Decimal(iva["Importe"]) + Decimal(iva2["Importe"])
+                    )
+                    iva_alicuotas.pop(j)
+        return iva_alicuotas
 
     def to_json(self):
         """
