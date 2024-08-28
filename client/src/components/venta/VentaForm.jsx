@@ -60,7 +60,8 @@ export default function VentaForm({ pk }) {
         tipo_pago: [],
         moneda: [],
         tributo: [],
-        punto_venta: []
+        punto_venta: [],
+        alicuota_iva: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -109,7 +110,8 @@ export default function VentaForm({ pk }) {
                     tipo_pago: selectOptions.tipo_pago,
                     moneda: selectOptions.moneda,
                     tributo: selectOptions.tributo,
-                    punto_venta: selectOptions.punto_venta
+                    punto_venta: selectOptions.punto_venta,
+                    alicuota_iva: selectOptions.alicuota_iva
                 });
                 if (Boolean(pk)) {
                     const venta = data['venta'];
@@ -343,7 +345,15 @@ export default function VentaForm({ pk }) {
                     <Box sx={{ height: 500, width: '100%', '& .font-weight-bold': { fontWeight: '700' } }}>
                         <DataGrid
                             columns={[
-                                { field: 'descripcion', headerName: 'Descripción', flex: 2, editable: true },
+                                {
+                                    field: 'descripcion',
+                                    headerName: 'Descripción',
+                                    flex: 2,
+                                    editable: true,
+                                    valueFormatter: (value) => {
+                                        return value.length > 30 ? `${value.substring(0, 30)}...` : value;
+                                    }
+                                },
                                 {
                                     field: 'cantidad',
                                     headerName: 'Cantidad',
@@ -371,8 +381,11 @@ export default function VentaForm({ pk }) {
                                     field: 'alicuota_iva',
                                     headerName: 'IVA (%)',
                                     flex: 0.5,
-                                    type: 'number',
+                                    type: 'singleSelect',
                                     editable: true,
+                                    valueOptions: selectOptions.alicuota_iva.map((item) => (
+                                        { value: item.porcentaje, label: `${item.porcentaje}%` }
+                                    )),
                                     valueFormatter: (value) => {
                                         return new Intl.NumberFormat('es-AR').format(value);
                                     }

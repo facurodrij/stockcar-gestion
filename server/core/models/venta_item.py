@@ -14,7 +14,7 @@ class VentaItem(db.Model):
     __tablename__ = 'venta_item'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    descripcion = Column(String, nullable=False)
+    descripcion = Column(String(30), nullable=False)
     cantidad = Column(Numeric(precision=10, scale=2), nullable=False)
     precio_unidad = Column(Numeric(precision=10, scale=2), nullable=False)
     alicuota_iva = Column(Numeric(precision=5, scale=2), default=21, nullable=False)

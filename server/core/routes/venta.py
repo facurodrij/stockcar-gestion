@@ -17,6 +17,7 @@ from server.core.models import (
     Tributo,
     EstadoVenta,
     PuntoVenta,
+    AlicuotaIVA
 )
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
@@ -35,6 +36,7 @@ def get_select_options():
     moneda = Moneda.query.all()
     tributo = Tributo.query.all()
     punto_venta = PuntoVenta.query.all()
+    alicuota_iva = AlicuotaIVA.query.all()
     # TODO: Punto Venta, cargar los puntos de ventas de los comercios asociados al usuario actual
     return {
         "cliente": list(map(lambda x: x.to_json_min(), cliente)),
@@ -43,6 +45,7 @@ def get_select_options():
         "moneda": list(map(lambda x: x.to_json(), moneda)),
         "tributo": list(map(lambda x: x.to_json(), tributo)),
         "punto_venta": list(map(lambda x: x.to_json(), punto_venta)),
+        "alicuota_iva": list(map(lambda x: x.to_json(), alicuota_iva)),
     }
 
 
