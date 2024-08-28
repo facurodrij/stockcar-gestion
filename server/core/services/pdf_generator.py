@@ -2,6 +2,7 @@ import segno
 import base64
 import json
 import io
+import locale
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm, inch
@@ -11,6 +12,8 @@ from reportlab.lib.utils import ImageReader
 from num2words import num2words
 
 from server.core.models import Venta, EstadoVenta
+
+locale.setlocale(locale.LC_ALL, "es_AR.UTF-8")
 
 
 class BasePDFGenerator(canvas.Canvas):
@@ -43,10 +46,9 @@ class BasePDFGenerator(canvas.Canvas):
             "ptoVta": self.venta.punto_venta.numero,
             "tipoCmp": self.venta.tipo_comprobante.codigo_afip,
             "nroCmp": self.venta.numero,
-            # importe: 	Decimal hasta 13 enteros y 2 decimales
             "importe": float(self.venta.total),
             "moneda": self.venta.moneda.codigo_afip,
-            "ctz": 1, # TODO: Agregar campo cotización
+            "ctz": 1,  # TODO: Agregar campo cotización
             "tipoDocRec": int(self.venta.cliente.tipo_documento.codigo_afip),
             "nroDocRec": int(self.venta.cliente.nro_documento),
             "tipoCodAut": "E",
@@ -56,8 +58,7 @@ class BasePDFGenerator(canvas.Canvas):
         data_base64 = base64.b64encode(data_json.encode()).decode()
         qr_code = segno.make(f"{url}?p={data_base64}")
         qr_code_io = io.BytesIO()
-        qr_code.save(qr_code_io, kind='png', scale=3)
-        #"/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/codigo-qr.png", scale=3.42)
+        qr_code.save(qr_code_io, kind="png", scale=3)
         qr_code_io.seek(0)
         return qr_code_io
 
@@ -108,7 +109,9 @@ class A4PDFGenerator(BasePDFGenerator):
         elif self.venta.estado == EstadoVenta.anulado:
             self.drawString(340, 800, "NOTA DE CREDITO")
         self.setFontSize(10)
-        self.drawString(340, 780, f"Punto de Venta: {self.venta.punto_venta.numero:04d}")
+        self.drawString(
+            340, 780, f"Punto de Venta: {self.venta.punto_venta.numero:04d}"
+        )
         self.drawString(460, 780, f"Nro. Comp: {self.venta.numero:08d}")
         self.drawString(
             340,
@@ -116,9 +119,13 @@ class A4PDFGenerator(BasePDFGenerator):
             f"Fecha de Emisión: {self.venta.fecha_hora.strftime('%d/%m/%Y %H:%M:%S')}",
         )
         self.drawString(340, 745, f"CUIT: {self.venta.punto_venta.comercio.cuit}")
-        self.drawString(460, 745, f"IIBB: {self.venta.punto_venta.comercio.ingresos_brutos}") 
         self.drawString(
-            340, 730, f"Inicio de Actividades: {self.venta.punto_venta.comercio.inicio_actividades.strftime('%d/%m/%Y')}"
+            460, 745, f"IIBB: {self.venta.punto_venta.comercio.ingresos_brutos}"
+        )
+        self.drawString(
+            340,
+            730,
+            f"Inicio de Actividades: {self.venta.punto_venta.comercio.inicio_actividades.strftime('%d/%m/%Y')}",
         )
         # Agregar logo de la empresa (475px x 150px)
         self.drawImage(
@@ -147,7 +154,7 @@ class A4PDFGenerator(BasePDFGenerator):
         "Draw the table of items"
         table_data = [
             [
-                "Cód. Barras",
+                "Código",
                 "Descripción",
                 "Cantidad",
                 "Precio Unitario",
@@ -158,12 +165,12 @@ class A4PDFGenerator(BasePDFGenerator):
         for item in self.items:
             table_data.append(
                 [
-                    item.articulo.codigo_barras,
+                    item.articulo.codigo_principal,
                     self.truncate_text(item.descripcion, 33),
                     item.cantidad,
-                    f"${item.precio_unidad:.2f}",
-                    f"${item.alicuota_iva:.2f}",
-                    f"${item.subtotal:.2f}",
+                    f"${locale.format_string('%.2f', item.precio_unidad, grouping=True)}",
+                    f"{locale.format_string('%.2f', item.alicuota_iva, grouping=True)}",
+                    f"${locale.format_string('%.2f', item.subtotal, grouping=True)}",
                 ]
             )
         table_y_max = 655  # Max Y position for the table
@@ -196,8 +203,8 @@ class A4PDFGenerator(BasePDFGenerator):
             table_data.append(
                 [
                     tributo.descripcion,
-                    f"{tributo.alicuota:.2f}",
-                    f"${self.venta.get_tributo_importe(tributo.id):.2f}",
+                    f"{locale.format_string('%.2f', tributo.alicuota, grouping=True)}",
+                    f"${locale.format_string('%.2f', self.venta.get_tributo_importe(tributo.id), grouping=True)}",
                 ]
             )
         table_y_max = 250  # Max Y position for the table
@@ -226,13 +233,13 @@ class A4PDFGenerator(BasePDFGenerator):
         self.setFont("Helvetica-Bold", 12)
         self.drawRightString(450, 170, "Importe Total: $")
         self.setFont("Helvetica", 10)
-        self.drawRightString(570, 250, f"{self.venta.gravado:.2f}")
-        self.drawRightString(570, 235, f"{self.venta.descuento:.2f}")
-        self.drawRightString(570, 220, f"{self.venta.recargo:.2f}")
-        self.drawRightString(570, 205, f"{self.venta.total_iva:.2f}")
-        self.drawRightString(570, 190, f"{self.venta.total_tributos:.2f}")
+        self.drawRightString(570, 250, f"{locale.format_string('%.2f', self.venta.gravado, grouping=True)}")
+        self.drawRightString(570, 235, f"{locale.format_string('%.2f', self.venta.descuento, grouping=True)}")
+        self.drawRightString(570, 220, f"{locale.format_string('%.2f', self.venta.recargo, grouping=True)}")
+        self.drawRightString(570, 205, f"{locale.format_string('%.2f', self.venta.total_iva, grouping=True)}")
+        self.drawRightString(570, 190, f"{locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}")
         self.setFont("Helvetica-Bold", 12)
-        self.drawRightString(570, 170, f"{self.venta.total:.2f}")
+        self.drawRightString(570, 170, f"{locale.format_string('%.2f', self.venta.total, grouping=True)}")
 
         "Total in words"
         self.setFont("Helvetica", 7)
@@ -251,8 +258,8 @@ class A4PDFGenerator(BasePDFGenerator):
     def draw_CAE(self):
         "Draw CAE section"
         afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
-        qrcode_io = self.generate_qr_code() # QR code with AFIP data
-        qrcode_img = ImageReader(qrcode_io) # ImageReader object for the QR code
+        qrcode_io = self.generate_qr_code()  # QR code with AFIP data
+        qrcode_img = ImageReader(qrcode_io)  # ImageReader object for the QR code
 
         self.setFont("Helvetica-Bold", 10)
         self.drawRightString(440, 110, "CAE N°:")
@@ -280,7 +287,9 @@ class A4PDFGenerator(BasePDFGenerator):
     def generate_pdf(self, venta: Venta):
         self.venta = venta
         self.venta_items = venta.items
-        self.setTitle(f"A4 {self.venta.tipo_comprobante.descripcion}, N° {self.venta.nro_comprobante()}")
+        self.setTitle(
+            f"A4 {self.venta.tipo_comprobante.descripcion}, N° {self.venta.nro_comprobante()}"
+        )
         if len(self.venta_items) > 20:
             "If the sale has more than 20 items, create multiple pages"
             for i in range(0, len(self.venta_items), 20):
@@ -336,35 +345,36 @@ class TicketPDFGenerator(BasePDFGenerator):
             45, 690, f"{self.truncate_text(self.venta.cliente.razon_social, 30)}"
         )
         self.line(10, 680, 210, 680)
-        self.table_y_max = 670 # Max Y position for the items table
+        self.table_y_max = 680  # Max Y position for the items table
 
     def draw_item_table(self):
         "Draw the table of items"
-        table_data = []
+        table_data = [[f"CANT.\nCÓDIGO", f"P. UNIT.\nDESCRIPCIÓN", "SUBTOTAL"]]
         for item in self.items:
             table_data.append(
                 [
-                    item.cantidad,
-                    self.truncate_text(item.descripcion, 30),
-                    f"${item.subtotal:.2f}",
+                    f"{item.cantidad}\n{item.articulo.codigo_principal}",
+                    f"${locale.format_string('%.2f', item.precio_unidad, grouping=True)}\n{self.truncate_text(item.descripcion, 30)}",
+                    f"${locale.format_string('%.2f', item.subtotal, grouping=True)}\n",
                 ]
             )
-        row_heights = [10] * (len(table_data))
-        table = Table(table_data, colWidths=[30, 120, 60], rowHeights=row_heights)
+        row_heights = [20] * (len(table_data))
+        table = Table(table_data, colWidths=[50, 120, 40], rowHeights=row_heights)
         table.setStyle(
             TableStyle(
                 [
                     ("FONTSIZE", (0, 0), (-1, -1), 6),
-                    # ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                     ("ALIGN", (1, 0), (-1, -1), "LEFT"),
                     ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
-                    # ("GRID", (0, 0), (-1, 0), 1, colors.black),
+                    ("LEADING", (0, 0), (-1, -1), 6)
                 ]
             )
         )
         table.wrapOn(self, 0, 0)
         table.drawOn(self, 5, self.table_y_max - sum(row_heights))
-        self.total_y_max = self.table_y_max - sum(row_heights) # Max Y position for the total section
+        self.total_y_max = self.table_y_max - sum(
+            row_heights
+        ) - 5  # Max Y position for the total section
 
     def draw_total(self):
         "Draw Total section"
@@ -373,24 +383,26 @@ class TicketPDFGenerator(BasePDFGenerator):
         )  # Horizontal line for total section
         self.setFont("Helvetica", 8)
         self.drawString(10, self.total_y_max - 10, "Importe neto gravado:")
-        self.drawRightString(210, self.total_y_max - 10, f"$ {self.venta.gravado:.2f}")
+        self.drawRightString(210, self.total_y_max - 10, f"$ {locale.format_string('%.2f', self.venta.gravado, grouping=True)}")
         self.drawString(10, self.total_y_max - 20, "Importe IVA:")
-        self.drawRightString(210, self.total_y_max - 20, f"$ {self.venta.total_iva:.2f}")
+        self.drawRightString(
+            210, self.total_y_max - 20, f"$ {locale.format_string('%.2f', self.venta.total_iva, grouping=True)}"
+        )
         self.drawString(10, self.total_y_max - 30, "Importe otros tributos:")
-        self.drawRightString(210, self.total_y_max - 30, f"$ {self.venta.total_tributos:.2f}")
+        self.drawRightString(
+            210, self.total_y_max - 30, f"$ {locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}"
+        )
         self.setFont("Helvetica-Bold", 8)
         self.drawString(10, self.total_y_max - 45, "TOTAL:")
         self.setFont("Helvetica", 8)
-        self.drawRightString(
-            210, self.total_y_max - 45, f"$ {self.venta.total:.2f}"
-        )
-        self.cae_y_max = self.total_y_max - 60 # Max Y position for the CAE section
-    
+        self.drawRightString(210, self.total_y_max - 45, f"$ {locale.format_string('%.2f', self.venta.total, grouping=True)}")
+        self.cae_y_max = self.total_y_max - 60  # Max Y position for the CAE section
+
     def draw_CAE(self):
         "Draw CAE section"
         afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
-        qrcode_io = self.generate_qr_code() # QR code with AFIP data
-        qrcode_img = ImageReader(qrcode_io) # ImageReader object for the QR code
+        qrcode_io = self.generate_qr_code()  # QR code with AFIP data
+        qrcode_img = ImageReader(qrcode_io)  # ImageReader object for the QR code
 
         self.drawImage(
             qrcode_img,
@@ -401,9 +413,7 @@ class TicketPDFGenerator(BasePDFGenerator):
             preserveAspectRatio=True,
         )
         self.setFont("Helvetica", 8)
-        self.drawString(
-            95, self.cae_y_max - 15, "CAE N°: {}".format(self.venta.cae)
-        )
+        self.drawString(95, self.cae_y_max - 15, "CAE N°: {}".format(self.venta.cae))
         self.drawString(
             95,
             self.cae_y_max - 30,
@@ -425,7 +435,9 @@ class TicketPDFGenerator(BasePDFGenerator):
     def generate_pdf(self, venta: Venta):
         self.venta = venta
         self.venta_items = venta.items
-        self.setTitle(f"Ticket {self.venta.tipo_comprobante.descripcion}, N° {self.venta.nro_comprobante()}")
+        self.setTitle(
+            f"Ticket {self.venta.tipo_comprobante.descripcion}, N° {self.venta.nro_comprobante()}"
+        )
         if len(self.venta_items) > 45:
             "If the sale has more than 25 items, create multiple pages"
             for i in range(0, len(self.venta_items), 45):
@@ -435,10 +447,13 @@ class TicketPDFGenerator(BasePDFGenerator):
                     self.draw_header()
                 self.draw_item_table()
                 # Solo en la última página se dibuja el CAE
-                if i + 45 >= len(self.venta_items) and self.venta.estado == EstadoVenta.facturado:
+                if (
+                    i + 45 >= len(self.venta_items)
+                    and self.venta.estado == EstadoVenta.facturado
+                ):
                     self.draw_total()
                     self.draw_CAE()
-                self.table_y_max = 800 # Reset table_y_max for the next page
+                self.table_y_max = 800  # Reset table_y_max for the next page
                 self.showPage()
         else:
             self.items = self.venta_items
