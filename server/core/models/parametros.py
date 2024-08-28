@@ -85,8 +85,8 @@ class TipoComprobante(db.Model):
     descripcion = Column(String, nullable=False)
     letra = Column(String(1), nullable=False)
     abreviatura = Column(String(5), nullable=True)
-    # Indica si el comprobante debe descontarse del stock de los productos
     descontar_stock = Column(Boolean, default=True)
+    requiere_comprobante_asociado = Column(Boolean, default=False)
 
     # Relación muchos a muchos con TipoResponsable
     responsables = relationship('TipoResponsable', secondary='responsable_comprobante',
@@ -179,10 +179,9 @@ class Moneda(db.Model):
 class AlicuotaIVA(db.Model):
     __tablename__ = 'alicuota_iva'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    codigo_afip = Column(Integer, nullable=True)
-    descripcion = Column(String, nullable=False)  # Nombre de la alícuota ("21%", "10.5%", etc)
-    porcentaje = Column(Numeric, nullable=False)  # (21, 10.5, etc)
-
+    codigo_afip = Column(Integer, nullable=True, unique=True)
+    descripcion = Column(String, nullable=False, unique=True)  # Nombre de la alícuota ("21%", "10.5%", etc)
+    porcentaje = Column(Numeric(precision=5, scale=2), nullable=False, unique=True)
     def to_json(self):
         return {
             'id': self.id,
