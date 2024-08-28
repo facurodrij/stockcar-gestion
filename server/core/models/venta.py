@@ -122,7 +122,7 @@ class Venta(db.Model):
         )
         return float(importe)
 
-    def get_iva_alicuota(self) -> list:
+    def get_iva_alicuota(self, return_total=False) -> list:
         """
         Obtiene la lista de alícuotas de IVA según los items de la venta.
         <ar:Iva>
@@ -144,21 +144,31 @@ class Venta(db.Model):
             iva_alicuotas.append(
                 {
                     "Id": alicuota.codigo_afip,
-                    "BaseImp": "{:.2f}".format(item.subtotal_gravado),
-                    "Importe": "{:.2f}".format(item.subtotal_iva),
+                    "BaseImp": item.subtotal_gravado,
+                    "Importe": item.subtotal_iva,
                 }
             )
-        # Sumar BaseImp e Importe y remover items con Id duplicados
-        for i, iva in enumerate(iva_alicuotas):
-            for j, iva2 in enumerate(iva_alicuotas):
-                if i != j and iva["Id"] == iva2["Id"]:
-                    iva["BaseImp"] = "{:.2f}".format(
-                        Decimal(iva["BaseImp"]) + Decimal(iva2["BaseImp"])
-                    )
-                    iva["Importe"] = "{:.2f}".format(
-                        Decimal(iva["Importe"]) + Decimal(iva2["Importe"])
-                    )
-                    iva_alicuotas.pop(j)
+
+        iva_dict = {}
+        for iva in iva_alicuotas:
+            if iva["Id"] not in iva_dict:
+                iva_dict[iva["Id"]] = {
+                    "BaseImp": Decimal(iva["BaseImp"]),
+                    "Importe": Decimal(iva["Importe"]),
+                }
+            else:
+                iva_dict[iva["Id"]]["BaseImp"] += Decimal(iva["BaseImp"])
+                iva_dict[iva["Id"]]["Importe"] += Decimal(iva["Importe"])
+
+        # Convertir el diccionario de vuelta a una lista
+        iva_alicuotas = [
+            {"Id": k, "BaseImp": v["BaseImp"], "Importe": v["Importe"]}
+            for k, v in iva_dict.items()
+        ]
+        if return_total:
+            total_iva = sum([Decimal(iva["Importe"]) for iva in iva_alicuotas])
+            return float(total_iva)
+
         return iva_alicuotas
 
     def to_json(self):
@@ -168,9 +178,6 @@ class Venta(db.Model):
         tributos = []
         for tributo in self.tributos:
             tributos.append(tributo.to_json())
-
-        # TODO: Agregar diferentes IVAs si hay items con diferentes alícuotas
-        # Y calcular el importe de IVA para cada alícuota
 
         return {
             "id": self.id,

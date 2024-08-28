@@ -120,6 +120,8 @@ def create():
                 articulo = Articulo.query.get(item["articulo_id"])
                 ventaItem = VentaItem(articulo=articulo, venta_id=venta.id, **item)
                 db.session.add(ventaItem)
+                # TODO: Para que el calculo de los IVA sea realmente el correcto, se debería calcular el total de IVA y gravado.
+                # Es decir unicamente obtener el front el subtotal, y calcular el IVA y gravado en el back.
                 venta.total_iva += float(item["subtotal_iva"])
                 venta.gravado += float(item["subtotal_gravado"])
                 venta.total += float(item["subtotal"])

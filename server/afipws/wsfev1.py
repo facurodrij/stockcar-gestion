@@ -104,30 +104,31 @@ class WSFEv1:
                         last_cbte + 1 if fetch_last_cbte else data["CbteHasta"]
                     ),  # long
                     # string
-                    "CbteFch": data["CbteFch"] if data.get("CbteFch") else None,
+                    "CbteFch": data["CbteFch"],
                     "ImpTotal": data["ImpTotal"],  # double
                     "ImpTotConc": data["ImpTotConc"],  # double
                     "ImpNeto": data["ImpNeto"],  # double
                     "ImpOpEx": data["ImpOpEx"],  # double
                     "ImpTrib": data["ImpTrib"],  # double
                     "ImpIVA": data["ImpIVA"],  # double
-                    # string
-                    "FchServDesde": (
-                        data["FchServDesde"] if data.get("FchServDesde") else None
-                    ),
-                    # string
-                    "FchServHasta": (
-                        data["FchServHasta"] if data.get("FchServHasta") else None
-                    ),
-                    # string
-                    "FchVtoPago": (
-                        data["FchVtoPago"] if data.get("FchVtoPago") else None
-                    ),
                     "MonId": data["MonId"],  # string
                     "MonCotiz": data["MonCotiz"],  # double
                 }
             },
         }
+
+        if data.get("Concepto") == 2 or data.get("Concepto") == 3:
+            if (
+                not data.get("FchServDesde")
+                or not data.get("FchServHasta")
+                or not data.get("FchVtoPago")
+            ):
+                raise Exception(
+                    "FchServDesde, FchServHasta y FchVtoPago son obligatorios para Concepto 2 y 3"
+                )
+            Req["FeDetReq"]["FECAEDetRequest"]["FchServDesde"] = data["FchServDesde"]
+            Req["FeDetReq"]["FECAEDetRequest"]["FchServHasta"] = data["FchServHasta"]
+            Req["FeDetReq"]["FECAEDetRequest"]["FchVtoPago"] = data["FchVtoPago"]
 
         if data.get("CbtesAsoc"):
             Req["FeDetReq"]["FECAEDetRequest"]["CbtesAsoc"] = {
@@ -155,14 +156,18 @@ class WSFEv1:
             }
 
         if data.get("Iva"):
-            Req["FeDetReq"]["FECAEDetRequest"]["Iva"] = {
-                "AlicIva": {
-                    "Id": iva["Id"],  # int
-                    "BaseImp": iva["BaseImp"],  # double
-                    "Importe": iva["Importe"],  # double
-                }
-                for iva in data["Iva"]
-            }
+            Req["FeDetReq"]["FECAEDetRequest"]["Iva"] = []
+            for iva in data["Iva"]:
+                Req["FeDetReq"]["FECAEDetRequest"]["Iva"].append(
+                    {
+                        "AlicIva": {
+                            "Id": iva["Id"],  # int
+                            "BaseImp": iva["BaseImp"],  # double
+                            "Importe": iva["Importe"],  # double
+                        }
+                    }
+                )
+
 
         if data.get("Opcionales"):
             Req["FeDetReq"]["FECAEDetRequest"]["Opcionales"] = {
@@ -201,16 +206,11 @@ class WSFEv1:
             return res
 
         if not res["FeCabResp"]["Resultado"] == "A":
-            if "Errors" in res:
+            if "Errors" in res and res["Errors"] is not None:
                 raise Exception(res["Errors"])
-            if (
-                "Observaciones"
-                in res["FeDetResp"]["FECAEDetResponse"][0]
-            ):
+            if "Observaciones" in res["FeDetResp"]["FECAEDetResponse"][0]:
                 raise Exception(
-                    res["FeDetResp"]["FECAEDetResponse"][0][
-                        "Observaciones"
-                    ]
+                    res["FeDetResp"]["FECAEDetResponse"][0]["Observaciones"]
                 )
             raise Exception("Error desconocido:", res)
 

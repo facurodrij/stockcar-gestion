@@ -57,36 +57,41 @@ class AfipService:
                 "FchServHasta": None,
                 "FchVtoPago": None,
                 # Importe total del comprobante
-                "ImpTotal": "{:.2f}".format(
+                "ImpTotal": float("{:.2f}".format(
                     venta.gravado + venta.total_iva + venta.total_tributos
-                ),
+                )),
                 "ImpTotConc": 0,  # Importe neto no gravado
-                "ImpNeto": "{:.2f}".format(venta.gravado),  # Importe neto gravado
+                "ImpNeto": float("{:.2f}".format(venta.gravado)),  # Importe neto gravado
                 "ImpOpEx": 0,  # Importe exento de IVA
-                "ImpIVA": "{:.2f}".format(venta.total_iva),  # Importe total de IVA
+                "ImpIVA": float("{:.2f}".format(venta.total_iva)),  # Importe total de IVA
                 # Importe total de tributos
-                "ImpTrib": "{:.2f}".format(venta.total_tributos),
+                "ImpTrib": float("{:.2f}".format(venta.total_tributos)),
                 # Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
                 "MonId": venta.moneda.codigo_afip,
                 # Cotización de la moneda usada (1 para pesos argentinos)
                 "MonCotiz": 1,
-                "Iva": [
-                    {
-                        "Id": 5,
-                        "BaseImp": "{:.2f}".format(venta.gravado),
-                        "Importe": "{:.2f}".format(venta.total_iva),
-                    }
-                ],
+                "Iva": (
+                    [
+                        {
+                            "Id": iva["Id"],
+                            "BaseImp": float("{:.2f}".format(iva["BaseImp"])),
+                            "Importe": float("{:.2f}".format(iva["Importe"]))
+                        }
+                        for iva in venta.get_iva_alicuota()
+                    ]
+                    if venta.get_iva_alicuota()
+                    else None
+                ),
                 "Tributos": (
                     [
                         {
                             "Id": tributo.tipo_tributo.codigo_afip,
                             "Desc": tributo.descripcion,
-                            "BaseImp": "{:.2f}".format(venta.gravado),
-                            "Alic": "{:.2f}".format(tributo.alicuota),
-                            "Importe": "{:.2f}".format(
+                            "BaseImp": float("{:.2f}".format(venta.gravado)),
+                            "Alic": float("{:.2f}".format(tributo.alicuota)),
+                            "Importe": float("{:.2f}".format(
                                 venta.get_tributo_importe(tributo.id)
-                            ),
+                            )),
                         }
                         for tributo in venta.tributos
                     ]
