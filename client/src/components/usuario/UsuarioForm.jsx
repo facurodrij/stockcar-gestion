@@ -10,22 +10,14 @@ import {
     FormGroup,
     FormControlLabel,
     Checkbox,
-    Typography
+    Typography,
+    FormHelperText
 } from "@mui/material";
-import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { DataGrid, GridToolbarContainer } from '@mui/x-data-grid';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
-import 'dayjs/locale/es';
+import { DataGrid } from '@mui/x-data-grid';
 import SaveIcon from '@mui/icons-material/Save';
 import { API } from "../../App";
-import SimpleTabPanel from "../shared/SimpleTabPanel";
-import AddIcon from "@mui/icons-material/Add";
 import SnackbarAlert from "../shared/SnackbarAlert";
-import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import { esES } from "@mui/x-data-grid/locales";
-import InputAdornment from '@mui/material/InputAdornment';
-import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 
 
@@ -217,6 +209,9 @@ export default function UsuarioForm({ pk }) {
                                     )}
                                 />
                             </FormGroup>
+                            <FormHelperText>
+                                Si es superusuario, tiene todos los permisos.
+                            </FormHelperText>
                         </FormControl>
                     </Grid>
                 </Grid>
