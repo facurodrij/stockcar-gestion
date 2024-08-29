@@ -130,62 +130,77 @@ class WSFEv1:
             Req["FeDetReq"]["FECAEDetRequest"]["FchServHasta"] = data["FchServHasta"]
             Req["FeDetReq"]["FECAEDetRequest"]["FchVtoPago"] = data["FchVtoPago"]
 
+        """
+        La forma correcta de enviar estructuras de datos es la siguiente:
+        "Objs": {
+            'Obj': [
+                {'a1': 1, 'a2': 1}, 
+                {'a1': 2, 'a2': 2}
+            ]
+        }
+        """
+
         if data.get("CbtesAsoc"):
             Req["FeDetReq"]["FECAEDetRequest"]["CbtesAsoc"] = {
-                "CbteAsoc": {
-                    "Tipo": cbte["Tipo"],  # int
-                    "PtoVta": cbte["PtoVta"],  # int
-                    "Nro": cbte["Nro"],  # long
-                    "Cuit": cbte["Cuit"] if cbte.get("Cuit") else None,  # long
-                    # string
-                    "CbteFch": cbte["CbteFch"] if cbte.get("CbteFch") else None,
-                }
-                for cbte in data["CbtesAsoc"]
+                "CbteAsoc": [
+                    {
+                        "Tipo": cbte["Tipo"],
+                        "PtoVta": cbte["PtoVta"],
+                        "Nro": cbte["Nro"],
+                        "Cuit": cbte["Cuit"] if cbte.get("Cuit") else None,
+                        "CbteFch": cbte["CbteFch"] if cbte.get("CbteFch") else None,
+                    }
+                    for cbte in data["CbtesAsoc"]
+                ]
             }
 
         if data.get("Tributos"):
             Req["FeDetReq"]["FECAEDetRequest"]["Tributos"] = {
-                "Tributo": {
-                    "Id": tributo["Id"],  # int
-                    "Desc": tributo["Desc"],  # string
-                    "BaseImp": tributo["BaseImp"],  # double
-                    "Alic": tributo["Alic"],  # double
-                    "Importe": tributo["Importe"],  # double
-                }
-                for tributo in data["Tributos"]
+                "Tributo": [
+                    {
+                        "Id": tributo["Id"],  # int
+                        "Desc": tributo["Desc"],  # string
+                        "BaseImp": tributo["BaseImp"],  # double
+                        "Alic": tributo["Alic"],  # double
+                        "Importe": tributo["Importe"],  # double
+                    }
+                    for tributo in data["Tributos"]
+                ]
             }
 
         if data.get("Iva"):
-            Req["FeDetReq"]["FECAEDetRequest"]["Iva"] = []
-            for iva in data["Iva"]:
-                Req["FeDetReq"]["FECAEDetRequest"]["Iva"].append(
+            Req["FeDetReq"]["FECAEDetRequest"]["Iva"] = {
+                "AlicIva": [
                     {
-                        "AlicIva": {
-                            "Id": iva["Id"],  # int
-                            "BaseImp": iva["BaseImp"],  # double
-                            "Importe": iva["Importe"],  # double
-                        }
+                        "Id": iva["Id"],  # int
+                        "BaseImp": iva["BaseImp"],  # double
+                        "Importe": iva["Importe"],  # double
                     }
-                )
-
+                    for iva in data["Iva"]
+                ]
+            }
 
         if data.get("Opcionales"):
             Req["FeDetReq"]["FECAEDetRequest"]["Opcionales"] = {
-                "Opcional": {
-                    "Id": opcional["Id"],  # int
-                    "Valor": opcional["Valor"],  # string
-                }
-                for opcional in data["Opcionales"]
+                "Opcional": [
+                    {
+                        "Id": opcional["Id"],  # int
+                        "Valor": opcional["Valor"],  # string
+                    }
+                    for opcional in data["Opcionales"]
+                ]
             }
 
         if data.get("Compradores"):
             Req["FeDetReq"]["FECAEDetRequest"]["Compradores"] = {
-                "Comprador": {
-                    "DocTipo": comprador["DocTipo"],  # int
-                    "DocNro": comprador["DocNro"],  # long
-                    "Porcentaje": comprador["Porcentaje"],  # double
-                }
-                for comprador in data["Compradores"]
+                "Comprador": [
+                    {
+                        "DocTipo": comprador["DocTipo"],  # int
+                        "DocNro": comprador["DocNro"],  # long
+                        "Porcentaje": comprador["Porcentaje"],  # double
+                    }
+                    for comprador in data["Compradores"]
+                ]
             }
 
         if data.get("PeriodoAsoc"):
@@ -196,8 +211,9 @@ class WSFEv1:
 
         if data.get("Actividades"):
             Req["FeDetReq"]["FECAEDetRequest"]["Actividades"] = {
-                "Actividad": {"Id": actividad["Id"]}  # int
-                for actividad in data["Actividades"]
+                "Actividad": [
+                    {"Id": actividad["Id"]} for actividad in data["Actividades"]  # int
+                ]
             }
 
         res = self.client.service.FECAESolicitar(Auth=Auth, FeCAEReq=Req)
