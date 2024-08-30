@@ -366,7 +366,8 @@ class TicketPDFGenerator(BasePDFGenerator):
                     ("FONTSIZE", (0, 0), (-1, -1), 6),
                     ("ALIGN", (1, 0), (-1, -1), "LEFT"),
                     ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
-                    ("LEADING", (0, 0), (-1, -1), 6)
+                    ("LEADING", (0, 0), (-1, -1), 6),
+                    ("FONT", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ]
             )
         )
