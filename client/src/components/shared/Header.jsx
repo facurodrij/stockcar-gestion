@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { styled, useTheme } from '@mui/material/styles';
 import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button, Typography } from '@mui/material';
-import { AccountCircle, Inbox as InboxIcon, Mail as MailIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, LocalShipping, Inventory2, PointOfSale, Store } from '@mui/icons-material';
-import { set } from 'react-hook-form';
+import { AccountCircle, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, ReceiptLong, Inventory2, PointOfSale, Store } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
@@ -81,7 +80,7 @@ const pagesList = [
     },
     {
         title: 'Ordenes de Venta',
-        icon: <PointOfSale />,
+        icon: <ReceiptLong />,
         path: '/ventas-orden',
         required_permissions: [],
     },
