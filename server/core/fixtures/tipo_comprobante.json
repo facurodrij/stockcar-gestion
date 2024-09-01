@@ -4,49 +4,50 @@
         "codigo_afip": 1,
         "descripcion": "Factura A",
         "abreviatura": "A",
-        "letra": "A"
-    },
-    {
-        "id": 2,
-        "codigo_afip": 2,
-        "descripcion": "Nota de Débito A",
-        "abreviatura": "NDA",
-        "letra": "A"
+        "letra": "A",
+        "descontar_stock": true,
+        "requiere_comprobante_asociado": false,
+        "es_anulable": true
     },
     {
         "id": 3,
         "codigo_afip": 3,
         "descripcion": "Nota de Crédito A",
         "abreviatura": "NCA",
-        "letra": "A"
+        "letra": "A",
+        "descontar_stock": false,
+        "requiere_comprobante_asociado": true,
+        "es_anulable": false
     },
     {
         "id": 5,
         "codigo_afip": 6,
         "descripcion": "Factura B",
         "abreviatura": "B",
-        "letra": "B"
-    },
-    {
-        "id": 6,
-        "codigo_afip": 7,
-        "descripcion": "Nota de Débito B",
-        "abreviatura": "NDB",
-        "letra": "B"
+        "letra": "B",
+        "descontar_stock": true,
+        "requiere_comprobante_asociado": false,
+        "es_anulable": true
     },
     {
         "id": 7,
         "codigo_afip": 8,
         "descripcion": "Nota de Crédito B",
         "abreviatura": "NCB",
-        "letra": "B"
+        "letra": "B",
+        "descontar_stock": false,
+        "requiere_comprobante_asociado": true,
+        "es_anulable": false
     },
     {
         "id": 9,
         "codigo_afip": null,
         "descripcion": "Remito",
         "abreviatura": "X",
-        "letra": "X"
+        "letra": "X",
+        "descontar_stock": true,
+        "requiere_comprobante_asociado": false,
+        "es_anulable": false
     },
     {
         "id": 10,
@@ -54,6 +55,8 @@
         "descripcion": "Presupuesto",
         "abreviatura": "P",
         "letra": "P",
-        "descontar_stock": false
+        "descontar_stock": false,
+        "requiere_comprobante_asociado": false,
+        "es_anulable": false
     }
 ]

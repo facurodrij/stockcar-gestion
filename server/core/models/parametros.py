@@ -87,6 +87,7 @@ class TipoComprobante(db.Model):
     abreviatura = Column(String(5), nullable=True)
     descontar_stock = Column(Boolean, default=True)
     requiere_comprobante_asociado = Column(Boolean, default=False)
+    es_anulable = Column(Boolean, default=False) # Indica si el comprobante puede ser anulado con Nota de Crédito
 
     # Relación muchos a muchos con TipoResponsable
     responsables = relationship('TipoResponsable', secondary='responsable_comprobante',
@@ -100,8 +101,11 @@ class TipoComprobante(db.Model):
             'descripcion': self.descripcion,
             'letra': self.letra,
             'abreviatura': self.abreviatura,
-            'descontar_stock': self.descontar_stock
+            'descontar_stock': self.descontar_stock,
+            'requiere_comprobante_asociado': self.requiere_comprobante_asociado,
+            'es_anulable': self.es_anulable
         }
+    
 
 
 class TipoConcepto(db.Model):
