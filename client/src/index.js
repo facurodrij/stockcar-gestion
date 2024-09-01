@@ -9,6 +9,7 @@ import "@fontsource/roboto/700.css";
 import ThemeProvider from "@mui/material/styles/ThemeProvider";
 import {theme} from "./theme";
 import 'dayjs/locale/es';
+import { ConfirmProvider } from 'material-ui-confirm';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -16,7 +17,9 @@ root.render(
     <React.StrictMode>
         <CssBaseline/>
         <ThemeProvider theme={theme}>
-            <App/>
+            <ConfirmProvider>
+                <App/>
+            </ConfirmProvider>
         </ThemeProvider>
     </React.StrictMode>
 );
