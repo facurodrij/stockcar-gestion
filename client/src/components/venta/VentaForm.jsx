@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Controller, set, useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import {
     Autocomplete,
     Box,
@@ -164,7 +164,7 @@ export default function VentaForm({ pk }) {
             }
         }
         loadData();
-    }, []);
+    }, [pk, setValue]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
