@@ -47,7 +47,9 @@ class Venta(db.Model):
     fecha_hora = Column(DateTime, default=func.now(), nullable=False)
     descuento = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
     recargo = Column(Numeric(precision=5, scale=2), default=0, nullable=False)
-    moneda_cotizacion = Column(Numeric(precision=10, scale=2), default=1, nullable=False)
+    moneda_cotizacion = Column(
+        Numeric(precision=10, scale=2), default=1, nullable=False
+    )
     gravado = Column(
         Numeric(precision=10, scale=2), default=0, nullable=False
     )  # Total - IVA - Percepción
@@ -75,6 +77,8 @@ class Venta(db.Model):
         Integer, ForeignKey("tipo_pago.id"), default=1, nullable=False
     )
     tipo_pago = relationship("TipoPago", backref="ventas")
+    venta_asociada_id = Column(Integer, ForeignKey("venta.id"), nullable=True)
+    venta_asociada = relationship("Venta", remote_side=[id], backref="ventas_asociadas")
 
     tributos = relationship(
         "Tributo", secondary="tributo_venta", back_populates="ventas"
