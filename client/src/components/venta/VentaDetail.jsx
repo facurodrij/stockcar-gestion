@@ -22,6 +22,7 @@ import { Link } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import fetchWithAuth from '../../utils/fetchWithAuth';
+import { useConfirm } from 'material-ui-confirm';
 
 
 
@@ -73,6 +74,7 @@ export default function VentaDetail({ pk }) {
         severity: 'success',
         onClose: () => handleCloseSnackbar(false)
     });
+    const confirm = useConfirm();
 
     const handleCloseSnackbar = (redirect) => {
         setOpenSnackbar(false);
@@ -113,7 +115,7 @@ export default function VentaDetail({ pk }) {
 
     const handlePrint = (size = 'A4') => {
         const url = `${API}/ventas/${pk}`;
-        fetchWithAuth(url, 'POST', { size: size })
+        fetchWithAuth(url, 'POST', { action: 'print', size: size })
             .then(response => response.blob())
             .then(blob => {
                 const url = window.URL.createObjectURL(blob);
@@ -129,6 +131,49 @@ export default function VentaDetail({ pk }) {
             });
     }
 
+    const handleAnular = async () => {
+        confirm({
+            title: 'Confirmar acción',
+            description: '¿Está seguro que desea anular la venta?',
+            cancellationText: 'Cancelar', 
+            confirmationText: 'Anular',
+
+        })
+        .then(() => {
+            const url = `${API}/ventas/${pk}`;
+            try {
+                fetchWithAuth(url, 'POST', { action: 'anular' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.ok)
+                            throw new Error(data['error']);
+                        setSnackbar({
+                            message: data['message'],
+                            severity: 'success',
+                            onClose: () => handleCloseSnackbar(false)
+                        });
+                        setOpenSnackbar(true);
+                    })
+                    .catch((error) => {
+                        setSnackbar({
+                            message: `Error al anular la venta: ${error.message}`,
+                            severity: 'error',
+                            onClose: () => handleCloseSnackbar(false)
+                        });
+                        setOpenSnackbar(true);
+                    });
+            } catch (error) {
+                setSnackbar({
+                    message: `Error al anular la venta: ${error}`,
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(false)
+                });
+                setOpenSnackbar(true);
+            }
+        })
+        .catch(() => {});
+    }
+
     return (
         <>
             <Paper elevation={3} component="div" sx={{ mt: 2, padding: 2 }}>
@@ -137,11 +182,21 @@ export default function VentaDetail({ pk }) {
                         Venta: {venta.id}
                     </Typography>
                     <Box>
+                        {venta.estado === 'Facturado' && venta.tipo_comprobante['es_anulable'] && (
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={handleAnular}
+                            >
+                                Anular
+                            </Button>
+                        )}
                         <Button
                             variant="contained"
                             color="primary"
                             component={Link}
                             to={`/ventas/form/${pk}`}
+                            sx={{ ml: 2 }}
                         >
                             Editar
                         </Button>
