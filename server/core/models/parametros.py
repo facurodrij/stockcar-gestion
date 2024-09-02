@@ -82,6 +82,7 @@ class TipoComprobante(db.Model):
     __tablename__ = 'tipo_comprobante'
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_afip = Column(Integer, nullable=True)  # Código de AFIP, se obtiene del ID
+    nombre = Column(String(20), nullable=False)
     descripcion = Column(String, nullable=False)
     letra = Column(String(1), nullable=False)
     abreviatura = Column(String(5), nullable=True)
@@ -98,6 +99,7 @@ class TipoComprobante(db.Model):
         return {
             'id': self.id,
             'codigo_afip': self.codigo_afip,
+            'nombre': self.nombre,
             'descripcion': self.descripcion,
             'letra': self.letra,
             'abreviatura': self.abreviatura,

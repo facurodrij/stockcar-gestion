@@ -102,12 +102,7 @@ class A4PDFGenerator(BasePDFGenerator):
                 300, 780, f"COD. {self.venta.tipo_comprobante.codigo_afip:02d}"
             )
         self.setFont("Helvetica-Bold", 16)
-        if self.venta.estado == EstadoVenta.facturado:
-            self.drawString(340, 800, "FACTURA")
-        elif self.venta.estado == EstadoVenta.ticket:
-            self.drawString(340, 800, f"{self.venta.tipo_comprobante.descripcion}")
-        elif self.venta.estado == EstadoVenta.anulado:
-            self.drawString(340, 800, "NOTA DE CREDITO")
+        self.drawString(340, 800, f"{self.venta.tipo_comprobante.nombre}")
         self.setFontSize(10)
         self.drawString(
             340, 780, f"Punto de Venta: {self.venta.punto_venta.numero:04d}"
