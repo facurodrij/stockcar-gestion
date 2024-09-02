@@ -76,3 +76,42 @@ def create_superuser(username, password, email):
     db.session.add(new_user)
     db.session.commit()
     click.echo("Superuser created successfully!")
+
+
+@app.cli.command("create_roles")
+def create_roles():
+    """Create the default roles in the database."""
+    roles = [
+        Rol(id=1, nombre="admin", descripcion="Administrador del sistema"),
+        Rol(id=2, nombre="vendedor", descripcion="Vendedor de productos"),
+        Rol(id=3, nombre="cobranza", descripcion="Encargado de cobranzas")
+    ]
+    db.session.add_all(roles)
+    db.session.commit()
+    click.echo("Roles created successfully!")
+
+
+@app.cli.command("create_permissions")
+def create_permissions():
+    """Create the default permissions in the database."""
+    from server.core.models import Permiso
+    # Get all models from the models package
+    models = importlib.import_module("server.core.models")
+    # Add CRUD permissions for each model
+    for model_name in dir(models):
+        model = getattr(models, model_name)
+        if hasattr(model, "__tablename__"):
+            permission_name = model.__tablename__
+            permissions = [
+                Permiso(nombre=f"{permission_name}.view", descripcion="Ver un registro específico"),
+                Permiso(nombre=f"{permission_name}.view_all", descripcion="Ver todos los registros"),
+                Permiso(nombre=f"{permission_name}.create", descripcion="Crear un nuevo registro"),
+                Permiso(nombre=f"{permission_name}.update", descripcion="Actualizar un registro existente"),
+                Permiso(nombre=f"{permission_name}.delete", descripcion="Eliminar un registro existente"),
+                Permiso(nombre=f"{permission_name}.export", descripcion="Exportar datos a un archivo"),
+                Permiso(nombre=f"{permission_name}.import", descripcion="Importar datos desde un archivo"),
+                Permiso(nombre=f"{permission_name}.print", descripcion="Imprimir un registro")
+            ]
+            db.session.add_all(permissions)
+    db.session.commit()
+    click.echo("Permissions created successfully!")
