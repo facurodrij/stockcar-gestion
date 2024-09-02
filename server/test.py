@@ -1,7 +1,7 @@
 import pytest
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm
+from reportlab.lib.units import mm, inch
 from reportlab.platypus import Table, TableStyle, Paragraph
 from reportlab.lib import colors
 import os
@@ -18,11 +18,12 @@ class TestGeneratePDF(canvas.Canvas):
         self._saved_page_states = []
 
     def showPage(self):
+        """Add a page, then start a new page"""
         self._saved_page_states.append(dict(self.__dict__))
         self._startPage()
 
     def save(self):
-        """add page info to each page (page x of y)"""
+        """Add page numbers to each page and save the PDF"""
         num_pages = len(self._saved_page_states)
         for state in self._saved_page_states:
             self.__dict__.update(state)
@@ -31,6 +32,7 @@ class TestGeneratePDF(canvas.Canvas):
         canvas.Canvas.save(self)
 
     def draw_page_number(self, page_count):
+        """Draw page number at the bottom of each page"""
         self.setFont("Helvetica", 10)
         self.drawRightString(
             200 * mm, 10 * mm, "Pág. %d / %d" % (self._pageNumber, page_count)
@@ -89,7 +91,7 @@ def test_generate_pdf(pdf_path):
     c.drawString(30, 700, "Cliente:")
     c.drawString(30, 685, "Domicilio:")
     c.drawString(30, 670, "Localidad:")
-    c.drawString(320, 700, "CUIT:")  # TODO: Cambiar por "Tipo de Documento"
+    c.drawString(320, 700, "CUIT:")
     c.drawString(320, 685, "Condición de IVA:")
     c.drawString(320, 670, "Condición de Venta:")
     c.setFont("Helvetica", 10)
@@ -281,8 +283,7 @@ def test_generate_pdf(pdf_path):
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ("ALIGN", (0, 0), (0, 2), "LEFT"),
                 ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
-                ("GRID", (0, 0), (-1, 0), 1, colors.black),
-                # ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey)
+                ("GRID", (0, 0), (-1, 0), 1, colors.black)
             ]
         )
     )
@@ -353,15 +354,25 @@ def test_generate_pdf(pdf_path):
     c.drawRightString(550, 95, "01/10/2023")
 
     afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/afip-logo-nuevo.png"
-    c.drawImage(afip_logo_path, 110, 0, width=100, height=None, preserveAspectRatio=True)
+    c.drawImage(
+        afip_logo_path, 110, 0, width=100, height=None, preserveAspectRatio=True
+    )
     # Font oblique bold
     c.setFont("Helvetica-BoldOblique", 10)
     c.drawString(110, 70, "Comprobante Autorizado")
     c.setFont("Helvetica-BoldOblique", 6)
-    c.drawString(110, 60, "Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación")
+    c.drawString(
+        110,
+        60,
+        "Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación",
+    )
 
-    codigo_qr_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/codigo-qr.png"
-    c.drawImage(codigo_qr_path, 30, -35, width=60, height=None, preserveAspectRatio=True)
+    codigo_qr_path = (
+        "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/codigo-qr.png"
+    )
+    c.drawImage(
+        codigo_qr_path, 30, -35, width=60, height=None, preserveAspectRatio=True
+    )
 
     # add_content(c, renglones)
     # add_page_number(c, None)
