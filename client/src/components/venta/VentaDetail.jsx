@@ -76,10 +76,10 @@ export default function VentaDetail({ pk }) {
     });
     const confirm = useConfirm();
 
-    const handleCloseSnackbar = (redirect) => {
+    const handleCloseSnackbar = (redirect, url = '/ventas') => {
         setOpenSnackbar(false);
         if (redirect) {
-            window.location.href = '/ventas';
+            window.location.href = url;
         }
     }
 
@@ -135,43 +135,47 @@ export default function VentaDetail({ pk }) {
         confirm({
             title: 'Confirmar acción',
             description: '¿Está seguro que desea anular la venta?',
-            cancellationText: 'Cancelar', 
+            cancellationText: 'Cancelar',
             confirmationText: 'Anular',
 
         })
-        .then(() => {
-            const url = `${API}/ventas/${pk}`;
-            try {
+            .then(() => {
+                const url = `${API}/ventas/${pk}`;
                 fetchWithAuth(url, 'POST', { action: 'anular' })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data['error']);
+                            });
+                        }
+                        return response.json();
+                    })
                     .then(data => {
-                        if (!data.ok)
-                            throw new Error(data['error']);
                         setSnackbar({
                             message: data['message'],
                             severity: 'success',
-                            onClose: () => handleCloseSnackbar(false)
+                            onClose: () => handleCloseSnackbar(true, `/ventas/${data['venta_id']}`)
                         });
                         setOpenSnackbar(true);
                     })
                     .catch((error) => {
                         setSnackbar({
-                            message: `Error al anular la venta: ${error.message}`,
+                            message: `Error al anular la venta: ${error}`,
                             severity: 'error',
                             onClose: () => handleCloseSnackbar(false)
                         });
                         setOpenSnackbar(true);
                     });
-            } catch (error) {
+
+            })
+            .catch((error) => {
                 setSnackbar({
-                    message: `Error al anular la venta: ${error}`,
-                    severity: 'error',
+                    message: `Acción cancelada: ${error}`,
+                    severity: 'info',
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
-            }
-        })
-        .catch(() => {});
+            });
     }
 
     return (

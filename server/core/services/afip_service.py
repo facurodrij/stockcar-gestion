@@ -6,6 +6,7 @@ from server.afipws import WSFEv1
 
 class AfipServiceError(Exception):
     "Error en el servicio de AFIP."
+
     def __init__(self, original_exception):
         super().__init__(f"Afip Service error: {original_exception}")
         self.original_exception = original_exception
@@ -57,13 +58,19 @@ class AfipService:
                 "FchServHasta": None,
                 "FchVtoPago": None,
                 # Importe total del comprobante
-                "ImpTotal": float("{:.2f}".format(
-                    venta.gravado + venta.total_iva + venta.total_tributos
-                )),
+                "ImpTotal": float(
+                    "{:.2f}".format(
+                        venta.gravado + venta.total_iva + venta.total_tributos
+                    )
+                ),
                 "ImpTotConc": 0,  # Importe neto no gravado
-                "ImpNeto": float("{:.2f}".format(venta.gravado)),  # Importe neto gravado
+                "ImpNeto": float(
+                    "{:.2f}".format(venta.gravado)
+                ),  # Importe neto gravado
                 "ImpOpEx": 0,  # Importe exento de IVA
-                "ImpIVA": float("{:.2f}".format(venta.total_iva)),  # Importe total de IVA
+                "ImpIVA": float(
+                    "{:.2f}".format(venta.total_iva)
+                ),  # Importe total de IVA
                 # Importe total de tributos
                 "ImpTrib": float("{:.2f}".format(venta.total_tributos)),
                 # Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos)
@@ -75,7 +82,7 @@ class AfipService:
                         {
                             "Id": iva["Id"],
                             "BaseImp": float("{:.2f}".format(iva["BaseImp"])),
-                            "Importe": float("{:.2f}".format(iva["Importe"]))
+                            "Importe": float("{:.2f}".format(iva["Importe"])),
                         }
                         for iva in venta.get_iva_alicuota()
                     ]
@@ -89,15 +96,96 @@ class AfipService:
                             "Desc": tributo.descripcion,
                             "BaseImp": float("{:.2f}".format(venta.gravado)),
                             "Alic": float("{:.2f}".format(tributo.alicuota)),
-                            "Importe": float("{:.2f}".format(
-                                venta.get_tributo_importe(tributo.id)
-                            )),
+                            "Importe": float(
+                                "{:.2f}".format(venta.get_tributo_importe(tributo.id))
+                            ),
                         }
                         for tributo in venta.tributos
                     ]
                     if venta.tributos
                     else None
                 ),
+            }
+            res = self.wsfev1.CAESolicitar(data, fetch_last_cbte=True)
+        except Exception as e:
+            raise AfipServiceError(e)
+        return {
+            "numero": res["NroCbte"],
+            "cae": res["CAE"],
+            "vencimiento_cae": self.formatDate(res["CAEFchVto"]),
+        }
+
+    def anular_cae(self, venta: Venta):
+        "Anular el CAE de una venta con una Nota de Crédito."
+        try:
+            data = {
+                "CantReg": 1,
+                "PtoVta": venta.punto_venta.numero,
+                "CbteTipo": venta.tipo_comprobante.codigo_afip,
+                "Concepto": 1,
+                "DocTipo": venta.cliente.tipo_documento.codigo_afip,
+                "DocNro": venta.cliente.nro_documento,
+                "CbteDesde": venta.numero,
+                "CbteHasta": venta.numero,
+                "CbteFch": venta.fecha_hora.strftime("%Y%m%d"),
+                "FchServDesde": None,
+                "FchServHasta": None,
+                "FchVtoPago": None,
+                "ImpTotal": float(
+                    "{:.2f}".format(
+                        venta.gravado + venta.total_iva + venta.total_tributos
+                    )
+                ),
+                "ImpTotConc": 0,
+                "ImpNeto": float(
+                    "{:.2f}".format(venta.gravado)
+                ),
+                "ImpOpEx": 0,
+                "ImpIVA": float(
+                    "{:.2f}".format(venta.total_iva)
+                ),
+                "ImpTrib": float("{:.2f}".format(venta.total_tributos)),
+                "MonId": venta.moneda.codigo_afip,
+                "MonCotiz": float(venta.moneda_cotizacion),
+                "CbtesAsoc": (
+                    [
+                        {
+                            "Tipo": venta.venta_asociada.tipo_comprobante.codigo_afip,
+                            "PtoVta": venta.venta_asociada.punto_venta.numero,
+                            "Nro": venta.venta_asociada.numero,
+                            "Cuit": venta.venta_asociada.get_cbte_asoc_cuit(),
+                            "CbteFch": venta.venta_asociada.fecha_hora.strftime("%Y%m%d"),
+                        }
+                    ]
+                ),
+                "Iva": (
+                    [
+                        {
+                            "Id": iva["Id"],
+                            "BaseImp": float("{:.2f}".format(iva["BaseImp"])),
+                            "Importe": float("{:.2f}".format(iva["Importe"])),
+                        }
+                        for iva in venta.venta_asociada.get_iva_alicuota()
+                    ]
+                    if venta.venta_asociada.get_iva_alicuota()
+                    else None
+                ),
+                "Tributos": (
+                    [
+                        {
+                            "Id": tributo.tipo_tributo.codigo_afip,
+                            "Desc": tributo.descripcion,
+                            "BaseImp": float("{:.2f}".format(venta.gravado)),
+                            "Alic": float("{:.2f}".format(tributo.alicuota)),
+                            "Importe": float(
+                                "{:.2f}".format(venta.venta_asociada.get_tributo_importe(tributo.id))
+                            ),
+                        }
+                        for tributo in venta.venta_asociada.tributos
+                    ]
+                    if venta.venta_asociada.tributos
+                    else None
+                )
             }
             res = self.wsfev1.CAESolicitar(data, fetch_last_cbte=True)
         except Exception as e:

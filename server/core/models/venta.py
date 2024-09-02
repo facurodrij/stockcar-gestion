@@ -175,6 +175,15 @@ class Venta(db.Model):
             return float(total_iva)
 
         return iva_alicuotas
+    
+    def get_cbte_asoc_cuit(self):
+        """
+        Devuelve el CUIT del cliente de la venta asociada.
+        """
+        if self.venta_asociada and self.venta_asociada.cliente:
+            if self.venta_asociada.cliente.tipo_documento.codigo_afip == 80:
+                return self.venta_asociada.cliente.nro_documento
+        return None
 
     def to_json(self):
         """

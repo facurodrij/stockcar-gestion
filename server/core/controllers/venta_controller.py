@@ -195,7 +195,6 @@ class VentaController:
                     punto_venta_id=venta.punto_venta_id,
                     tipo_comprobante_id=tipo_comprobante.id,
                     fecha_hora=datetime.now().astimezone(local_tz),
-                    estado="facturado",
                     total=venta.total,
                     total_iva=venta.total_iva,
                     total_tributos=venta.total_tributos,
@@ -208,8 +207,14 @@ class VentaController:
                 nota_credito.numero = nota_credito.get_last_number() + 1
                 db.session.add(nota_credito)
                 db.session.flush()
-                # afip = AfipService()
-                # res = afip.anular_cae(nota_credito)
+                afip = AfipService()
+                res = afip.anular_cae(nota_credito)
+                nota_credito.numero = res["numero"]
+                nota_credito.cae = res["cae"]
+                nota_credito.vencimiento_cae = datetime.fromisoformat(
+                    res["vencimiento_cae"]
+                )
+                nota_credito.estado = "facturado"
                 venta.estado = "anulado"
                 db.session.commit()
                 return (
