@@ -37,6 +37,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
 
+# TODO: Dejar de utilizar pysimplesoap y reemplazarlo por otro módulo
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def date(fmt=None, timestamp=None):
