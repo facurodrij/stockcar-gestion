@@ -47,7 +47,10 @@ if not os.path.exists(os.path.join(BASE_DIR, "instance")):
     os.makedirs(os.path.join(BASE_DIR, "instance"))
 
 app.config["CORS_HEADERS"] = "Content-Type"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
+# Linux
+#app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
+# Windows
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + database_path
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = False
 app.config["JWT_SECRET_KEY"] = "my-secret-key"
