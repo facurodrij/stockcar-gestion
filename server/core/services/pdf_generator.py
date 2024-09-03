@@ -20,7 +20,7 @@ class BasePDFGenerator(canvas.Canvas):
     def __init__(self, *args, **kwargs):
         canvas.Canvas.__init__(self, *args, **kwargs)
         self._saved_page_states = []
-        self.header_image = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/Logocabecerafactura.png"
+        self.header_image = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\media\Logocabecerafactura.png"
 
     def truncate_text(self, text, max_length):
         if len(text) > max_length:
@@ -252,7 +252,7 @@ class A4PDFGenerator(BasePDFGenerator):
 
     def draw_CAE(self):
         "Draw CAE section"
-        afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
+        afip_logo_path = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\static\pdf_images\afip-logo.png"
         qrcode_io = self.generate_qr_code()  # QR code with AFIP data
         qrcode_img = ImageReader(qrcode_io)  # ImageReader object for the QR code
 
@@ -312,7 +312,7 @@ class TicketPDFGenerator(BasePDFGenerator):
     def __init__(self, *args, **kwargs):
         BasePDFGenerator.__init__(self, *args, **kwargs)
         self.setPageSize((3.10 * inch, 11.68 * inch))
-        self.header_image = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/Logocabecerafactura.png"
+        self.header_image = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\media\Logocabecerafactura.png"
 
     def draw_header(self):
         "Draw a header at the top of the page"
@@ -396,7 +396,7 @@ class TicketPDFGenerator(BasePDFGenerator):
 
     def draw_CAE(self):
         "Draw CAE section"
-        afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
+        afip_logo_path = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\static\pdf_images\afip-logo.png"
         qrcode_io = self.generate_qr_code()  # QR code with AFIP data
         qrcode_img = ImageReader(qrcode_io)  # ImageReader object for the QR code
 

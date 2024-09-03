@@ -15,8 +15,8 @@ class AfipServiceError(Exception):
 class AfipService:
     "Servicio para interactuar con la API de AFIP y los modelos de la base de datos."
     CUIT = 20428129572
-    CERT = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_test.cert"
-    KEY = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_test.key"
+    CERT = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\instance\afipws_test.cert"
+    KEY = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\instance\afipws_test.key"
     PASSPHRASE = ""
     PRODUCTION = False
 
