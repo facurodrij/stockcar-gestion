@@ -1,5 +1,5 @@
 from flask import jsonify
-from .config import db, app
+from config import db, app
 from server.core.routes import *
 # noinspection PyUnresolvedReferences
 from server.core.commands import load_fixtures
