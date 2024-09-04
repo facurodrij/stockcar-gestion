@@ -25,6 +25,8 @@ CORS(
         r"/*": {
             "origins": [
                 "http://127.0.0.1:3000",
+                "http://localhost:3000",
+                "http://192.168.0.19:3000",
                 "https://shiny-space-journey-4rppp59wj6j3jj9p-3000.app.github.dev",
                 "https://xs2wpms2-3000.brs.devtunnels.ms",
             ]
