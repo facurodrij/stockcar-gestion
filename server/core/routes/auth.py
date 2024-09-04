@@ -10,9 +10,9 @@ auth_bp = Blueprint("auth_bp", __name__)
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    user = Usuario.query.filter_by(email=data["email"]).first()
+    user = Usuario.query.filter_by(username=data["username"]).first()
     if user and user.password == data["password"]:
-        access_token = create_access_token(identity={"email": user.email})
+        access_token = create_access_token(identity={"username": user.username})
         if user.is_superuser:
             permissions = list(map(lambda x: x.nombre, Permiso.query.all()))
         else:
@@ -27,12 +27,12 @@ def login():
             ),
             200,
         )
-    return jsonify({"message": "Invalid credentials"}), 401
+    return jsonify({"error": "Usuario o contraseña incorrectos"}), 401
 
 
 @auth_bp.route("/profile", methods=["GET"])
 @jwt_required()
 def profile():
     current_user = get_jwt_identity()
-    user = Usuario.query.filter_by(email=current_user["email"]).first()
+    user = Usuario.query.filter_by(username=current_user["username"]).first()
     return jsonify({"user": user.to_json()}), 200
