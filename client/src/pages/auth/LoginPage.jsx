@@ -11,7 +11,8 @@ import {
     Typography,
     IconButton,
     OutlinedInput,
-    InputLabel
+    InputLabel,
+    FormHelperText
 } from "@mui/material";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { API } from "../../App";
@@ -127,7 +128,7 @@ export default function LoginPage() {
                         </FormControl>
                     </Grid>
                     <Grid item xs={12}>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth required error={Boolean(errors.password)}>
                             <Controller
                                 name="password"
                                 control={control}
@@ -154,12 +155,11 @@ export default function LoginPage() {
                                                 </IconButton>
                                             </InputAdornment>
                                             }
-                                            error={Boolean(errors.password)}
-                                            helperText={errors.password && errors.password.message}
                                         />
                                     </>
                                 )}
                             />
+                            <FormHelperText>{errors.password && errors.password.message}</FormHelperText>
                         </FormControl>
                     </Grid>
                 </Grid>
