@@ -16,11 +16,11 @@ class AfipServiceError(Exception):
 
 class AfipService:
     "Servicio para interactuar con la API de AFIP y los modelos de la base de datos."
-    CUIT = 20428129572
-    CERT = os.path.join(BASE_DIR, "instance", "afipws_test.cert")
-    KEY = os.path.join(BASE_DIR, "instance", "afipws_test.key")
+    CUIT = 20400434108
+    CERT = os.path.join(BASE_DIR, "instance", "afipws_prod.crt")
+    KEY = os.path.join(BASE_DIR, "instance", "afipws_prod.key")
     PASSPHRASE = ""
-    PRODUCTION = False
+    PRODUCTION = True
 
     def __init__(self):
         "Inicializar el servicio de AFIP."
