@@ -14,6 +14,8 @@ class Base(DeclarativeBase):
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 app = Flask(__name__)
 
 # CORS Configuration (Local & Codespaces)
@@ -59,6 +61,7 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 db = SQLAlchemy(model_class=Base, metadata=metadata)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
+
 
 # Config for Production
 # app.config['SQLALCHEMY_DATABASE_URI'] = ('mssql+pyodbc://sa:Admin-181020@localhost:1433/Datos?driver=ODBC+Driver+18+for'

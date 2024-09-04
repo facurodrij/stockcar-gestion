@@ -116,7 +116,7 @@ export default function VentaDetail({ pk }) {
         withLoading(async () => {
             const printUrl = `${API}/ventas/${pk}`;
             try {
-                const response = await fetchWithAuth(printUrl, 'POST', { action: 'imprimir', size });
+                const response = await fetchWithAuth(printUrl, 'POST', { action: 'print', size });
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 window.open(url, '_blank');
