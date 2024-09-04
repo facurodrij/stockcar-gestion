@@ -1,7 +1,9 @@
 import re
+import os
 
 from server.core.models import Venta
 from server.afipws import WSFEv1
+from server.config import BASE_DIR
 
 
 class AfipServiceError(Exception):
@@ -15,8 +17,8 @@ class AfipServiceError(Exception):
 class AfipService:
     "Servicio para interactuar con la API de AFIP y los modelos de la base de datos."
     CUIT = 20428129572
-    CERT = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\instance\afipws_test.cert"
-    KEY = r"C:\Users\Facundo\VSCodeProjects\stockcar-gestion\server\instance\afipws_test.key"
+    CERT = os.path.join(BASE_DIR, "instance", "afipws_test.cert")
+    KEY = os.path.join(BASE_DIR, "instance", "afipws_test.key")
     PASSPHRASE = ""
     PRODUCTION = False
 

@@ -207,6 +207,19 @@ class VentaController:
                 nota_credito.numero = nota_credito.get_last_number() + 1
                 db.session.add(nota_credito)
                 db.session.flush()
+                for item in venta.items:
+                    venta_item = VentaItem(
+                        venta_id=nota_credito.id,
+                        articulo_id=item.articulo_id,
+                        descripcion=item.descripcion,
+                        cantidad=item.cantidad,
+                        precio_unidad=item.precio_unidad,
+                        alicuota_iva=item.alicuota_iva,
+                        subtotal_iva=item.subtotal_iva,
+                        subtotal_gravado=item.subtotal_gravado,
+                        subtotal=item.subtotal
+                    )
+                    db.session.add(venta_item)
                 afip = AfipService()
                 res = afip.anular_cae(nota_credito)
                 nota_credito.numero = res["numero"]

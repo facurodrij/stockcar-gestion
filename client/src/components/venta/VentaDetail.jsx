@@ -72,6 +72,7 @@ export default function VentaDetail({ pk }) {
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
+        autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
     const confirm = useConfirm();
@@ -140,38 +141,40 @@ export default function VentaDetail({ pk }) {
 
         })
             .then(() => {
-                const url = `${API}/ventas/${pk}`;
-                fetchWithAuth(url, 'POST', { action: 'anular' })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(data => {
-                                throw new Error(data['error']);
+                withLoading(async () => {
+                    const url = `${API}/ventas/${pk}`;
+                    fetchWithAuth(url, 'POST', { action: 'anular' })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data['error']);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            setSnackbar({
+                                message: data['message'],
+                                severity: 'success',
+                                onClose: () => handleCloseSnackbar(true, `/ventas/${data['venta_id']}`)
                             });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        setSnackbar({
-                            message: data['message'],
-                            severity: 'success',
-                            onClose: () => handleCloseSnackbar(true, `/ventas/${data['venta_id']}`)
+                            setOpenSnackbar(true);
+                        })
+                        .catch((error) => {
+                            setSnackbar({
+                                message: `Error al anular la venta: ${error}`,
+                                severity: 'error',
+                                onClose: () => handleCloseSnackbar(false)
+                            });
+                            setOpenSnackbar(true);
                         });
-                        setOpenSnackbar(true);
-                    })
-                    .catch((error) => {
-                        setSnackbar({
-                            message: `Error al anular la venta: ${error}`,
-                            severity: 'error',
-                            onClose: () => handleCloseSnackbar(false)
-                        });
-                        setOpenSnackbar(true);
-                    });
-
+                });
             })
             .catch((error) => {
                 setSnackbar({
-                    message: `Acción cancelada: ${error}`,
+                    message: 'Acción cancelada',
                     severity: 'info',
+                    autoHideDuration: 4000,
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
@@ -346,7 +349,7 @@ export default function VentaDetail({ pk }) {
             </Paper>
             <SnackbarAlert
                 open={openSnackbar}
-                autoHideDuration={4000}
+                autoHideDuration={snackbar.autoHideDuration}
                 onClose={snackbar.onClose}
                 severity={snackbar.severity}
                 message={snackbar.message}
