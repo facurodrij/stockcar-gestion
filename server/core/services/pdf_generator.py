@@ -338,14 +338,14 @@ class A4PDFGenerator(BasePDFGenerator):
 class TicketPDFGenerator(BasePDFGenerator):
     def __init__(self, *args, **kwargs):
         BasePDFGenerator.__init__(self, *args, **kwargs)
-        self.setPageSize((3.10 * inch, 11.68 * inch))
+        self.setPageSize((2.80 * inch, 11.68 * inch))
 
     def draw_header(self):
         "Draw a header at the top of the page"
         self.drawImage(
-            self.header_image, 10, 730, width=210, height=None, preserveAspectRatio=True
+            self.header_image, 10, 730, width=180, height=None, preserveAspectRatio=True
         )
-        self.line(10, 770, 210, 770)
+        self.line(10, 770, 200, 770)
         self.setFont("Helvetica", 14)
         self.drawCentredString(110, 750, f"{self.venta.tipo_comprobante.descripcion}")
         self.setFontSize(6)
@@ -360,12 +360,12 @@ class TicketPDFGenerator(BasePDFGenerator):
             715,
             f"Fecha de Emisión: {self.venta.fecha_hora.strftime('%d/%m/%Y %H:%M:%S')}",
         )
-        self.line(10, 705, 210, 705)
+        self.line(10, 705, 200, 705)
         self.drawString(10, 690, "Cliente:")
         self.drawString(
             45, 690, f"{self.truncate_text(self.venta.cliente.razon_social, 30)}"
         )
-        self.line(10, 680, 210, 680)
+        self.line(10, 680, 200, 680)
         self.table_y_max = 680  # Max Y position for the items table
 
     def draw_item_table(self):
@@ -380,7 +380,7 @@ class TicketPDFGenerator(BasePDFGenerator):
                 ]
             )
         row_heights = [20] * (len(table_data))
-        table = Table(table_data, colWidths=[50, 120, 40], rowHeights=row_heights)
+        table = Table(table_data, colWidths=[50, 110, 40], rowHeights=row_heights)
         table.setStyle(
             TableStyle(
                 [
@@ -401,24 +401,24 @@ class TicketPDFGenerator(BasePDFGenerator):
     def draw_total(self):
         "Draw Total section"
         self.line(
-            10, self.total_y_max, 210, self.total_y_max
+            10, self.total_y_max, 200, self.total_y_max
         )  # Horizontal line for total section
         self.setFont("Helvetica", 8)
         self.drawString(10, self.total_y_max - 10, "Importe neto gravado:")
         self.drawRightString(
-            210,
+            200,
             self.total_y_max - 10,
             f"$ {locale.format_string('%.2f', self.venta.gravado, grouping=True)}",
         )
         self.drawString(10, self.total_y_max - 20, "Importe IVA:")
         self.drawRightString(
-            210,
+            200,
             self.total_y_max - 20,
             f"$ {locale.format_string('%.2f', self.venta.total_iva, grouping=True)}",
         )
         self.drawString(10, self.total_y_max - 30, "Importe otros tributos:")
         self.drawRightString(
-            210,
+            200,
             self.total_y_max - 30,
             f"$ {locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}",
         )
@@ -426,7 +426,7 @@ class TicketPDFGenerator(BasePDFGenerator):
         self.drawString(10, self.total_y_max - 45, "TOTAL:")
         self.setFont("Helvetica", 8)
         self.drawRightString(
-            210,
+            200,
             self.total_y_max - 45,
             f"$ {locale.format_string('%.2f', self.venta.total, grouping=True)}",
         )
