@@ -162,7 +162,7 @@ export default function VentaDetail({ pk }) {
                         })
                         .catch((error) => {
                             setSnackbar({
-                                message: `Error al anular la venta: ${error}`,
+                                message: `Error al anular la venta: ${error.message}`,
                                 severity: 'error',
                                 onClose: () => handleCloseSnackbar(false)
                             });

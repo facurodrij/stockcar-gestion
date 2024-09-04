@@ -22,6 +22,7 @@ import SnackbarAlert from "../shared/SnackbarAlert";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import { esES } from "@mui/x-data-grid/locales";
 import fetchWithAuth from '../../utils/fetchWithAuth';
+import { useLoading } from '../../utils/loadingContext';
 
 
 const CustomToolbar = ({ onOpen }) => {
@@ -60,6 +61,7 @@ export default function OrdenVentaForm({ pk }) {
     const [selectedArticulo, setSelectedArticulo] = useState([]);
     const [ventaRenglones, setVentaRenglones] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { withLoading } = useLoading();
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -121,8 +123,8 @@ export default function OrdenVentaForm({ pk }) {
             }
         }
 
-        loadData();
-    }, [pk, setValue]);
+        withLoading(loadData);
+    }, [pk, setValue, withLoading]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);

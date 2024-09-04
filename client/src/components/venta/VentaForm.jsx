@@ -31,6 +31,7 @@ import { esES } from "@mui/x-data-grid/locales";
 import InputAdornment from '@mui/material/InputAdornment';
 import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
+import { useLoading } from '../../utils/loadingContext';
 
 
 const CustomToolbar = ({ onOpen }) => {
@@ -77,6 +78,7 @@ export default function VentaForm({ pk }) {
     const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [estadoVenta, setEstadoVenta] = useState('');
+    const { withLoading } = useLoading();
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -163,8 +165,9 @@ export default function VentaForm({ pk }) {
                 setOpenSnackbar(true);
             }
         }
-        loadData();
-    }, [pk, setValue]);
+        
+        withLoading(loadData);
+    }, [pk, setValue, withLoading]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);

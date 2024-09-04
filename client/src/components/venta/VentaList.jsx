@@ -21,29 +21,52 @@ import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import fetchWithAuth from '../../utils/fetchWithAuth';
+import SnackbarAlert from '../shared/SnackbarAlert';
+import { useLoading } from '../../utils/loadingContext';
 
 
 export default function VentaList({ onlyOrders }) {
     const [list, setList] = useState([]);
     const [from, setFrom] = useState(null);
     const [to, setTo] = useState(null);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbar, setSnackbar] = useState({
+        message: '',
+        severity: 'success',
+        autoHideDuration: 4000,
+        onClose: () => handleCloseSnackbar(false)
+    });
+    const { withLoading } = useLoading();
+
+    const handleCloseSnackbar = () => {
+        setOpenSnackbar(false);
+    }
 
     const fetchData = async () => {
         const fromStr = from ? from.toISOString() : null;
         const toStr = to ? to.toISOString() : null;
         let url = onlyOrders ? `${API}/ventas-orden` : `${API}/ventas`;
         url = (from || to) ? `${url}?desde=${fromStr}&hasta=${toStr}` : url;
-        try {
-            const res = await fetchWithAuth(url);
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(`${res.status} (${res.statusText})`);
+        withLoading(async () => {
+            try {
+                const res = await fetchWithAuth(url);
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data['error']);
+                }
+                setList(data['ventas']);
+            } catch (error) {
+                console.error(error);
+                setSnackbar({
+                    message: `Error al obtener las ventas: ${error.message}`,
+                    severity: 'error',
+                    autoHideDuration: null,
+                    onClose: handleCloseSnackbar
+                });
+                setOpenSnackbar(true);
             }
-            setList(data['ventas']);
-        } catch (error) {
-            console.error(error);
-        }
-    }
+        });
+    };
 
     const CustomToolbar = () => {
         return (
@@ -188,6 +211,13 @@ export default function VentaList({ onlyOrders }) {
                     slots={{ toolbar: CustomToolbar }}
                 />
             </div>
+            <SnackbarAlert
+                open={openSnackbar}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                autoHideDuration={snackbar.autoHideDuration}
+                onClose={snackbar.onClose}
+            />
         </>
     );
 };
