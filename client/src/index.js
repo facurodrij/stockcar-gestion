@@ -10,6 +10,7 @@ import ThemeProvider from "@mui/material/styles/ThemeProvider";
 import {theme} from "./theme";
 import 'dayjs/locale/es';
 import { ConfirmProvider } from 'material-ui-confirm';
+import { LoadingProvider } from './utils/loadingContext';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -18,7 +19,9 @@ root.render(
         <CssBaseline/>
         <ThemeProvider theme={theme}>
             <ConfirmProvider>
-                <App/>
+                <LoadingProvider>
+                    <App/>
+                </LoadingProvider>
             </ConfirmProvider>
         </ThemeProvider>
     </React.StrictMode>

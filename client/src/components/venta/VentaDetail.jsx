@@ -23,6 +23,7 @@ import SnackbarAlert from "../shared/SnackbarAlert";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useConfirm } from 'material-ui-confirm';
+import { useLoading } from '../../utils/loadingContext';
 
 
 
@@ -67,7 +68,6 @@ const PaperSizeButton = ({ handlePrint }) => {
 export default function VentaDetail({ pk }) {
     const [venta, setVenta] = useState({});
     const [renglones, setRenglones] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
         message: '',
@@ -75,6 +75,7 @@ export default function VentaDetail({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const confirm = useConfirm();
+    const { withLoading } = useLoading();
 
     const handleCloseSnackbar = (redirect, url = '/ventas') => {
         setOpenSnackbar(false);
@@ -106,30 +107,29 @@ export default function VentaDetail({ pk }) {
                 });
                 setOpenSnackbar(true);
             }
-            finally {
-                setLoading(false);
-            }
         }
-        loadData();
-    }, [pk]);
+
+        withLoading(loadData);
+    }, [pk, withLoading]);
 
     const handlePrint = (size = 'A4') => {
-        const url = `${API}/ventas/${pk}`;
-        fetchWithAuth(url, 'POST', { action: 'print', size: size })
-            .then(response => response.blob())
-            .then(blob => {
+        withLoading(async () => {
+            const printUrl = `${API}/ventas/${pk}`;
+            try {
+                const response = await fetchWithAuth(printUrl, 'POST', { action: 'imprimir', size });
+                const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 window.open(url, '_blank');
-            })
-            .catch(() => {
+            } catch {
                 setSnackbar({
                     message: 'Error al imprimir la venta',
                     severity: 'error',
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
-            });
-    }
+            }
+        });
+    };
 
     const handleAnular = async () => {
         confirm({
