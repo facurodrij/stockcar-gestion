@@ -7,6 +7,7 @@ import {
     FormControl,
     FormHelperText,
     Grid,
+    InputAdornment,
     InputLabel,
     MenuItem,
     Paper,
@@ -28,7 +29,6 @@ import AddIcon from "@mui/icons-material/Add";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import { esES } from "@mui/x-data-grid/locales";
-import InputAdornment from '@mui/material/InputAdornment';
 import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useLoading } from '../../utils/loadingContext';
@@ -132,7 +132,7 @@ export default function VentaForm({ pk }) {
                     if (venta.observacion) setValue('observacion', venta.observacion);
                     setEstadoVenta(venta.estado);
 
-                    // Cargar renglones de venta y articulos seleccionados
+                    // Cargar renglones de venta
                     const renglonesArray = data['renglones'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
