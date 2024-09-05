@@ -80,7 +80,7 @@ export default function OrdenVentaForm({ pk }) {
             const res = await fetchWithAuth(url);
             const data = await res.json();
             if (!res.ok) {
-                const message = Boolean(pk) ? `Error al cargar la orden de venta: ${data['error']}` : 'Error al cargar los datos';
+                const message = `Error al obtener datos: ${data['error']}`
                 throw new Error(message);
             }
             return data;
@@ -96,6 +96,8 @@ export default function OrdenVentaForm({ pk }) {
                     const venta = data['venta'];
                     setValue('cliente_id', venta.cliente.id);
                     if (venta.observacion) setValue('observacion', venta.observacion);
+
+                    // Cargar renglones de venta
                     const renglonesArray = data['renglones'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
@@ -134,12 +136,12 @@ export default function OrdenVentaForm({ pk }) {
             if (ventaRenglones.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
-            const response = await fetchWithAuth(url, method, {
+            const res = await fetchWithAuth(url, method, {
                 venta: data, renglones: ventaRenglones
             });
-            const responseJson = await response.json();
-            if (!response.ok) {
-                throw new Error(`${responseJson['error']}`);
+            const resJson = await res.json();
+            if (!res.ok) {
+                throw new Error(`${resJson['error']}`);
             }
             setSnackbar({
                 message: 'Orden de Venta guardada correctamente',
@@ -148,6 +150,7 @@ export default function OrdenVentaForm({ pk }) {
                 onClose: () => handleCloseSnackbar(true)
             });
         } catch (e) {
+            console.error('Error al guardar la orden de venta:', e);
             setSnackbar({
                 message: e.message,
                 severity: 'error',
