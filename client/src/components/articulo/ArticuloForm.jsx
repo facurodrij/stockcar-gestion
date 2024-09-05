@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Controller, set, useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import {
     Box,
     Button,
@@ -21,6 +21,8 @@ import { API } from "../../App";
 import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
+import { useLoading } from '../../utils/loadingContext';
+import { useConfirm } from 'material-ui-confirm';
 
 
 export default function ArticuloForm({ pk }) {
@@ -46,6 +48,8 @@ export default function ArticuloForm({ pk }) {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { withLoading } = useLoading();
+    const confirm = useConfirm();
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -86,7 +90,7 @@ export default function ArticuloForm({ pk }) {
                     if (articulo.codigo_secundario) setValue('codigo_secundario', articulo.codigo_secundario);
                     if (articulo.codigo_terciario) setValue('codigo_terciario', articulo.codigo_terciario);
                     if (articulo.codigo_cuaternario) setValue('codigo_cuaternario', articulo.codigo_cuaternario);
-                    if (articulo.codigo_adicional) setValue('codigo_adicional', articulo.codigo_adicional.join(', '));  
+                    if (articulo.codigo_adicional) setValue('codigo_adicional', articulo.codigo_adicional.join(', '));
                     // Es necesario setear el valor de la descripción y la línea de factura
                     setDescripcion(articulo.descripcion);
                     setLineaFactura(articulo.linea_factura);
@@ -96,8 +100,10 @@ export default function ArticuloForm({ pk }) {
                     setValue('tipo_unidad_id', articulo.tipo_unidad.id);
                     setValue('alicuota_iva_id', articulo.alicuota_iva.id);
                     if (articulo.observacion) setValue('observacion', articulo.observacion);
+
+                    // Cargar los tributos seleccionados
                     setSelectedTributo([])
-                    tributos.map((t) => {
+                    tributos.forEach((t) => {
                         setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
                     });
                 }
@@ -107,13 +113,14 @@ export default function ArticuloForm({ pk }) {
                 setSnackbar({
                     message: e.message,
                     severity: 'error',
-                    onClose: () => handleCloseSnackbar(true)
+                    onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
             }
         }
-        loadData();
-    }, []);
+
+        withLoading(loadData);
+    }, [pk, withLoading, setValue]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -122,22 +129,51 @@ export default function ArticuloForm({ pk }) {
         try {
             if (data['codigo_adicional']) {
                 data['codigo_adicional'] = data['codigo_adicional'].split(',').map((c) => c.trim());
-                console.log(data['codigo_adicional']);
             }
-            
-            const res = await fetchWithAuth(url, method, {
+            let res = await fetchWithAuth(url, method, {
                 articulo: data, tributos: selectedTributo
             });
-            const resJson = await res.json();
-            if (!res.ok) {
+            let resJson = await res.json();
+            if (res.status === 409 && resJson['warning']) {
+            const existingArticlesLinks = resJson.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
+            const description = `${resJson.warning}. Son los siguientes: ${existingArticlesLinks}.`;
+                confirm({
+                    title: 'Advertencia',
+                    description: <span dangerouslySetInnerHTML={{ __html: description }} />,
+                    confirmationText: 'Guardar de todas formas',
+                    cancellationText: 'Cancelar'
+                })
+                    .then(async () => {
+                        res = await fetchWithAuth(url, method, {
+                            articulo: data, tributos: selectedTributo, force: true
+                        });
+                        resJson = await res.json();
+                        if (!res.ok) {
+                            throw new Error(resJson['error']);
+                        }
+                        setSnackbar({
+                            message: 'Artículo guardado correctamente',
+                            severity: 'success',
+                            autoHideDuration: 4000,
+                            onClose: () => handleCloseSnackbar(true)
+                        });
+                        setOpenSnackbar(true);
+                    })
+                    .catch(() => {
+                        setIsSubmitting(false);
+                        return;
+                    });
+            } else if (!res.ok) {
                 throw new Error(resJson['error']);
+            } else {
+                setSnackbar({
+                    message: 'Artículo guardado correctamente',
+                    severity: 'success',
+                    autoHideDuration: 4000,
+                    onClose: () => handleCloseSnackbar(true)
+                });
+                setOpenSnackbar(true);
             }
-            setSnackbar({
-                message: 'Artículo guardado correctamente',
-                severity: 'success',
-                autoHideDuration: 4000,
-                onClose: () => handleCloseSnackbar(true)
-            });
         } catch (e) {
             console.error('Error al guardar el artículo:', e);
             setSnackbar({
@@ -147,7 +183,6 @@ export default function ArticuloForm({ pk }) {
                 onClose: () => handleCloseSnackbar(false)
             });
             setIsSubmitting(false);
-        } finally {
             setOpenSnackbar(true);
         }
     }
@@ -168,7 +203,7 @@ export default function ArticuloForm({ pk }) {
     useEffect(() => {
         setLineaFactura(descripcion.substring(0, 30));
         setValue('linea_factura', descripcion.substring(0, 30));
-    }, [descripcion]);
+    }, [descripcion, setValue]);
 
     return (
         <>
@@ -177,13 +212,14 @@ export default function ArticuloForm({ pk }) {
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} centered>
                         <Tab label="Principal" />
+                        <Tab label="Códigos" />
                         <Tab label="Facturación" />
                         <Tab label="Observaciones" />
                     </Tabs>
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
                     <Grid container spacing={2}>
-                        <Grid item xs={6}>
+                        <Grid item xs={12}>
                             <FormControl fullWidth>
                                 <Controller
                                     name="codigo_principal"
@@ -210,75 +246,6 @@ export default function ArticuloForm({ pk }) {
                                                     : "Máximo 20 caracteres. Será utilizado en los renglones de venta."
                                             }
                                             inputProps={{ maxLength: 20 }}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="codigo_secundario"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            id="codigo_secundario"
-                                            label="Código secundario"
-                                            variant="outlined"
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="codigo_terciario"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            id="codigo_terciario"
-                                            label="Código terciario"
-                                            variant="outlined"
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="codigo_cuaternario"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            id="codigo_cuaternario"
-                                            label="Código cuaternario"
-                                            variant="outlined"
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="codigo_adicional"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            id="codigo_adicional"
-                                            label="Códigos adicionales"
-                                            variant="outlined"
-                                            helperText={"(Opcional) Ingrese los códigos adicionales separados por comas."}
                                         />
                                     )}
                                 />
@@ -346,6 +313,79 @@ export default function ArticuloForm({ pk }) {
                     </Grid>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="codigo_secundario"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="codigo_secundario"
+                                            label="Código secundario"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="codigo_terciario"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="codigo_terciario"
+                                            label="Código terciario"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="codigo_cuaternario"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="codigo_cuaternario"
+                                            label="Código cuaternario"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="codigo_adicional"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="codigo_adicional"
+                                            label="Códigos adicionales"
+                                            variant="outlined"
+                                            helperText={"(Opcional) Ingrese los códigos adicionales separados por comas. Ej: ABC123, XYZ789"}
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                </SimpleTabPanel>
+                <SimpleTabPanel value={tabValue} index={2}>
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
                             <FormControl fullWidth required error={Boolean(errors.tipo_articulo)}>
@@ -432,7 +472,7 @@ export default function ArticuloForm({ pk }) {
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
-                <SimpleTabPanel value={tabValue} index={2}>
+                <SimpleTabPanel value={tabValue} index={3}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormControl fullWidth>
