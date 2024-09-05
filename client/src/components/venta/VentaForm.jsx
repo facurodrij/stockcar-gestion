@@ -281,7 +281,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="punto_venta_id"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     rules={{ required: "Este campo es requerido" }}
                                     render={({ field }) => (
                                         <Select
