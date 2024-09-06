@@ -1,10 +1,8 @@
 import enum
 from sqlalchemy import (
-    ForeignKey,
     Column,
     Integer,
     String,
-    Numeric,
     DateTime,
     Enum,
     func,
@@ -46,24 +44,26 @@ class MovimientoStock(db.Model):
     tipo_movimiento = Column(Enum(TipoMovimiento), nullable=False)
     origen = Column(Enum(OrigenMovimiento), nullable=False)
     fecha_hora = Column(DateTime, default=func.now(), nullable=False)
-    cantidad = Column(Numeric(precision=10, scale=2), default=0, nullable=False)
     observacion = Column(String, nullable=True)
 
-    # Relaciones con otras tablas
-    articulo_id = Column(Integer, ForeignKey("articulo.id"), nullable=False)
-    articulo = relationship("Articulo", backref="movimientos_stock")
+    articulos = relationship(
+        "Articulo", secondary="articulo_movimiento_stock", back_populates="movimientos"
+    )
 
     # Datos de auditoría
     fecha_alta = Column(DateTime, default=func.now())
     fecha_modificacion = Column(DateTime, onupdate=func.now())
 
     def to_json(self):
+        articulos = []
+        for articulo in self.articulos:
+            articulos.append(articulo.to_json())
+
         return {
             "id": self.id,
             "tipo_movimiento": self.tipo_movimiento.value,
             "origen": self.origen.value,
             "fecha_hora": self.fecha_hora.strftime("%Y-%m-%d %H:%M:%S"),
-            "cantidad": str(self.cantidad),
             "observacion": self.observacion,
-            "articulo": self.articulo.to_json(),
+            "articulos": articulos,
         }

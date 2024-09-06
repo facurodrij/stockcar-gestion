@@ -54,6 +54,12 @@ class Articulo(db.Model):
         "Tributo", secondary="tributo_articulo", back_populates="articulos"
     )
 
+    movimientos = relationship(
+        "MovimientoStock",
+        secondary="articulo_movimiento_stock",
+        back_populates="articulos",
+    )
+
     # Datos de auditoría
     fecha_alta = Column(DateTime, default=func.now())
     fecha_modificacion = Column(DateTime, onupdate=func.now())
@@ -67,6 +73,10 @@ class Articulo(db.Model):
         tributos = []
         for tributo in self.tributos:
             tributos.append(tributo.to_json())
+        
+        movimientos = []
+        for movimiento in self.movimientos:
+            movimientos.append(movimiento.to_json())
 
         return {
             "id": self.id,
@@ -85,6 +95,7 @@ class Articulo(db.Model):
             "tipo_unidad": self.tipo_unidad.to_json(),
             "alicuota_iva": self.alicuota_iva.to_json(),
             "tributos": tributos,
+            "movimientos": movimientos,
             "fecha_alta": self.fecha_alta,
             "fecha_modificacion": self.fecha_modificacion,
             "baja": self.baja,

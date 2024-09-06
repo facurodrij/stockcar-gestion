@@ -45,3 +45,11 @@ responsable_comprobante = db.Table(
     Column('tipo_responsable_id', Integer, ForeignKey('tipo_responsable.id'), primary_key=True),
     Column('tipo_comprobante_id', Integer, ForeignKey('tipo_comprobante.id'), primary_key=True)
 )
+
+# Tabla de asociación entre artículos y movimientos de stock
+articulo_movimiento_stock = db.Table(
+    'articulo_movimiento_stock',
+    Column('articulo_id', Integer, ForeignKey('articulo.id'), primary_key=True),
+    Column('movimiento_stock_id', Integer, ForeignKey('movimiento_stock.id'), primary_key=True),
+    Column('cantidad', Integer, nullable=False)
+)
