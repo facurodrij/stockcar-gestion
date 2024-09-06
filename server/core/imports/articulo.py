@@ -16,6 +16,7 @@ def import_data():
         "PRO_CODIGO": "id",
         "PRO_CODBAR": "codigo_barras",
         "PRO_NOMBRE": "descripcion",
+        "PRO_EXISTENCIA": "stock_actual",
     })
 
     df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
@@ -32,6 +33,7 @@ def import_data():
             codigo_principal=row['codigo_barras'],
             descripcion=row['descripcion'],
             linea_factura=row['descripcion'][:30],
+            stock_actual=row['stock_actual'],
         )
         articulo_list.append(articulo)
 
