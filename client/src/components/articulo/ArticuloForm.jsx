@@ -99,6 +99,9 @@ export default function ArticuloForm({ pk }) {
                     setValue('tipo_articulo_id', articulo.tipo_articulo.id);
                     setValue('tipo_unidad_id', articulo.tipo_unidad.id);
                     setValue('alicuota_iva_id', articulo.alicuota_iva.id);
+                    setValue('stock_actual', articulo.stock_actual);
+                    if (articulo.stock_minimo) setValue('stock_minimo', articulo.stock_minimo);
+                    if (articulo.stock_maximo) setValue('stock_maximo', articulo.stock_maximo);
                     if (articulo.observacion) setValue('observacion', articulo.observacion);
 
                     // Cargar los tributos seleccionados
@@ -135,8 +138,8 @@ export default function ArticuloForm({ pk }) {
             });
             let resJson = await res.json();
             if (res.status === 409 && resJson['warning']) {
-            const existingArticlesLinks = resJson.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
-            const description = `${resJson.warning}. Son los siguientes: ${existingArticlesLinks}.`;
+                const existingArticlesLinks = resJson.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
+                const description = `${resJson.warning}. Son los siguientes: ${existingArticlesLinks}.`;
                 confirm({
                     title: 'Advertencia',
                     description: <span dangerouslySetInnerHTML={{ __html: description }} />,
@@ -188,12 +191,12 @@ export default function ArticuloForm({ pk }) {
     }
 
     const onError = (errors) => {
-        if (errors['codigo_principal'] || errors['descripcion']) {
+        if (errors['codigo_principal'] || errors['descripcion'] || errors['linea_factura'] || errors['stock_actual']) {
             setTabValue(0);
             return;
         }
         if (errors['tipo_articulo_id'] || errors['tipo_unidad_id'] || errors['alicuota_iva_id']) {
-            setTabValue(1);
+            setTabValue(2);
         }
     }
 
@@ -305,6 +308,67 @@ export default function ArticuloForm({ pk }) {
                                                     ? errors.linea_factura.message
                                                     : "Máximo 30 caracteres. Será utilizado como descripción por defecto en los renglones de venta."
                                             }
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Inventario</Typography>
+                    <Grid container spacing={2}>
+                        <Grid item xs={4}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="stock_actual"
+                                    control={control}
+                                    defaultValue=""
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            required
+                                            id="stock_actual"
+                                            label="Stock actual"
+                                            variant="outlined"
+                                            type="number"
+                                            error={Boolean(errors.stock_actual)}
+                                            helperText={errors.stock_actual && errors.stock_actual.message}
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={4}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="stock_minimo"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="stock_minimo"
+                                            label="Stock mínimo"
+                                            variant="outlined"
+                                            type="number"
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={4}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="stock_maximo"
+                                    control={control}
+                                    defaultValue=""
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            id="stock_maximo"
+                                            label="Stock máximo"
+                                            variant="outlined"
+                                            type="number"
                                         />
                                     )}
                                 />
