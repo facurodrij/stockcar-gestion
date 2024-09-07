@@ -17,6 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
+import dayjs from "dayjs";
 
 
 const CustomToolbar = () => {
@@ -83,13 +84,21 @@ export default function MovStockList() {
     }, [withLoading]);
 
     const columns = [
-        { field: 'fecha_hora', headerName: 'Fecha y Hora', width: 200 },
-        { field: 'tipo_movimiento', headerName: 'Tipo de Movimiento', width: 200 },
-        { field: 'origen', headerName: 'Origen', width: 200 },
+        {
+            field: 'fecha_hora', headerName: 'Fecha y hora', type: 'dateTime', flex: 2,
+            valueFormatter: (value) => {
+                if (!value) {
+                    return "";
+                }
+                return dayjs(value, 'YYYY-MM-DDTHH:mm:ss').format('DD/MM/YYYY HH:mm:ss');
+            }
+        },
+        { field: 'tipo_movimiento', headerName: 'Tipo de Movimiento', flex: 2 },
+        { field: 'origen', headerName: 'Origen', flex: 2 },
         {
             field: 'acciones',
             headerName: 'Acciones',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <GridActionsCellItem
                     icon={<EditIcon />}

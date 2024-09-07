@@ -63,7 +63,7 @@ class MovimientoStock(db.Model):
             "id": self.id,
             "tipo_movimiento": self.tipo_movimiento.value,
             "origen": self.origen.value,
-            "fecha_hora": self.fecha_hora.strftime("%Y-%m-%d %H:%M:%S"),
+            "fecha_hora": self.fecha_hora.isoformat(),
             "observacion": self.observacion,
             "articulos": articulos,
         }
