@@ -34,7 +34,7 @@ class VentaController:
                 venta_json["fecha_hora"]
             ).astimezone(local_tz)
         else:
-            venta_json["fecha_hora"] = datetime.now().astimezone(local_tz)
+            venta_json["fecha_hora"] = datetime.now(tz=local_tz)
         if (
             "vencimiento_cae" in venta_json
             and venta_json["vencimiento_cae"] is not None
@@ -217,7 +217,7 @@ class VentaController:
                         alicuota_iva=item.alicuota_iva,
                         subtotal_iva=item.subtotal_iva,
                         subtotal_gravado=item.subtotal_gravado,
-                        subtotal=item.subtotal
+                        subtotal=item.subtotal,
                     )
                     db.session.add(venta_item)
                 afip = AfipService()
