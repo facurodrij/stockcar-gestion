@@ -10,6 +10,7 @@ app.register_blueprint(articulo_bp)
 app.register_blueprint(comercio_bp)
 app.register_blueprint(usuario_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(movimiento_stock_bp)
 
 
 @app.route('/')
