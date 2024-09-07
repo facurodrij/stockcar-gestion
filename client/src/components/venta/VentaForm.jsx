@@ -160,6 +160,7 @@ export default function VentaForm({ pk }) {
                 setSnackbar({
                     message: e.message,
                     severity: 'error',
+                    autoHideDuration: null,
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
@@ -182,7 +183,7 @@ export default function VentaForm({ pk }) {
             });
             const resJson = await res.json();
             if (!res.ok) {
-                throw new Error(`${resJson['error']}`);
+                throw new Error(resJson['error']);
             }
             setSnackbar({
                 message: 'Venta guardada correctamente',
