@@ -132,6 +132,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                                 return exist || {
                                     articulo_id: row.id,
                                     descripcion: row.linea_factura,
+                                    codigo_principal: row.codigo_principal,
                                     cantidad: 1,
                                     precio_unidad: 0,
                                     alicuota_iva: row.alicuota_iva.porcentaje,
