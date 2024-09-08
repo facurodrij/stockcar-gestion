@@ -87,7 +87,7 @@ export default function MovStockForm({ pk }) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const url = Boolean(pk) ? `${API}/movimientos-stock/${pk}/update/` : `${API}/movimientos-stock/create/`;
+            const url = Boolean(pk) ? `${API}/movimientos-stock/${pk}/update` : `${API}/movimientos-stock/create`;
             const res = await fetchWithAuth(url);
             const data = await res.json();
             if (!res.ok) {
@@ -117,7 +117,7 @@ export default function MovStockForm({ pk }) {
                             articulo_id: item.articulo_id,
                             codigo_principal: item.codigo_principal,
                             descripcion: item.descripcion,
-                            cantidad: item.cantidad
+                            cantidad: item.cantidad,
                         };
                     });
                     const articuloArray = renglonesArray.map((r) => r.articulo_id);
@@ -141,14 +141,14 @@ export default function MovStockForm({ pk }) {
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
-        const url = Boolean(pk) ? `${API}/movimientos-stock/${pk}/update/` : `${API}/movimientos-stock/create/`;
+        const url = Boolean(pk) ? `${API}/movimientos-stock/${pk}/update` : `${API}/movimientos-stock/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
             if (selectedArticulo.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
             const res = await fetchWithAuth(url, method, {
-                movimiento: data, articulos: selectedArticulo
+                movimiento: data, renglones: movimientoRenlones
             });
             const resJson = await res.json();
             if (!res.ok) {
@@ -158,7 +158,7 @@ export default function MovStockForm({ pk }) {
                 message: 'Movimiento de stock guardado correctamente',
                 severity: 'success',
                 autoHideDuration: 4000,
-                onClose: () => handleCloseSnackbar(true)
+                onClose: () => handleCloseSnackbar(false) // TODO Cambiar
             });
         } catch (e) {
             console.error('Error al guardar el movimiento de stock:', e);
@@ -175,7 +175,7 @@ export default function MovStockForm({ pk }) {
     }
 
     const onError = (errors) => {
-        if (errors['fecha_hora'] || errors['tipo_movimiento_id'] || errors['origen_id']) {
+        if (errors['fecha_hora'] || errors['tipo_movimiento'] || errors['origen']) {
             setTabValue(0);
             return;
         }
@@ -214,12 +214,12 @@ export default function MovStockForm({ pk }) {
                             </FormControl>
                         </Grid>
                         <Grid item xs={6}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_movimiento_id)}>
+                            <FormControl fullWidth required error={Boolean(errors.tipo_movimiento)}>
                                 <InputLabel id="tipo_movimiento_label">Tipo de Movimiento</InputLabel>
                                 <Controller
-                                    name="tipo_movimiento_id"
+                                    name="tipo_movimiento"
                                     control={control}
-                                    defaultValue="1"
+                                    defaultValue=""
                                     rules={{ required: "Este campo es requerido" }}
                                     render={({ field }) => (
                                         <Select
@@ -229,20 +229,20 @@ export default function MovStockForm({ pk }) {
                                             label="Tipo de Movimiento"
                                         >
                                             {selectOptions.tipo_movimiento.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
-                                <FormHelperText>{errors.tipo_movimiento_id && errors.tipo_movimiento_id.message}</FormHelperText>
+                                <FormHelperText>{errors.tipo_movimiento && errors.tipo_movimiento.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                         <Grid item xs={6}>
-                            <FormControl fullWidth required error={Boolean(errors.origen_id)}>
+                            <FormControl fullWidth required error={Boolean(errors.origen)}>
                                 <InputLabel id="origen_label">Origen</InputLabel>
                                 <Controller
-                                    name="origen_id"
+                                    name="origen"
                                     control={control}
-                                    defaultValue="1"
+                                    defaultValue=""
                                     rules={{ required: "Este campo es requerido" }}
                                     render={({ field }) => (
                                         <Select
@@ -252,7 +252,7 @@ export default function MovStockForm({ pk }) {
                                             label="Origen"
                                         >
                                             {selectOptions.origen.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -279,7 +279,7 @@ export default function MovStockForm({ pk }) {
                                 {
                                     field: 'cantidad',
                                     headerName: 'Cantidad',
-                                    flex: 0.5,
+                                    flex: 1,
                                     type: 'number',
                                     editable: true,
                                     valueFormatter: (value) => {
@@ -295,7 +295,7 @@ export default function MovStockForm({ pk }) {
                             }}
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = movimientoRenlones.map((row) => {
-                                    if (row.articulo_id === oldRow.articulo_id) {
+                                    if (row.articulo_id === oldRow.articulo_id) {                                  
                                         return { ...newRow };
                                     }
                                     return row;
