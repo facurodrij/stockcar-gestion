@@ -31,7 +31,6 @@ import SnackbarAlert from '../shared/SnackbarAlert';
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import { esES } from "@mui/x-data-grid/locales";
 import { useLoading } from '../../utils/loadingContext';
-import { useConfirm } from 'material-ui-confirm';
 
 
 const CustomToolbar = ({ onOpen }) => {
@@ -72,7 +71,6 @@ export default function MovStockForm({ pk }) {
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { withLoading } = useLoading();
-    const confirm = useConfirm();
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
