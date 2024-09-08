@@ -47,7 +47,7 @@ const CustomToolbar = ({ onOpen }) => {
     );
 }
 
-export default function MovStockForm({ pk }) {
+export default function MovStockForm() {
     const {
         handleSubmit,
         control,
@@ -85,7 +85,7 @@ export default function MovStockForm({ pk }) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const url = Boolean(pk) ? `${API}/movimientos-stock/${pk}/update` : `${API}/movimientos-stock/create`;
+            const url = `${API}/movimientos-stock/create`;
             const res = await fetchWithAuth(url);
             const data = await res.json();
             if (!res.ok) {
@@ -102,26 +102,6 @@ export default function MovStockForm({ pk }) {
                     tipo_movimiento: selectOptions['tipo_movimiento'],
                     origen: selectOptions['origen']
                 });
-                if (Boolean(pk)) {
-                    const movimiento = data['movimiento'];
-                    setValue('tipo_movimiento', movimiento.tipo_movimiento);
-                    setValue('origen', movimiento.origen);
-                    setValue('fecha_hora', dayjs(movimiento.fecha_hora));
-                    if (movimiento.observacion) setValue('observacion', movimiento.observacion);
-                    // Cargar renglones de movimiento
-                    const renglonesArray = data['renglones'];
-                    const renglones = renglonesArray.map((item) => {
-                        return {
-                            articulo_id: item.articulo_id,
-                            codigo_principal: item.codigo_principal,
-                            descripcion: item.descripcion,
-                            cantidad: item.cantidad,
-                        };
-                    });
-                    const articuloArray = renglonesArray.map((r) => r.articulo_id);
-                    setMovimientoRenglones(renglones);
-                    setSelectedArticulo(articuloArray);
-                }
             } catch (e) {
                 console.error('Error en la carga de datos:', e);
                 setSnackbar({
@@ -135,12 +115,12 @@ export default function MovStockForm({ pk }) {
         }
 
         withLoading(loadData);
-    }, [pk, setValue, withLoading]);
+    }, [setValue, withLoading]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
-        const url = Boolean(pk) ? `${API}/movimientos-stock/${pk}/update` : `${API}/movimientos-stock/create`;
-        const method = Boolean(pk) ? 'PUT' : 'POST';
+        const url = `${API}/movimientos-stock/create`;
+        const method = 'POST';
         try {
             if (selectedArticulo.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
