@@ -55,7 +55,6 @@ function App() {
                         <Route path="/usuarios/form/:pk" element={<UsuarioFormPage/>}></Route>
                         <Route path="/movimientos-stock" element={<MovStockPage/>}></Route>
                         <Route path="/movimientos-stock/form" element={<MovStockFormPage/>}></Route>
-                        <Route path="/movimientos-stock/form/:pk" element={<MovStockFormPage/>}></Route>
                     </Routes>
                 </Container>
             </Box>
