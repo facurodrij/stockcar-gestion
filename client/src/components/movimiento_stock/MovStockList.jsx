@@ -8,7 +8,7 @@ import {
     GridToolbarExport,
     GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { API } from "../../App";
 import { Link } from "react-router-dom";
 import { esES } from "@mui/x-data-grid/locales";
@@ -101,12 +101,10 @@ export default function MovStockList() {
             flex: 1,
             renderCell: (params) => (
                 <GridActionsCellItem
-                    icon={<EditIcon />}
-                    label="Editar"
-                    onClick={() => {
-                        window.location.href = `/movimientos-stock/form/${params.id}`;
-                    }}
-                />
+                        icon={<VisibilityIcon />}
+                        component={Link}
+                        to={`/movimientos-stock/${params.id}`}
+                    />
             )
         }
     ];
