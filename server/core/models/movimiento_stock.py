@@ -46,24 +46,15 @@ class MovimientoStock(db.Model):
     fecha_hora = Column(DateTime, default=func.now(), nullable=False)
     observacion = Column(String, nullable=True)
 
-    articulos = relationship(
-        "Articulo", secondary="articulo_movimiento_stock", back_populates="movimientos"
-    )
-
     # Datos de auditoría
     fecha_alta = Column(DateTime, default=func.now())
     fecha_modificacion = Column(DateTime, onupdate=func.now())
 
     def to_json(self):
-        articulos = []
-        for articulo in self.articulos:
-            articulos.append(articulo.to_json())
-
         return {
             "id": self.id,
-            "tipo_movimiento": self.tipo_movimiento.value,
-            "origen": self.origen.value,
+            "tipo_movimiento": self.tipo_movimiento.name,
+            "origen": self.origen.name,
             "fecha_hora": self.fecha_hora.isoformat(),
-            "observacion": self.observacion,
-            "articulos": articulos,
+            "observacion": self.observacion
         }

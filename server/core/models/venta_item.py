@@ -24,7 +24,7 @@ class VentaItem(db.Model):
 
     # Relaciones con otras tablas
     articulo_id = Column(Integer, ForeignKey('articulo.id'), nullable=False)
-    articulo = relationship('Articulo', backref='items')
+    articulo = relationship('Articulo', backref='ventas_items')
     venta_id = Column(Integer, ForeignKey('venta.id'), nullable=False)
     venta = relationship('Venta', backref='items')
 
@@ -32,6 +32,7 @@ class VentaItem(db.Model):
         return {
             'id': self.id,
             'articulo_id': self.articulo_id,
+            'venta_id': self.venta_id,
             'descripcion': self.descripcion,
             'cantidad': float(self.cantidad),
             'precio_unidad': float(self.precio_unidad),
