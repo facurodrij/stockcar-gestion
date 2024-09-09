@@ -120,7 +120,11 @@ export default function VentaDetail({ pk }) {
                 const response = await fetchWithAuth(printUrl, 'POST', { action: 'print', size });
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
-                window.open(url, '_blank');
+                const printWindow = window.open(url, '_blank');
+
+                printWindow.onload = () => {
+                    printWindow.print();
+                };
             } catch {
                 setSnackbar({
                     message: 'Error al imprimir la venta',
