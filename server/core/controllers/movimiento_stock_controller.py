@@ -2,7 +2,7 @@ import pytz
 from datetime import datetime
 from flask import request, jsonify
 from server.config import db
-from server.core.models import MovimientoStock, Articulo, MovimientoStockItem
+from server.core.models import MovimientoStock, Articulo, MovimientoStockItem, Venta
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
@@ -66,3 +66,38 @@ class MovimientoStockController:
             return jsonify({"error": str(e)}), 400
         finally:
             db.session.close()
+
+    @staticmethod
+    def create_movimiento_from_venta(venta: Venta):
+        """
+        Crea un nuevo movimiento de stock en la base de datos a partir de una venta
+        y actualiza el stock de los artículos involucrados.
+
+        Importante: el `db.session.commit()` debe realizarse dentro de la función
+        que llame a este método.
+        """
+        try:
+            movimiento = MovimientoStock(
+                tipo_movimiento="egreso",
+                origen="venta",
+                fecha_hora=datetime.now(tz=local_tz),
+                observacion="Venta nro. " + str(venta.id),
+            )
+            db.session.add(movimiento)
+            db.session.flush()
+            for item in venta.items:
+                articulo = Articulo.query.get(item.articulo_id)
+                movimiento_item = MovimientoStockItem(
+                    articulo=articulo,
+                    movimiento_stock_id=movimiento.id,
+                    codigo_principal=articulo.codigo_principal,
+                    cantidad=item.cantidad,
+                )
+                articulo.stock_actual -= item.cantidad
+                movimiento_item.stock_posterior = articulo.stock_actual
+                db.session.add(movimiento_item)
+                db.session.add(articulo)
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            raise e
