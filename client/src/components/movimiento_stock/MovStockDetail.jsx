@@ -96,6 +96,9 @@ export default function MovStockDetail({ pk }) {
                                     <ListItem>
                                         <ListItemText primary="Origen" secondary={movimiento.origen} />
                                     </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Observacion" secondary={movimiento.observacion} />
+                                    </ListItem>
                                 </List>
                             </CardContent>
                         </Card>
