@@ -1,4 +1,6 @@
+import pytz
 import enum
+from datetime import datetime
 from sqlalchemy import (
     Column,
     Integer,
@@ -9,6 +11,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from server.config import db
+
+local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
 
 class TipoMovimiento(enum.Enum):
@@ -56,5 +60,16 @@ class MovimientoStock(db.Model):
             "tipo_movimiento": self.tipo_movimiento.name,
             "origen": self.origen.name,
             "fecha_hora": self.fecha_hora.isoformat(),
-            "observacion": self.observacion
+            "observacion": self.observacion,
+            # Convertir las fechas de utc a local
+            "fecha_alta": self.fecha_alta.replace(tzinfo=pytz.utc)
+            .astimezone(local_tz)
+            .isoformat(),
+            "fecha_modificacion": (
+                self.fecha_modificacion.replace(tzinfo=pytz.utc)
+                .astimezone(local_tz)
+                .isoformat()
+                if self.fecha_modificacion
+                else None
+            ),
         }
