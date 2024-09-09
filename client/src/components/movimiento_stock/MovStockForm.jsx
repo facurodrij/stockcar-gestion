@@ -136,7 +136,7 @@ export default function MovStockForm() {
                 message: 'Movimiento de stock guardado correctamente',
                 severity: 'success',
                 autoHideDuration: 4000,
-                onClose: () => handleCloseSnackbar(false) // TODO Cambiar
+                onClose: () => handleCloseSnackbar(true)
             });
         } catch (e) {
             console.error('Error al guardar el movimiento de stock:', e);
