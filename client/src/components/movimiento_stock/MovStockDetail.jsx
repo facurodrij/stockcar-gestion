@@ -15,12 +15,15 @@ import {
     List,
     ListItem,
     ListItemText,
+    IconButton,
 } from "@mui/material";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useLoading } from '../../utils/loadingContext';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
+import { Link } from "react-router-dom";
+import Edit from '@mui/icons-material/Edit';
 
 
 export default function MovStockDetail({ pk }) {
@@ -85,7 +88,7 @@ export default function MovStockDetail({ pk }) {
                                 </Typography>
                                 <List>
                                     <ListItem>
-                                        <ListItemText primary="Fecha" secondary={dayjs(movimiento.fecha_hora).format('DD/MM/YYYY HH:mm:ss')} />
+                                        <ListItemText primary="Fecha y hora" secondary={dayjs(movimiento.fecha_hora).format('DD/MM/YYYY HH:mm:ss')} />
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText primary="Tipo de movimiento" secondary={movimiento.tipo_movimiento} />
@@ -110,6 +113,7 @@ export default function MovStockDetail({ pk }) {
                                                 <TableCell>Código de artículo</TableCell>
                                                 <TableCell>Cantidad</TableCell>
                                                 <TableCell>Stock posterior</TableCell>
+                                                <TableCell>Acciones</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -119,6 +123,16 @@ export default function MovStockDetail({ pk }) {
                                                         <TableCell>{renglon.codigo_principal}</TableCell>
                                                         <TableCell>{renglon.cantidad}</TableCell>
                                                         <TableCell>{renglon.stock_posterior}</TableCell>
+                                                        <TableCell>
+                                                            <IconButton
+                                                                component={Link}
+                                                                to={`/articulos/form/${renglon.articulo_id}`}
+                                                                target='_blank'
+                                                                aria-label="editar artículo"
+                                                            >
+                                                                <Edit />
+                                                            </IconButton>
+                                                        </TableCell>
                                                     </TableRow>
                                                 ))}
                                         </TableBody>
