@@ -115,6 +115,7 @@ export default function VentaForm({ pk }) {
                     punto_venta: selectOptions.punto_venta,
                     alicuota_iva: selectOptions.alicuota_iva
                 });
+                setValue('cliente_id', selectOptions.cliente[0].id); // Seleccionar el primer cliente por defecto
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     const tributos = venta['tributos'];
@@ -166,7 +167,7 @@ export default function VentaForm({ pk }) {
                 setOpenSnackbar(true);
             }
         }
-        
+
         withLoading(loadData);
     }, [pk, setValue, withLoading]);
 
@@ -546,8 +547,8 @@ export default function VentaForm({ pk }) {
                                                 startAdornment: <InputAdornment position="start">$</InputAdornment>
                                             }}
                                             error={Boolean(errors.moneda_cotizacion)}
-                                            helperText={errors.moneda_cotizacion 
-                                                ? errors.moneda_cotizacion.message 
+                                            helperText={errors.moneda_cotizacion
+                                                ? errors.moneda_cotizacion.message
                                                 : '1 si la moneda es ARS, caso contrario ingresar la cotización respecto al peso argentino'
                                             }
                                         />

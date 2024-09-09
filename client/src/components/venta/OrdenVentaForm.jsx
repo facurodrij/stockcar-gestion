@@ -92,6 +92,7 @@ export default function OrdenVentaForm({ pk }) {
                 setSelectOptions({
                     cliente: selectOptions.cliente
                 });
+                setValue('cliente_id', selectOptions.cliente[0].id);
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     setValue('cliente_id', venta.cliente.id);
