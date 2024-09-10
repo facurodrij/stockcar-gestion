@@ -122,10 +122,8 @@ export default function VentaList({ onlyOrders }) {
                     actions.push(
                         <GridActionsCellItem
                             icon={<EditIcon />}
-                            label="Editar"
                             component={Link}
                             to={`/ventas-orden/form/${params.row.id}`}
-                            showInMenu
                         />
                     );
                     return actions;
@@ -133,17 +131,13 @@ export default function VentaList({ onlyOrders }) {
                 actions.push(
                     <GridActionsCellItem
                         icon={<VisibilityIcon />}
-                        label="Detalle"
                         component={Link}
                         to={`/ventas/${params.row.id}`}
-                        showInMenu
                     />,
                     <GridActionsCellItem
                         icon={<EditIcon />}
-                        label="Editar"
                         component={Link}
                         to={`/ventas/form/${params.row.id}`}
-                        showInMenu
                     />
                 );
                 return actions;

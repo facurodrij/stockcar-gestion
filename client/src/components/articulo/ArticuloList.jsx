@@ -95,10 +95,8 @@ export default function ArticuloList() {
             getActions: (params) => [
                 <GridActionsCellItem
                     icon={<EditIcon />}
-                    label="Editar"
                     component={Link}
                     to={`/articulos/form/${params.row.id}`}
-                    showInMenu
                 />
             ]
         }

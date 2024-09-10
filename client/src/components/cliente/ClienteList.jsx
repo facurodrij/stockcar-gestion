@@ -74,10 +74,8 @@ export default function ClienteList() {
             getActions: (params) => [
                 <GridActionsCellItem
                     icon={<EditIcon/>}
-                    label="Editar"
                     component={Link}
                     to={`/clientes/form/${params.row.id}`}
-                    showInMenu
                 />
             ]
         }
