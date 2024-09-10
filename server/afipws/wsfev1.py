@@ -222,6 +222,9 @@ class WSFEv1:
         if return_response:
             return res
 
+        if "Errors" in res and res["Errors"] is not None:
+                raise Exception(res["Errors"])
+
         if not res["FeCabResp"]["Resultado"] == "A":
             if "Errors" in res and res["Errors"] is not None:
                 raise Exception(res["Errors"])
