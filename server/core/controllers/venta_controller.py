@@ -1,19 +1,14 @@
 import pytz
 from flask import jsonify
-from datetime import datetime, timedelta
+from datetime import datetime
 from server.config import db
 from server.core.models import (
     Venta,
     VentaItem,
-    Moneda,
     Cliente,
     TipoComprobante,
     Articulo,
-    TipoPago,
     Tributo,
-    EstadoVenta,
-    PuntoVenta,
-    AlicuotaIVA,
 )
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
@@ -123,6 +118,8 @@ class VentaController:
             print(e)
             return jsonify({"error": str(e)}), 400
         finally:
+            db.session.remove() # Evita errores de `Estado inconsistente de los objetos`
+            db.session.configure(bind=db.engine)
             db.session.close()
 
     @staticmethod
@@ -196,6 +193,8 @@ class VentaController:
             print(e)
             return jsonify({"error": str(e)}), 400
         finally:
+            db.session.remove() # Evita errores de `Estado inconsistente de los objetos`
+            db.session.configure(bind=db.engine)
             db.session.close()
 
     @staticmethod
@@ -271,3 +270,7 @@ class VentaController:
             db.session.rollback()
             print(e)
             return jsonify({"error": str(e)}), 400
+        finally:
+            db.session.remove()
+            db.session.configure(bind=db.engine)
+            db.session.close()
