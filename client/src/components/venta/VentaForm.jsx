@@ -475,6 +475,7 @@ export default function VentaForm({ pk }) {
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
+                                            disabled // TODO Implementar descuento
                                             label="Descuento"
                                             variant="outlined"
                                             type='number'
@@ -497,6 +498,7 @@ export default function VentaForm({ pk }) {
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
+                                            disabled // TODO Implementar recargo
                                             label="Recargo"
                                             variant="outlined"
                                             type='number'
@@ -516,7 +518,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="moneda_id"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     render={({ field }) => (
                                         <Select
                                             {...field}
@@ -536,7 +538,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="moneda_cotizacion"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
@@ -562,7 +564,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="tipo_pago_id"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     render={({ field }) => (
                                         <Select
                                             {...field}
