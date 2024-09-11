@@ -11,7 +11,7 @@ export default function Unauthorized() {
                 color: 'inherit'
             }}
         >
-            Unauthorized access
+            Acceso no autorizado
         </Typography>
     )
 }

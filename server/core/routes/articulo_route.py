@@ -39,9 +39,19 @@ def create():
     if request.method == "POST":
         data = request.json
         articulo_json = data["articulo"]
+        force = data.get("force", False)
         for key, value in articulo_json.items():
             if value == "":
                 articulo_json[key] = None
+
+        # Verificar si ya existen artículos con el mismo código principal
+        codigo_principal = articulo_json.get("codigo_principal")
+        if codigo_principal and not force:
+            articulos_existentes = Articulo.query.filter_by(codigo_principal=codigo_principal).all()
+            if articulos_existentes:
+                ids_existentes = [articulo.id for articulo in articulos_existentes]
+                return jsonify({"warning": "Ya existen Artículos con el mismo código principal", "ids": ids_existentes}), 409
+
         try:
             articulo = Articulo(**articulo_json)
             db.session.add(articulo)
@@ -73,9 +83,19 @@ def update(pk):
     if request.method == "PUT":
         data = request.json
         articulo_json = data["articulo"]
+        force = data.get("force", False)
         for key, value in articulo_json.items():
             if value == "":
                 articulo_json[key] = None
+
+        # Verificar si ya existen artículos con el mismo código principal
+        codigo_principal = articulo_json.get("codigo_principal")
+        if codigo_principal and codigo_principal != articulo.codigo_principal and not force:
+            articulos_existentes = Articulo.query.filter_by(codigo_principal=codigo_principal).all()
+            if articulos_existentes:
+                ids_existentes = [articulo.id for articulo in articulos_existentes]
+                return jsonify({"warning": "Existen Artículos con el mismo código principal", "ids": ids_existentes}), 409
+
         try:
             for key, value in articulo_json.items():
                 setattr(articulo, key, value)

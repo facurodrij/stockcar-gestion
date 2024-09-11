@@ -16,13 +16,17 @@ import {
     ListItem,
     ListItemText,
     Menu,
-    MenuItem
+    MenuItem,
+    Card,
+    CardContent
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useConfirm } from 'material-ui-confirm';
+import { useLoading } from '../../utils/loadingContext';
+import dayjs from 'dayjs';
 
 
 
@@ -67,14 +71,15 @@ const PaperSizeButton = ({ handlePrint }) => {
 export default function VentaDetail({ pk }) {
     const [venta, setVenta] = useState({});
     const [renglones, setRenglones] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
+        autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
     const confirm = useConfirm();
+    const { withLoading } = useLoading();
 
     const handleCloseSnackbar = (redirect, url = '/ventas') => {
         setOpenSnackbar(false);
@@ -106,30 +111,33 @@ export default function VentaDetail({ pk }) {
                 });
                 setOpenSnackbar(true);
             }
-            finally {
-                setLoading(false);
-            }
         }
-        loadData();
-    }, [pk]);
+
+        withLoading(loadData);
+    }, [pk, withLoading]);
 
     const handlePrint = (size = 'A4') => {
-        const url = `${API}/ventas/${pk}`;
-        fetchWithAuth(url, 'POST', { action: 'print', size: size })
-            .then(response => response.blob())
-            .then(blob => {
+        withLoading(async () => {
+            const printUrl = `${API}/ventas/${pk}`;
+            try {
+                const response = await fetchWithAuth(printUrl, 'POST', { action: 'print', size });
+                const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
-                window.open(url, '_blank');
-            })
-            .catch(() => {
+                const printWindow = window.open(url, '_blank');
+
+                printWindow.onload = () => {
+                    printWindow.print();
+                };
+            } catch {
                 setSnackbar({
                     message: 'Error al imprimir la venta',
                     severity: 'error',
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
-            });
-    }
+            }
+        });
+    };
 
     const handleAnular = async () => {
         confirm({
@@ -140,38 +148,40 @@ export default function VentaDetail({ pk }) {
 
         })
             .then(() => {
-                const url = `${API}/ventas/${pk}`;
-                fetchWithAuth(url, 'POST', { action: 'anular' })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(data => {
-                                throw new Error(data['error']);
+                withLoading(async () => {
+                    const url = `${API}/ventas/${pk}`;
+                    fetchWithAuth(url, 'POST', { action: 'anular' })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data['error']);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            setSnackbar({
+                                message: data['message'],
+                                severity: 'success',
+                                onClose: () => handleCloseSnackbar(true, `/ventas/${data['venta_id']}`)
                             });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        setSnackbar({
-                            message: data['message'],
-                            severity: 'success',
-                            onClose: () => handleCloseSnackbar(true, `/ventas/${data['venta_id']}`)
+                            setOpenSnackbar(true);
+                        })
+                        .catch((error) => {
+                            setSnackbar({
+                                message: `Error al anular la venta: ${error.message}`,
+                                severity: 'error',
+                                onClose: () => handleCloseSnackbar(false)
+                            });
+                            setOpenSnackbar(true);
                         });
-                        setOpenSnackbar(true);
-                    })
-                    .catch((error) => {
-                        setSnackbar({
-                            message: `Error al anular la venta: ${error}`,
-                            severity: 'error',
-                            onClose: () => handleCloseSnackbar(false)
-                        });
-                        setOpenSnackbar(true);
-                    });
-
+                });
             })
             .catch((error) => {
                 setSnackbar({
-                    message: `Acción cancelada: ${error}`,
+                    message: 'Acción cancelada',
                     severity: 'info',
+                    autoHideDuration: 4000,
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
@@ -181,7 +191,7 @@ export default function VentaDetail({ pk }) {
     return (
         <>
             <Paper elevation={3} component="div" sx={{ mt: 2, padding: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h5" component="div" gutterBottom>
                         Venta: {venta.id}
                     </Typography>
@@ -208,145 +218,179 @@ export default function VentaDetail({ pk }) {
                     </Box>
                 </Box>
                 <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <Paper elevation={1} component="div" sx={{ mt: 2, paddingTop: 2 }}>
-                            <Typography sx={{ ml: 2 }} variant="h6" component="div">
-                                Comprobante: {
-                                    venta.tipo_comprobante && venta.tipo_comprobante['descripcion']
-                                        ? venta.tipo_comprobante['descripcion']
-                                        : 'Descripción no disponible'
-                                }
-                            </Typography>
-                            <List sx={{ width: '100%' }}>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} md={6}>
-                                        <ListItem>
-                                            <ListItemText primary="Fecha" secondary={venta.fecha_hora} />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText primary="Punto de venta" secondary={venta.punto_venta && venta.punto_venta['numero'] ? venta.punto_venta['numero'] : 'Punto de venta no disponible'} />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText primary="Número" secondary={venta.numero} />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText primary="Estado" secondary={venta.estado} />
-                                        </ListItem>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <ListItem>
-                                            <ListItemText primary="Nro. de comprobante" secondary={venta.nro_comprobante} />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText primary="CAE" secondary={venta.cae} />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText primary="Vencimiento de CAE" secondary={venta.vencimiento_cae} />
-                                        </ListItem>
-                                    </Grid>
-                                </Grid>
-                            </List>
-                        </Paper>
+                    <Grid item xs={12} md={6}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" component="div">
+                                    Comprobante: {
+                                        venta.tipo_comprobante && venta.tipo_comprobante['descripcion']
+                                            ? venta.tipo_comprobante['descripcion']
+                                            : 'No disponible'
+                                    }
+                                </Typography>
+                                <List sx={{ width: '100%' }}>
+                                    <ListItem>
+                                        <ListItemText primary="Fecha y hora" secondary={dayjs(venta.fecha_hora).format('DD/MM/YYYY HH:mm:ss')} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Nro. de comprobante" secondary={venta.nro_comprobante} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Punto de venta" secondary={venta.punto_venta && venta.punto_venta['numero'] ? venta.punto_venta['numero'] : 'No disponible'} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Número" secondary={venta.numero} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary="CAE"
+                                            secondary={venta.cae ? venta.cae : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary="Vencimiento de CAE"
+
+                                            secondary={venta.vencimiento_cae ? dayjs(venta.vencimiento_cae).format('DD/MM/YYYY') : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Estado" secondary={venta.estado} />
+                                    </ListItem>
+                                </List>
+                            </CardContent>
+                        </Card>
                     </Grid>
                     <Grid item xs={12} md={6}>
-                        <Paper elevation={1} component="div" sx={{ mt: 2, paddingTop: 2 }}>
-                            <Typography sx={{ ml: 2 }} variant="h6" component="div">
-                                Cliente: {
-                                    venta.cliente && venta.cliente['razon_social']
-                                        ? venta.cliente['razon_social']
-                                        : 'Nombre no disponible'
-                                }
-                            </Typography>
-                            <List sx={{ width: '100%' }}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" component="div">
+                                    Cliente: {
+                                        venta.cliente && venta.cliente['razon_social']
+                                            ? venta.cliente['razon_social']
+                                            : 'No disponible'
+                                    }
+                                </Typography>
+                                <List sx={{ width: '100%' }}>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary={venta.cliente && venta.cliente['tipo_documento'] ? venta.cliente['tipo_documento']['descripcion'] : 'No disponible'}
+                                            secondary={venta.cliente && venta.cliente['nro_documento'] ? venta.cliente['nro_documento'] : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary="Tipo de responsable"
+                                            secondary={venta.cliente && venta.cliente['tipo_responsable'] ? venta.cliente['tipo_responsable']['descripcion'] : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary="Domicilio"
+                                            secondary={venta.cliente && venta.cliente['direccion'] ? venta.cliente['direccion'] : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary="Localidad"
+                                            secondary={venta.cliente && venta.cliente['localidad'] ? venta.cliente['localidad'] : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary="Provincia"
+                                            secondary={venta.cliente && venta.cliente['provincia'] ? venta.cliente['provincia']['nombre'] : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            primary="Código postal"
+                                            secondary={venta.cliente && venta.cliente['codigo_postal'] ? venta.cliente['codigo_postal'] : 'No disponible'}
+                                        />
+                                    </ListItem>
+                                </List>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Card>
+                            <CardContent>
                                 <Grid container spacing={2}>
-                                    <Grid item xs={12} md={6}>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary={venta.cliente && venta.cliente['tipo_documento'] ? venta.cliente['tipo_documento']['descripcion'] : 'Tipo de documento no disponible'}
-                                                secondary={venta.cliente && venta.cliente['nro_documento'] ? venta.cliente['nro_documento'] : 'Nro. de documento no disponible'}
-                                            />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary="Tipo de responsable"
-                                                secondary={venta.cliente && venta.cliente['tipo_responsable'] ? venta.cliente['tipo_responsable']['descripcion'] : 'Condición de IVA no disponible'}
-                                            />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary="Domicilio"
-                                                secondary={venta.cliente && venta.cliente['direccion'] ? venta.cliente['direccion'] : 'Domicilio no disponible'}
-                                            />
-                                        </ListItem>
+                                    <Grid item xs={12} md={10}>
+                                        <Typography variant="h6" gutterBottom>
+                                            Renglones de Venta
+                                        </Typography>
+                                        <TableContainer component={Paper} sx={{ mt: 3 }}>
+                                            <Table size='small'>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell>Código de artículo</TableCell>
+                                                        <TableCell>Descripción</TableCell>
+                                                        <TableCell align='right'>Cantidad</TableCell>
+                                                        <TableCell align='right'>Precio unitario</TableCell>
+                                                        <TableCell align='right'>Subtotal</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {renglones.map((renglon, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>{renglon.codigo_principal}</TableCell>
+                                                            <TableCell>{renglon.descripcion}</TableCell>
+                                                            <TableCell align='right'>{renglon.cantidad}</TableCell>
+                                                            <TableCell align='right'>{renglon.precio_unidad
+                                                                ? Number(renglon.precio_unidad).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                                : 'N/A'}
+                                                            </TableCell>
+                                                            <TableCell align='right'>{renglon.subtotal
+                                                                ? Number(renglon.subtotal).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                                : 'N/A'}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
                                     </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary="Localidad"
-                                                secondary={venta.cliente && venta.cliente['localidad'] ? venta.cliente['localidad'] : 'Localidad no disponible'}
-                                            />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary="Provincia"
-                                                secondary={venta.cliente && venta.cliente['provincia'] ? venta.cliente['provincia']['nombre'] : 'Provincia no disponible'}
-                                            />
-                                        </ListItem>
-                                        <ListItem>
-                                            <ListItemText
-                                                primary="Código postal"
-                                                secondary={venta.cliente && venta.cliente['codigo_postal'] ? venta.cliente['codigo_postal'] : 'Código postal no disponible'}
-                                            />
-                                        </ListItem>
+                                    <Grid item xs={12} md={2}>
+                                        <Typography variant="h6" gutterBottom>
+                                            Totales
+                                        </Typography>
+                                        <List sx={{ width: '100%' }}>
+                                            <ListItem>
+                                                <ListItemText primary="Gravado" secondary={venta.gravado
+                                                    ? Number(venta.gravado).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'} 
+                                                />
+                                            </ListItem>
+                                            <ListItem>
+                                                <ListItemText primary="IVA" secondary={venta.total_iva
+                                                    ? Number(venta.total_iva).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'}
+                                                />
+                                            </ListItem>
+                                            <ListItem>
+                                                <ListItemText primary="Otros tributos" secondary={venta.total_tributos
+                                                    ? Number(venta.total_tributos).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'}
+                                                />
+                                            </ListItem>
+                                            <ListItem>
+                                                <ListItemText primary="Total" secondary={venta.total
+                                                    ? Number(venta.total).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'}
+                                                />
+                                            </ListItem>
+                                        </List>
                                     </Grid>
                                 </Grid>
-                            </List>
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12} md={10}>
-                        <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Renglones de Venta</Typography>
-                        <TableContainer component={Paper}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Descripción</TableCell>
-                                        <TableCell>Cantidad</TableCell>
-                                        <TableCell>Precio unitario</TableCell>
-                                        <TableCell>Subtotal</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {renglones.map((renglon, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{renglon.descripcion}</TableCell>
-                                            <TableCell>{renglon.cantidad}</TableCell>
-                                            <TableCell>{renglon.precio_unidad}</TableCell>
-                                            <TableCell>{renglon.subtotal}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Grid>
-                    <Grid item xs={12} md={2}>
-                        <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Totales</Typography>
-                        <List sx={{ width: '100%' }}>
-                            <ListItem>
-                                <ListItemText primary="Subtotal" secondary={venta.subtotal} />
-                            </ListItem>
-                            <ListItem>
-                                <ListItemText primary="IVA" secondary={venta.iva} />
-                            </ListItem>
-                            <ListItem>
-                                <ListItemText primary="Total" secondary={venta.total} />
-                            </ListItem>
-                        </List>
+                            </CardContent>
+                        </Card>
                     </Grid>
                 </Grid>
             </Paper>
             <SnackbarAlert
                 open={openSnackbar}
-                autoHideDuration={4000}
+                autoHideDuration={snackbar.autoHideDuration}
                 onClose={snackbar.onClose}
                 severity={snackbar.severity}
                 message={snackbar.message}

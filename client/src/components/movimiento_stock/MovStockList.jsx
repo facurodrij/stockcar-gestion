@@ -8,7 +8,7 @@ import {
     GridToolbarExport,
     GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { API } from "../../App";
 import { Link } from "react-router-dom";
 import { esES } from "@mui/x-data-grid/locales";
@@ -17,7 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
-
+import dayjs from "dayjs";
 
 
 const CustomToolbar = () => {
@@ -32,18 +32,18 @@ const CustomToolbar = () => {
             <Button
                 startIcon={<AddIcon />}
                 component={Link}
-                to="/articulos/form"
+                to="/movimientos-stock/form"
                 size="small"
                 variant="contained"
             >
-                Nuevo Artículo
+                Nuevo Movimiento de Stock
             </Button>
         </GridToolbarContainer>
     );
 }
 
 
-export default function ArticuloList() {
+export default function MovStockList() {
     const [list, setList] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
@@ -60,21 +60,21 @@ export default function ArticuloList() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const url = `${API}/articulos`;
+            const url = `${API}/movimientos-stock`;
             try {
                 const res = await fetchWithAuth(url);
                 const data = await res.json();
                 if (!res.ok) {
                     throw new Error(data['error']);
                 }
-                setList(data['articulos']);
+                setList(data['movimientos']);
             } catch (error) {
                 console.error(error);
                 setSnackbar({
-                    message: `Error al obtener los artículos: ${error.message}`,
+                    message: `Error al cargar los movimientos de stock: ${error.message}`,
                     severity: 'error',
                     autoHideDuration: null,
-                    onClose: handleCloseSnackbar
+                    onClose: () => handleCloseSnackbar
                 });
                 setOpenSnackbar(true);
             }
@@ -84,34 +84,38 @@ export default function ArticuloList() {
     }, [withLoading]);
 
     const columns = [
-        { field: 'descripcion', headerName: 'Descripción', flex: 2 },
-        { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
-        { field: 'codigo_secundario', headerName: 'Código secundario', flex: 0.75 },
-        { field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75 },
-        { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
-        { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
         {
-            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
-            getActions: (params) => [
+            field: 'fecha_hora', headerName: 'Fecha y hora', type: 'dateTime', flex: 2,
+            valueFormatter: (value) => {
+                if (!value) {
+                    return "";
+                }
+                return dayjs(value, 'YYYY-MM-DDTHH:mm:ss').format('DD/MM/YYYY HH:mm:ss');
+            }
+        },
+        { field: 'tipo_movimiento', headerName: 'Tipo de Movimiento', flex: 2 },
+        { field: 'origen', headerName: 'Origen', flex: 2 },
+        {
+            field: 'acciones',
+            headerName: 'Acciones',
+            flex: 1,
+            renderCell: (params) => (
                 <GridActionsCellItem
-                    icon={<EditIcon />}
-                    component={Link}
-                    to={`/articulos/form/${params.row.id}`}
-                />
-            ]
+                        icon={<VisibilityIcon />}
+                        component={Link}
+                        to={`/movimientos-stock/${params.id}`}
+                    />
+            )
         }
     ];
 
     let rows = list.map(item => {
         return {
             id: item.id,
-            codigo_principal: item.codigo_principal,
-            codigo_secundario: item.codigo_secundario,
-            codigo_terciario: item.codigo_terciario,
-            codigo_cuaternario: item.codigo_cuaternario,
-            codigo_adicional: item.codigo_adicional,
-            descripcion: item.descripcion,
-        }
+            fecha_hora: item.fecha_hora,
+            tipo_movimiento: item.tipo_movimiento,
+            origen: item.origen
+        };
     });
 
     return (
@@ -120,11 +124,11 @@ export default function ArticuloList() {
                 <DataGrid
                     columns={columns}
                     rows={rows}
-                    disableRowSelectionOnClick
+                    disableSelectionOnClick
                     rowHeight={30}
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
-                    initialState={{ sorting: { sortModel: [{ field: 'id', sort: 'desc' }] } }}
+                    initialState={{ sorting: { sortModel: [{ field: 'fecha_hora', sort: 'desc' }] } }}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{ toolbar: CustomToolbar }}
                     ignoreDiacritics

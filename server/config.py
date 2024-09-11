@@ -14,6 +14,8 @@ class Base(DeclarativeBase):
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 app = Flask(__name__)
 
 # CORS Configuration (Local & Codespaces)
@@ -23,6 +25,8 @@ CORS(
         r"/*": {
             "origins": [
                 "http://127.0.0.1:3000",
+                "http://localhost:3000",
+                "http://192.168.0.19:3000",
                 "https://shiny-space-journey-4rppp59wj6j3jj9p-3000.app.github.dev",
                 "https://xs2wpms2-3000.brs.devtunnels.ms",
             ]
@@ -47,7 +51,10 @@ if not os.path.exists(os.path.join(BASE_DIR, "instance")):
     os.makedirs(os.path.join(BASE_DIR, "instance"))
 
 app.config["CORS_HEADERS"] = "Content-Type"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
+# Linux
+#app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////" + database_path
+# Windows
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + database_path
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = False
 app.config["JWT_SECRET_KEY"] = "my-secret-key"
@@ -56,6 +63,7 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 db = SQLAlchemy(model_class=Base, metadata=metadata)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
+
 
 # Config for Production
 # app.config['SQLALCHEMY_DATABASE_URI'] = ('mssql+pyodbc://sa:Admin-181020@localhost:1433/Datos?driver=ODBC+Driver+18+for'

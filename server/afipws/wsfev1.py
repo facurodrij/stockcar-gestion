@@ -1,5 +1,6 @@
 import zeep
 import ssl
+import os
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -28,7 +29,7 @@ class WSFEv1:
     WSDL_TEST = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL"
     URL_TEST = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx"
     SERVICE = "wsfe"
-    CACERT = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/afipws/cacert.pem"
+    CACERT = os.path.join(os.path.dirname(__file__), "cacert.pem")
 
     def __init__(self, options: dict):
         if not (options.get("CUIT")) or not (
@@ -220,6 +221,9 @@ class WSFEv1:
 
         if return_response:
             return res
+
+        if "Errors" in res and res["Errors"] is not None:
+                raise Exception(res["Errors"])
 
         if not res["FeCabResp"]["Resultado"] == "A":
             if "Errors" in res and res["Errors"] is not None:

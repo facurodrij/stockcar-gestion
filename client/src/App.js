@@ -19,7 +19,9 @@ import ProfilePage from "./pages/auth/ProfilePage";
 import Unauthorized from "./pages/auth/Unauthorized";
 import UsuarioPage from "./pages/usuario/UsuarioPage";
 import UsuarioFormPage from "./pages/usuario/UsuarioFormPage";
-
+import MovStockPage from "./pages/movimiento_stock/MovStockPage";
+import MovStockFormPage from "./pages/movimiento_stock/MovStockFormPage";
+import MovStockDetailPage from "./pages/movimiento_stock/MovStockDetailPage";
 
 export const API = process.env.REACT_APP_API_URL;
 
@@ -52,6 +54,9 @@ function App() {
                         <Route path="/usuarios" element={<UsuarioPage/>}></Route>
                         <Route path="/usuarios/form" element={<UsuarioFormPage/>}></Route>
                         <Route path="/usuarios/form/:pk" element={<UsuarioFormPage/>}></Route>
+                        <Route path="/movimientos-stock" element={<MovStockPage/>}></Route>
+                        <Route path="/movimientos-stock/:pk" element={<MovStockDetailPage/>}></Route>
+                        <Route path="/movimientos-stock/form" element={<MovStockFormPage/>}></Route>
                     </Routes>
                 </Container>
             </Box>

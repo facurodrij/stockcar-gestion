@@ -7,7 +7,6 @@ from sqlalchemy import (
     Numeric,
     ForeignKey,
     DateTime,
-    CHAR,
     Boolean,
     func,
     Enum,
@@ -192,6 +191,10 @@ class Venta(db.Model):
         tributos = []
         for tributo in self.tributos:
             tributos.append(tributo.to_json())
+        
+        cod_articulos = []
+        for item in self.items:
+            cod_articulos.append(item.articulo.codigo_principal)
 
         return {
             "id": self.id,
@@ -218,5 +221,6 @@ class Venta(db.Model):
             "observacion": self.observacion,
             "estado": self.estado.value,
             "tributos": tributos,
+            "cod_articulos": cod_articulos,
             "fecha_alta": self.fecha_alta.isoformat(),
         }

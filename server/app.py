@@ -1,5 +1,5 @@
 from flask import jsonify
-from .config import db, app
+from config import db, app
 from server.core.routes import *
 # noinspection PyUnresolvedReferences
 from server.core.commands import load_fixtures
@@ -10,6 +10,7 @@ app.register_blueprint(articulo_bp)
 app.register_blueprint(comercio_bp)
 app.register_blueprint(usuario_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(movimiento_stock_bp)
 
 
 @app.route('/')

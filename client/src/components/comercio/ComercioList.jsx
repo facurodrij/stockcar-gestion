@@ -2,17 +2,13 @@ import React, {useEffect, useState} from 'react'
 import {
     DataGrid,
     GridActionsCellItem,
-    GridRowParams,
-    GridRowsProp,
     GridToolbarColumnsButton,
     GridToolbarContainer,
     GridToolbarDensitySelector,
     GridToolbarExport,
     GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
-import dayjs from "dayjs";
 import {API} from "../../App";
 import {Link} from "react-router-dom";
 import {esES} from "@mui/x-data-grid/locales";
@@ -46,8 +42,6 @@ const CustomToolbar = () => {
 
 export default function ComercioList() {
     const [list, setList] = useState([]);
-    const [itemSelected, setItemSelected] = useState(null);
-    const [itemsSelectedList, setItemsSelectedList] = useState([]);
 
     const fetchData = async () => {
         const url = `${API}/comercios`;
@@ -79,10 +73,8 @@ export default function ComercioList() {
             getActions: (params) => [
                 <GridActionsCellItem
                     icon={<EditIcon/>}
-                    label="Editar"
                     component={Link}
                     to={`/comercios/form/${params.row.id}`}
-                    showInMenu
                 />
             ]
         }

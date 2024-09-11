@@ -1,23 +1,19 @@
 import pytz
 from flask import jsonify
-from datetime import datetime, timedelta
+from datetime import datetime
 from server.config import db
 from server.core.models import (
     Venta,
     VentaItem,
-    Moneda,
     Cliente,
     TipoComprobante,
     Articulo,
-    TipoPago,
     Tributo,
-    EstadoVenta,
-    PuntoVenta,
-    AlicuotaIVA,
 )
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
 from server.core.services import AfipService
+from .movimiento_stock_controller import MovimientoStockController
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
@@ -34,7 +30,7 @@ class VentaController:
                 venta_json["fecha_hora"]
             ).astimezone(local_tz)
         else:
-            venta_json["fecha_hora"] = datetime.now().astimezone(local_tz)
+            venta_json["fecha_hora"] = datetime.now(tz=local_tz)
         if (
             "vencimiento_cae" in venta_json
             and venta_json["vencimiento_cae"] is not None
@@ -52,6 +48,23 @@ class VentaController:
         return venta_json
 
     @staticmethod
+    def renglones_json_to_model(renglones: list) -> list:
+        renglones_model = []
+        for item in renglones:
+            renglon = {
+                "articulo_id": item["articulo_id"],
+                "descripcion": item["descripcion"],
+                "cantidad": item["cantidad"],
+                "precio_unidad": item["precio_unidad"],
+                "alicuota_iva": item["alicuota_iva"],
+                "subtotal_iva": item["subtotal_iva"],
+                "subtotal_gravado": item["subtotal_gravado"],
+                "subtotal": item["subtotal"],
+            }
+            renglones_model.append(renglon)
+        return renglones_model
+
+    @staticmethod
     def create_venta(data):
         try:
             venta_json = VentaController.venta_json_to_model(data["venta"])
@@ -60,10 +73,10 @@ class VentaController:
             db.session.add(venta)
             db.session.flush()  # para obtener el id de la venta creada
 
-            renglones = data["renglones"]
+            renglones = VentaController.renglones_json_to_model(data["renglones"])
             for item in renglones:
                 articulo = Articulo.query.get(item["articulo_id"])
-                ventaItem = VentaItem(articulo=articulo, venta_id=venta.id, **item)
+                ventaItem = VentaItem(**item, articulo=articulo, venta_id=venta.id)
                 db.session.add(ventaItem)
                 venta.total_iva += float(item["subtotal_iva"])
                 venta.gravado += float(item["subtotal_gravado"])
@@ -96,6 +109,8 @@ class VentaController:
             else:
                 venta.estado = "ticket"
 
+            MovimientoStockController.create_movimiento_from_venta(venta)
+
             db.session.commit()
             return jsonify({"venta_id": venta.id}), 201
         except Exception as e:
@@ -103,6 +118,8 @@ class VentaController:
             print(e)
             return jsonify({"error": str(e)}), 400
         finally:
+            db.session.remove() # Evita errores de `Estado inconsistente de los objetos`
+            db.session.configure(bind=db.engine)
             db.session.close()
 
     @staticmethod
@@ -113,7 +130,7 @@ class VentaController:
                 setattr(venta, key, value)
 
             current_articulo_ids = list(map(lambda x: x.articulo_id, venta_items))
-            renglones = data["renglones"]
+            renglones = VentaController.renglones_json_to_model(data["renglones"])
             for item in renglones:
                 articulo_id = item["articulo_id"]
                 if articulo_id in current_articulo_ids:
@@ -176,6 +193,8 @@ class VentaController:
             print(e)
             return jsonify({"error": str(e)}), 400
         finally:
+            db.session.remove() # Evita errores de `Estado inconsistente de los objetos`
+            db.session.configure(bind=db.engine)
             db.session.close()
 
     @staticmethod
@@ -207,6 +226,19 @@ class VentaController:
                 nota_credito.numero = nota_credito.get_last_number() + 1
                 db.session.add(nota_credito)
                 db.session.flush()
+                for item in venta.items:
+                    venta_item = VentaItem(
+                        venta_id=nota_credito.id,
+                        articulo_id=item.articulo_id,
+                        descripcion=item.descripcion,
+                        cantidad=item.cantidad,
+                        precio_unidad=item.precio_unidad,
+                        alicuota_iva=item.alicuota_iva,
+                        subtotal_iva=item.subtotal_iva,
+                        subtotal_gravado=item.subtotal_gravado,
+                        subtotal=item.subtotal,
+                    )
+                    db.session.add(venta_item)
                 afip = AfipService()
                 res = afip.anular_cae(nota_credito)
                 nota_credito.numero = res["numero"]
@@ -238,3 +270,7 @@ class VentaController:
             db.session.rollback()
             print(e)
             return jsonify({"error": str(e)}), 400
+        finally:
+            db.session.remove()
+            db.session.configure(bind=db.engine)
+            db.session.close()

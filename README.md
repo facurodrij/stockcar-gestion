@@ -70,6 +70,14 @@ Antes de iniciar el servidor Flask debemos inicializar la base de datos.
     flask run
     ```
 
+2. **Create superusuario y permisos**:
+    ```sh
+    flask create_superuser `username` `password` `email`
+    ```
+    ```sh
+    flask create_permissions
+    ```
+
 ### Cliente (React)
 
 1. **Crear variable de entorno con el puerto del servidor Flask**:

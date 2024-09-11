@@ -17,11 +17,9 @@ from server.core.models import (
     Tributo,
     EstadoVenta,
     PuntoVenta,
-    AlicuotaIVA
+    AlicuotaIVA,
 )
-from server.core.models.tributo import BaseCalculo
-from server.core.models.association_table import tributo_venta
-from server.core.services import AfipService, A4PDFGenerator, TicketPDFGenerator
+from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.core.decorators import permission_required
 from server.core.controllers import VentaController
 
@@ -78,28 +76,39 @@ def venta_json_to_model(venta_json: dict) -> dict:
 @jwt_required()
 @permission_required("venta.view_all")
 def index():
-    fecha_desde = request.args.get("desde")
-    fecha_hasta = request.args.get("hasta")
+    try:
+        fecha_desde = request.args.get("desde")
+        fecha_hasta = request.args.get("hasta")
 
-    if fecha_desde and fecha_hasta:
-        ventas = Venta.query.filter(
-            Venta.fecha.between(
-                datetime.fromisoformat(fecha_desde),
-                (datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)),
+        if fecha_desde and fecha_hasta:
+            ventas = Venta.query.filter(
+                Venta.fecha.between(
+                    datetime.fromisoformat(fecha_desde),
+                    (
+                        datetime.fromisoformat(fecha_hasta)
+                        + timedelta(days=1, seconds=-1)
+                    ),
+                )
             )
-        )
-    elif fecha_desde:
-        ventas = Venta.query.filter(Venta.fecha >= datetime.fromisoformat(fecha_desde))
-    elif fecha_hasta:
-        ventas = Venta.query.filter(
-            Venta.fecha
-            <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)
-        )
-    else:
-        ventas = Venta.query.all()
+        elif fecha_desde:
+            ventas = Venta.query.filter(
+                Venta.fecha >= datetime.fromisoformat(fecha_desde)
+            )
+        elif fecha_hasta:
+            ventas = Venta.query.filter(
+                Venta.fecha
+                <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)
+            )
+        else:
+            ventas = Venta.query.all()
 
-    ventas_json = list(map(lambda x: x.to_json(), ventas))
-    return jsonify({"ventas": ventas_json}), 200
+        if ventas.__len__() == 0:
+            return jsonify({"error": "No se encontraron ventas"}), 404
+        ventas_json = list(map(lambda x: x.to_json(), ventas))
+        return jsonify({"ventas": ventas_json}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
 
 
 @venta_bp.route("/ventas/create", methods=["GET", "POST"])

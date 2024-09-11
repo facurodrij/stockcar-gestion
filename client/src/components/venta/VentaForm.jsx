@@ -7,6 +7,7 @@ import {
     FormControl,
     FormHelperText,
     Grid,
+    InputAdornment,
     InputLabel,
     MenuItem,
     Paper,
@@ -28,9 +29,9 @@ import AddIcon from "@mui/icons-material/Add";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import { esES } from "@mui/x-data-grid/locales";
-import InputAdornment from '@mui/material/InputAdornment';
 import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
+import { useLoading } from '../../utils/loadingContext';
 
 
 const CustomToolbar = ({ onOpen }) => {
@@ -77,6 +78,7 @@ export default function VentaForm({ pk }) {
     const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [estadoVenta, setEstadoVenta] = useState('');
+    const { withLoading } = useLoading();
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -113,6 +115,7 @@ export default function VentaForm({ pk }) {
                     punto_venta: selectOptions.punto_venta,
                     alicuota_iva: selectOptions.alicuota_iva
                 });
+                setValue('cliente_id', selectOptions.cliente[0].id); // Seleccionar el primer cliente por defecto
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     const tributos = venta['tributos'];
@@ -130,7 +133,7 @@ export default function VentaForm({ pk }) {
                     if (venta.observacion) setValue('observacion', venta.observacion);
                     setEstadoVenta(venta.estado);
 
-                    // Cargar renglones de venta y articulos seleccionados
+                    // Cargar renglones de venta
                     const renglonesArray = data['renglones'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
@@ -158,13 +161,15 @@ export default function VentaForm({ pk }) {
                 setSnackbar({
                     message: e.message,
                     severity: 'error',
+                    autoHideDuration: null,
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
             }
         }
-        loadData();
-    }, [pk, setValue]);
+
+        withLoading(loadData);
+    }, [pk, setValue, withLoading]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -179,7 +184,7 @@ export default function VentaForm({ pk }) {
             });
             const resJson = await res.json();
             if (!res.ok) {
-                throw new Error(`${resJson['error']}`);
+                throw new Error(resJson['error']);
             }
             setSnackbar({
                 message: 'Venta guardada correctamente',
@@ -278,7 +283,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="punto_venta_id"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     rules={{ required: "Este campo es requerido" }}
                                     render={({ field }) => (
                                         <Select
@@ -470,6 +475,7 @@ export default function VentaForm({ pk }) {
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
+                                            disabled // TODO Implementar descuento
                                             label="Descuento"
                                             variant="outlined"
                                             type='number'
@@ -492,6 +498,7 @@ export default function VentaForm({ pk }) {
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
+                                            disabled // TODO Implementar recargo
                                             label="Recargo"
                                             variant="outlined"
                                             type='number'
@@ -511,7 +518,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="moneda_id"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     render={({ field }) => (
                                         <Select
                                             {...field}
@@ -531,7 +538,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="moneda_cotizacion"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     render={({ field }) => (
                                         <TextField
                                             {...field}
@@ -542,8 +549,8 @@ export default function VentaForm({ pk }) {
                                                 startAdornment: <InputAdornment position="start">$</InputAdornment>
                                             }}
                                             error={Boolean(errors.moneda_cotizacion)}
-                                            helperText={errors.moneda_cotizacion 
-                                                ? errors.moneda_cotizacion.message 
+                                            helperText={errors.moneda_cotizacion
+                                                ? errors.moneda_cotizacion.message
                                                 : '1 si la moneda es ARS, caso contrario ingresar la cotización respecto al peso argentino'
                                             }
                                         />
@@ -557,7 +564,7 @@ export default function VentaForm({ pk }) {
                                 <Controller
                                     name="tipo_pago_id"
                                     control={control}
-                                    defaultValue=""
+                                    defaultValue="1"
                                     render={({ field }) => (
                                         <Select
                                             {...field}

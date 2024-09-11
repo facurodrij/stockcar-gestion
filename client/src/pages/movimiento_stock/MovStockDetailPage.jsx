@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Typography from "@mui/material/Typography";
-import { UsuarioForm } from '../../components/usuario';
+import { MovStockDetail } from '../../components/movimiento_stock';
 import { checkAuth, checkPermissions } from '../../utils/checkAuth';
 
-export default function UsuarioFormPage() {
+export default function MovStockDetailPage() {
     const routeParams = useParams();
     const pk = routeParams.pk;
 
     useEffect(() => {
         checkAuth();
-        if (!checkPermissions(['usuario.create', 'usuario.update'])) {
+        if (!checkPermissions(['movimiento_stock.view'])) {
             window.location.href = '/unauthorized';
         }
     }, []);
@@ -26,9 +26,9 @@ export default function UsuarioFormPage() {
                     color: 'inherit'
                 }}
             >
-                {pk ? 'Editar' : 'Agregar'} Usuario
+                Detalle de Movimiento de Stock
             </Typography>
-            <UsuarioForm pk={pk} />
+            <MovStockDetail pk={pk} />
         </>
     );
 };

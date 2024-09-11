@@ -117,7 +117,7 @@ export default function ClienteForm({ pk }) {
                     setValue('duplicado_factura', cliente.duplicado_factura);
                     if (cliente.observacion) setValue('observacion', cliente.observacion);
                     setSelectedTributo([])
-                    tributos.map((t) => {
+                    tributos.forEach(t => {
                         setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
                     });
                 }
@@ -133,7 +133,7 @@ export default function ClienteForm({ pk }) {
             }
         }
         loadData();
-    }, []);
+    }, [pk, setValue]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -587,6 +587,7 @@ export default function ClienteForm({ pk }) {
                                             <FormControlLabel
                                                 control={<Checkbox checked={value} onChange={onChange} />}
                                                 label="Exento de IVA"
+                                                disabled // TODO: Implementar exento de IVA
                                             />
                                         )}
                                     />
@@ -598,6 +599,7 @@ export default function ClienteForm({ pk }) {
                                             <FormControlLabel
                                                 control={<Checkbox checked={value} onChange={onChange} />}
                                                 label="Factura duplicado"
+                                                disabled // TODO: Implementar factura duplicado
                                             />
                                         )}
                                     />

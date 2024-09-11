@@ -254,6 +254,7 @@ export default function UsuarioForm({ pk }) {
                         </FormControl>
                     </Grid>
                 </Grid>
+                {/* TODO Cambiar Datagrid por TreeView selector */}
                 <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Seleccionar Permisos</Typography>
                 <Box sx={{ height: 500, width: '100%' }}>
                     <DataGrid

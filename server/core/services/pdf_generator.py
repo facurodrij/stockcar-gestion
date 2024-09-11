@@ -3,6 +3,7 @@ import base64
 import json
 import io
 import locale
+import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm, inch
@@ -12,6 +13,7 @@ from reportlab.lib.utils import ImageReader
 from num2words import num2words
 
 from server.core.models import Venta, EstadoVenta
+from server.config import STATIC_DIR
 
 locale.setlocale(locale.LC_ALL, "es_AR.UTF-8")
 
@@ -20,7 +22,10 @@ class BasePDFGenerator(canvas.Canvas):
     def __init__(self, *args, **kwargs):
         canvas.Canvas.__init__(self, *args, **kwargs)
         self._saved_page_states = []
-        self.header_image = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/Logocabecerafactura.png"
+        self.header_image = os.path.join(
+            STATIC_DIR, "pdf_images", "logocabecerafactura.png"
+        )
+        self.afip_logo = os.path.join(STATIC_DIR, "pdf_images", "afip-logo.png")
 
     def truncate_text(self, text, max_length):
         if len(text) > max_length:
@@ -228,13 +233,35 @@ class A4PDFGenerator(BasePDFGenerator):
         self.setFont("Helvetica-Bold", 12)
         self.drawRightString(450, 170, "Importe Total: $")
         self.setFont("Helvetica", 10)
-        self.drawRightString(570, 250, f"{locale.format_string('%.2f', self.venta.gravado, grouping=True)}")
-        self.drawRightString(570, 235, f"{locale.format_string('%.2f', self.venta.descuento, grouping=True)}")
-        self.drawRightString(570, 220, f"{locale.format_string('%.2f', self.venta.recargo, grouping=True)}")
-        self.drawRightString(570, 205, f"{locale.format_string('%.2f', self.venta.total_iva, grouping=True)}")
-        self.drawRightString(570, 190, f"{locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}")
+        self.drawRightString(
+            570,
+            250,
+            f"{locale.format_string('%.2f', self.venta.gravado, grouping=True)}",
+        )
+        self.drawRightString(
+            570,
+            235,
+            f"{locale.format_string('%.2f', self.venta.descuento, grouping=True)}",
+        )
+        self.drawRightString(
+            570,
+            220,
+            f"{locale.format_string('%.2f', self.venta.recargo, grouping=True)}",
+        )
+        self.drawRightString(
+            570,
+            205,
+            f"{locale.format_string('%.2f', self.venta.total_iva, grouping=True)}",
+        )
+        self.drawRightString(
+            570,
+            190,
+            f"{locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}",
+        )
         self.setFont("Helvetica-Bold", 12)
-        self.drawRightString(570, 170, f"{locale.format_string('%.2f', self.venta.total, grouping=True)}")
+        self.drawRightString(
+            570, 170, f"{locale.format_string('%.2f', self.venta.total, grouping=True)}"
+        )
 
         "Total in words"
         self.setFont("Helvetica", 7)
@@ -252,7 +279,7 @@ class A4PDFGenerator(BasePDFGenerator):
 
     def draw_CAE(self):
         "Draw CAE section"
-        afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
+
         qrcode_io = self.generate_qr_code()  # QR code with AFIP data
         qrcode_img = ImageReader(qrcode_io)  # ImageReader object for the QR code
 
@@ -265,7 +292,7 @@ class A4PDFGenerator(BasePDFGenerator):
             550, 95, f"{self.venta.vencimiento_cae.strftime('%d/%m/%Y')}"
         )
         self.drawImage(
-            afip_logo_path, 110, 0, width=100, height=None, preserveAspectRatio=True
+            self.afip_logo, 110, 0, width=100, height=None, preserveAspectRatio=True
         )
         self.setFont("Helvetica-BoldOblique", 10)
         self.drawString(110, 70, "Comprobante Autorizado")
@@ -311,15 +338,14 @@ class A4PDFGenerator(BasePDFGenerator):
 class TicketPDFGenerator(BasePDFGenerator):
     def __init__(self, *args, **kwargs):
         BasePDFGenerator.__init__(self, *args, **kwargs)
-        self.setPageSize((3.10 * inch, 11.68 * inch))
-        self.header_image = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/media/Logocabecerafactura.png"
+        self.setPageSize((2.80 * inch, 11.68 * inch))
 
     def draw_header(self):
         "Draw a header at the top of the page"
         self.drawImage(
-            self.header_image, 10, 730, width=210, height=None, preserveAspectRatio=True
+            self.header_image, 10, 730, width=180, height=None, preserveAspectRatio=True
         )
-        self.line(10, 770, 210, 770)
+        self.line(10, 770, 200, 770)
         self.setFont("Helvetica", 14)
         self.drawCentredString(110, 750, f"{self.venta.tipo_comprobante.descripcion}")
         self.setFontSize(6)
@@ -334,12 +360,12 @@ class TicketPDFGenerator(BasePDFGenerator):
             715,
             f"Fecha de Emisión: {self.venta.fecha_hora.strftime('%d/%m/%Y %H:%M:%S')}",
         )
-        self.line(10, 705, 210, 705)
+        self.line(10, 705, 200, 705)
         self.drawString(10, 690, "Cliente:")
         self.drawString(
             45, 690, f"{self.truncate_text(self.venta.cliente.razon_social, 30)}"
         )
-        self.line(10, 680, 210, 680)
+        self.line(10, 680, 200, 680)
         self.table_y_max = 680  # Max Y position for the items table
 
     def draw_item_table(self):
@@ -354,7 +380,7 @@ class TicketPDFGenerator(BasePDFGenerator):
                 ]
             )
         row_heights = [20] * (len(table_data))
-        table = Table(table_data, colWidths=[50, 120, 40], rowHeights=row_heights)
+        table = Table(table_data, colWidths=[50, 110, 40], rowHeights=row_heights)
         table.setStyle(
             TableStyle(
                 [
@@ -368,35 +394,46 @@ class TicketPDFGenerator(BasePDFGenerator):
         )
         table.wrapOn(self, 0, 0)
         table.drawOn(self, 5, self.table_y_max - sum(row_heights))
-        self.total_y_max = self.table_y_max - sum(
-            row_heights
-        ) - 5  # Max Y position for the total section
+        self.total_y_max = (
+            self.table_y_max - sum(row_heights) - 5
+        )  # Max Y position for the total section
 
     def draw_total(self):
         "Draw Total section"
         self.line(
-            10, self.total_y_max, 210, self.total_y_max
+            10, self.total_y_max, 200, self.total_y_max
         )  # Horizontal line for total section
         self.setFont("Helvetica", 8)
         self.drawString(10, self.total_y_max - 10, "Importe neto gravado:")
-        self.drawRightString(210, self.total_y_max - 10, f"$ {locale.format_string('%.2f', self.venta.gravado, grouping=True)}")
+        self.drawRightString(
+            200,
+            self.total_y_max - 10,
+            f"$ {locale.format_string('%.2f', self.venta.gravado, grouping=True)}",
+        )
         self.drawString(10, self.total_y_max - 20, "Importe IVA:")
         self.drawRightString(
-            210, self.total_y_max - 20, f"$ {locale.format_string('%.2f', self.venta.total_iva, grouping=True)}"
+            200,
+            self.total_y_max - 20,
+            f"$ {locale.format_string('%.2f', self.venta.total_iva, grouping=True)}",
         )
         self.drawString(10, self.total_y_max - 30, "Importe otros tributos:")
         self.drawRightString(
-            210, self.total_y_max - 30, f"$ {locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}"
+            200,
+            self.total_y_max - 30,
+            f"$ {locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}",
         )
         self.setFont("Helvetica-Bold", 8)
         self.drawString(10, self.total_y_max - 45, "TOTAL:")
         self.setFont("Helvetica", 8)
-        self.drawRightString(210, self.total_y_max - 45, f"$ {locale.format_string('%.2f', self.venta.total, grouping=True)}")
+        self.drawRightString(
+            200,
+            self.total_y_max - 45,
+            f"$ {locale.format_string('%.2f', self.venta.total, grouping=True)}",
+        )
         self.cae_y_max = self.total_y_max - 60  # Max Y position for the CAE section
 
     def draw_CAE(self):
         "Draw CAE section"
-        afip_logo_path = "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/static/pdf_images/afip-logo.png"
         qrcode_io = self.generate_qr_code()  # QR code with AFIP data
         qrcode_img = ImageReader(qrcode_io)  # ImageReader object for the QR code
 
@@ -418,7 +455,7 @@ class TicketPDFGenerator(BasePDFGenerator):
             ),
         )
         self.drawImage(
-            afip_logo_path,
+            self.afip_logo,
             110,
             self.cae_y_max - 150,
             width=80,

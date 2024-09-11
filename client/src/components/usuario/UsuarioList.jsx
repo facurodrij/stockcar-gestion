@@ -79,10 +79,8 @@ export default function UsuarioList() {
             getActions: (params) => [
                 <GridActionsCellItem
                     icon={<EditIcon/>}
-                    label="Editar"
                     component={Link}
                     to={`/usuarios/form/${params.row.id}`}
-                    showInMenu
                 />
             ]
         }

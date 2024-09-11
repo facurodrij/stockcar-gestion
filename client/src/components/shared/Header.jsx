@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { styled, useTheme } from '@mui/material/styles';
 import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button, Typography } from '@mui/material';
-import { AccountCircle, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, ReceiptLong, Inventory2, PointOfSale, Store } from '@mui/icons-material';
+import { AccountCircle, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, ReceiptLong, Inventory2, PointOfSale, Store, SwapHoriz } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
@@ -91,6 +91,12 @@ const pagesList = [
         required_permissions: ['articulo.view_all'],
     },
     {
+        title: 'Movimientos de Stock',
+        icon: <SwapHoriz />,
+        path: '/movimientos-stock',
+        required_permissions: ['movimiento_stock.view_all'],
+    },
+    {
         title: 'Clientes',
         icon: <People />,
         path: '/clientes',
@@ -143,8 +149,8 @@ export default function Header() {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('roles');
-        localStorage.removeItem('is_superuser');
+        localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
         window.location.href = '/login';
     }
 
