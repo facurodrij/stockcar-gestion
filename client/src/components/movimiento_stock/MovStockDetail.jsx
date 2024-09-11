@@ -80,7 +80,7 @@ export default function MovStockDetail({ pk }) {
                     Movimiento: {movimiento.id}
                 </Typography>
                 <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={4}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" component="div" gutterBottom>
@@ -103,14 +103,14 @@ export default function MovStockDetail({ pk }) {
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={8}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" component="div" gutterBottom>
                                     Reglones de Artículos
                                 </Typography>
                                 <TableContainer component={Paper} sx={{ mt: 3 }}>
-                                    <Table>
+                                    <Table size='small'>
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell>Código de artículo</TableCell>
@@ -120,24 +120,23 @@ export default function MovStockDetail({ pk }) {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {
-                                                renglones.map((renglon, index) => (
-                                                    <TableRow key={index}>
-                                                        <TableCell>{renglon.codigo_principal}</TableCell>
-                                                        <TableCell>{renglon.cantidad}</TableCell>
-                                                        <TableCell>{renglon.stock_posterior}</TableCell>
-                                                        <TableCell>
-                                                            <IconButton
-                                                                component={Link}
-                                                                to={`/articulos/form/${renglon.articulo_id}`}
-                                                                target='_blank'
-                                                                aria-label="editar artículo"
-                                                            >
-                                                                <Edit />
-                                                            </IconButton>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
+                                            {renglones.map((renglon, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{renglon.codigo_principal}</TableCell>
+                                                    <TableCell>{renglon.cantidad}</TableCell>
+                                                    <TableCell>{renglon.stock_posterior}</TableCell>
+                                                    <TableCell>
+                                                        <IconButton
+                                                            component={Link}
+                                                            to={`/articulos/form/${renglon.articulo_id}`}
+                                                            target='_blank'
+                                                            aria-label="editar artículo"
+                                                        >
+                                                            <Edit />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
