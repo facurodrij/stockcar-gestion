@@ -72,7 +72,7 @@ def index():
         else:
             ventas = Venta.query.all()
 
-        if ventas.__len__() == 0:
+        if len(ventas) == 0:
             return jsonify({"error": "No se encontraron ventas"}), 404
         ventas_json = list(map(lambda x: x.to_json(), ventas))
         return jsonify({"ventas": ventas_json}), 200
