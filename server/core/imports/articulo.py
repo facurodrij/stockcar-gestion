@@ -22,6 +22,8 @@ def import_data():
             "PRO_NOMBRE": "descripcion",
         }
     )
+    # Filtrar por "PRO_BAJA": 1, significa que el producto está dado de baja
+    df = df[df["PRO_BAJA"] == 0]
 
     df_stock = df_stock.rename(
         columns={
