@@ -118,7 +118,7 @@ class VentaController:
             print(e)
             return jsonify({"error": str(e)}), 400
         finally:
-            db.session.remove() # Evita errores de `Estado inconsistente de los objetos`
+            db.session.remove()  # Evita errores de `Estado inconsistente de los objetos`
             db.session.configure(bind=db.engine)
             db.session.close()
 
@@ -185,6 +185,8 @@ class VentaController:
                     venta.estado = "facturado"
                 else:
                     venta.estado = "ticket"
+                
+                MovimientoStockController.create_movimiento_from_venta(venta)
 
             db.session.commit()
             return jsonify({"venta_id": venta.id}), 201
@@ -193,7 +195,7 @@ class VentaController:
             print(e)
             return jsonify({"error": str(e)}), 400
         finally:
-            db.session.remove() # Evita errores de `Estado inconsistente de los objetos`
+            db.session.remove()  # Evita errores de `Estado inconsistente de los objetos`
             db.session.configure(bind=db.engine)
             db.session.close()
 
@@ -248,6 +250,8 @@ class VentaController:
                 )
                 nota_credito.estado = "facturado"
                 venta.estado = "anulado"
+                # Generar movimiento de stock inverso
+                MovimientoStockController.create_movimiento_from_devolucion(venta)
                 db.session.commit()
                 return (
                     jsonify(
@@ -260,12 +264,96 @@ class VentaController:
                 )
             elif venta.estado.value == "Ticket":
                 venta.estado = "anulado"
+                # Generar movimiento de stock inverso
+                MovimientoStockController.create_movimiento_from_devolucion(venta)
                 db.session.commit()
-                return jsonify({"venta_id": venta.id}), 201
+                return (
+                    jsonify(
+                        {
+                            "venta_id": venta.id,
+                            "message": "Venta anulada correctamente",
+                        }
+                    ),
+                    201,
+                )
             elif venta.estado.value == "Orden":
                 raise Exception("No se puede anular una orden de venta")
             elif venta.estado.value == "Anulado":
                 raise Exception("La venta ya fue anulada")
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({"error": str(e)}), 400
+        finally:
+            db.session.remove()
+            db.session.configure(bind=db.engine)
+            db.session.close()
+
+    @staticmethod
+    def create_orden_venta(data):
+        try:
+            venta_json = VentaController.venta_json_to_model(data["venta"])
+            venta = Venta(
+                **venta_json, tipo_comprobante_id=9, punto_venta_id=1, estado="orden"
+            )
+            venta.numero = venta.get_last_number() + 1
+            db.session.add(venta)
+            db.session.flush()
+
+            renglones = VentaController.renglones_json_to_model(data["renglones"])
+            for item in renglones:
+                articulo = Articulo.query.get(item["articulo_id"])
+                ventaItem = VentaItem(**item, articulo=articulo, venta_id=venta.id)
+                db.session.add(ventaItem)
+                venta.total_iva += float(item["subtotal_iva"])
+                venta.gravado += float(item["subtotal_gravado"])
+                venta.total += float(item["subtotal"])
+
+            db.session.commit()
+            return jsonify({"venta_id": venta.id}), 201
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({"error": str(e)}), 400
+        finally:
+            db.session.remove()
+            db.session.configure(bind=db.engine)
+            db.session.close()
+
+    @staticmethod
+    def update_orden_venta(data, venta: Venta, venta_items: list):
+        try:
+            venta_json = VentaController.venta_json_to_model(data["venta"])
+            for key, value in venta_json.items():
+                setattr(venta, key, value)
+
+            current_articulo_ids = list(map(lambda x: x.articulo_id, venta_items))
+            renglones = VentaController.renglones_json_to_model(data["renglones"])
+            for item in renglones:
+                articulo_id = item["articulo_id"]
+                if articulo_id in current_articulo_ids:
+                    venta_item = VentaItem.query.filter_by(
+                        venta_id=venta.id, articulo_id=articulo_id
+                    ).first()
+                    for key, value in item.items():
+                        setattr(venta_item, key, value)
+                    current_articulo_ids.remove(articulo_id)
+                else:
+                    articulo = Articulo.query.get(articulo_id)
+                    ventaItem = VentaItem(articulo=articulo, venta_id=venta.id, **item)
+                    db.session.add(ventaItem)
+                venta.total_iva += float(item["subtotal_iva"])
+                venta.gravado += float(item["subtotal_gravado"])
+                venta.total += float(item["subtotal"])
+
+            for articulo_id in current_articulo_ids:
+                venta_item = VentaItem.query.filter_by(
+                    venta_id=venta.id, articulo_id=articulo_id
+                ).first()
+                db.session.delete(venta_item)
+
+            db.session.commit()
+            return jsonify({"venta_id": venta.id}), 201
         except Exception as e:
             db.session.rollback()
             print(e)
