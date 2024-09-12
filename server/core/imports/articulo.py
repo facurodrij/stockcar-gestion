@@ -22,6 +22,11 @@ def import_data():
             "PRO_NOMBRE": "descripcion",
         }
     )
+    # TODO: cargar como descripcion de articulo, los valores en las columnas "PRO_LINEA1", "PRO_LINEA2"...
+
+    # TODO: cargar los codigos de barras adicionales del arhivo ProCod.json
+
+
     # Filtrar por "PRO_BAJA": 1, significa que el producto está dado de baja
     df = df[df["PRO_BAJA"] == 0]
 
