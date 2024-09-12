@@ -33,7 +33,7 @@ class VentaItem(db.Model):
             'id': self.id,
             'articulo_id': self.articulo_id,
             'venta_id': self.venta_id,
-            'codigo_principal': self.articulo.codigo_principal,
+            'codigo_principal': self.articulo.codigo_principal if self.articulo else '',
             'descripcion': self.descripcion,
             'cantidad': float(self.cantidad),
             'precio_unidad': float(self.precio_unidad),
