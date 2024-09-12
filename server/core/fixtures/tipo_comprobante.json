@@ -52,7 +52,7 @@
         "letra": "X",
         "descontar_stock": true,
         "requiere_comprobante_asociado": false,
-        "es_anulable": false
+        "es_anulable": true
     },
     {
         "id": 10,
