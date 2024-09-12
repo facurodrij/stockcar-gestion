@@ -30,22 +30,6 @@ def import_data():
         }
     )
 
-    df["descripcion"] += (
-        " "
-        + df["PRO_LINEA1"].map(str)
-        + " "
-        + df["PRO_LINEA2"].map(str)
-        + " "
-        + df["PRO_LINEA3"].map(str)
-        + df["PRO_LINEA4"].map(str)
-        + " "
-        + df["PRO_LINEA5"].map(str)
-        + " "
-        + df["PRO_LINEA6"].map(str)
-        + " "
-        + df["PRO_LINEA7"].map(str)
-    )
-
     df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
     df = df.replace({np.nan: None})
     df_stock = df_stock.replace({np.nan: None})
