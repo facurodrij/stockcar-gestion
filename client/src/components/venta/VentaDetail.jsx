@@ -18,7 +18,8 @@ import {
     Menu,
     MenuItem,
     Card,
-    CardContent
+    CardContent,
+    Alert
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
@@ -142,7 +143,7 @@ export default function VentaDetail({ pk }) {
     const handleAnular = async () => {
         confirm({
             title: 'Confirmar acción',
-            description: '¿Está seguro que desea anular la venta?',
+            description: '¿Está seguro que desea anular la venta? Los artículos vendidos se sumarán nuevamente al stock.',
             cancellationText: 'Cancelar',
             confirmationText: 'Anular',
 
@@ -190,21 +191,35 @@ export default function VentaDetail({ pk }) {
 
     return (
         <>
+            {venta.estado === 'Anulado' && (
+                <Alert severity="warning">Esta venta actualmente se encuentra anulada</Alert>
+            )}
+            {venta.estado === 'Orden' && (
+                <Alert severity="info">
+                    Esta venta actualmente se encuentra en estado de orden.
+                    Para facturarla, debe ir a Editar en Ventas y guardarla.
+                </Alert>
+            )}
             <Paper elevation={3} component="div" sx={{ mt: 2, padding: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h5" component="div" gutterBottom>
                         Venta: {venta.id}
                     </Typography>
+
                     <Box>
-                        {venta.estado === 'Facturado' && venta.tipo_comprobante['es_anulable'] && (
-                            <Button
-                                variant="contained"
-                                color="error"
-                                onClick={handleAnular}
-                            >
-                                Anular
-                            </Button>
-                        )}
+                        {
+                            (venta.estado === 'Facturado' || venta.estado === 'Ticket')
+                            && venta.tipo_comprobante
+                            && venta.tipo_comprobante['es_anulable']
+                            && (
+                                <Button
+                                    variant="contained"
+                                    color="error"
+                                    onClick={handleAnular}
+                                >
+                                    Anular
+                                </Button>
+                            )}
                         <Button
                             variant="contained"
                             color="primary"
@@ -214,10 +229,86 @@ export default function VentaDetail({ pk }) {
                         >
                             Editar
                         </Button>
-                        <PaperSizeButton handlePrint={handlePrint} />
+                        {venta.estado !== 'Orden' && (
+                            <PaperSizeButton handlePrint={handlePrint} />
+                        )}
                     </Box>
                 </Box>
                 <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <Card>
+                            <CardContent>
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12} md={10}>
+                                        <Typography variant="h6" gutterBottom>
+                                            Renglones de Venta
+                                        </Typography>
+                                        <TableContainer component={Paper} sx={{ mt: 3 }}>
+                                            <Table size='small'>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell>Código de artículo</TableCell>
+                                                        <TableCell>Descripción</TableCell>
+                                                        <TableCell align='right'>Cantidad</TableCell>
+                                                        <TableCell align='right'>Precio unitario</TableCell>
+                                                        <TableCell align='right'>Subtotal</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {renglones.map((renglon, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>{renglon.codigo_principal}</TableCell>
+                                                            <TableCell>{renglon.descripcion}</TableCell>
+                                                            <TableCell align='right'>{renglon.cantidad}</TableCell>
+                                                            <TableCell align='right'>{renglon.precio_unidad
+                                                                ? Number(renglon.precio_unidad).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                                : 'N/A'}
+                                                            </TableCell>
+                                                            <TableCell align='right'>{renglon.subtotal
+                                                                ? Number(renglon.subtotal).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                                : 'N/A'}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    </Grid>
+                                    <Grid item xs={12} md={2}>
+                                        <Typography variant="h6" gutterBottom>
+                                            Totales
+                                        </Typography>
+                                        <List sx={{ width: '100%' }}>
+                                            <ListItem>
+                                                <ListItemText primary="Gravado" secondary={venta.gravado
+                                                    ? Number(venta.gravado).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'}
+                                                />
+                                            </ListItem>
+                                            <ListItem>
+                                                <ListItemText primary="IVA" secondary={venta.total_iva
+                                                    ? Number(venta.total_iva).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'}
+                                                />
+                                            </ListItem>
+                                            <ListItem>
+                                                <ListItemText primary="Otros tributos" secondary={venta.total_tributos
+                                                    ? Number(venta.total_tributos).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'}
+                                                />
+                                            </ListItem>
+                                            <ListItem>
+                                                <ListItemText primary="Total" secondary={venta.total
+                                                    ? Number(venta.total).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                    : 'N/A'}
+                                                />
+                                            </ListItem>
+                                        </List>
+                                    </Grid>
+                                </Grid>
+                            </CardContent>
+                        </Card>
+                    </Grid>
                     <Grid item xs={12} md={6}>
                         <Card>
                             <CardContent>
@@ -309,80 +400,6 @@ export default function VentaDetail({ pk }) {
                                         />
                                     </ListItem>
                                 </List>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Card>
-                            <CardContent>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} md={10}>
-                                        <Typography variant="h6" gutterBottom>
-                                            Renglones de Venta
-                                        </Typography>
-                                        <TableContainer component={Paper} sx={{ mt: 3 }}>
-                                            <Table size='small'>
-                                                <TableHead>
-                                                    <TableRow>
-                                                        <TableCell>Código de artículo</TableCell>
-                                                        <TableCell>Descripción</TableCell>
-                                                        <TableCell align='right'>Cantidad</TableCell>
-                                                        <TableCell align='right'>Precio unitario</TableCell>
-                                                        <TableCell align='right'>Subtotal</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody>
-                                                    {renglones.map((renglon, index) => (
-                                                        <TableRow key={index}>
-                                                            <TableCell>{renglon.codigo_principal}</TableCell>
-                                                            <TableCell>{renglon.descripcion}</TableCell>
-                                                            <TableCell align='right'>{renglon.cantidad}</TableCell>
-                                                            <TableCell align='right'>{renglon.precio_unidad
-                                                                ? Number(renglon.precio_unidad).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
-                                                                : 'N/A'}
-                                                            </TableCell>
-                                                            <TableCell align='right'>{renglon.subtotal
-                                                                ? Number(renglon.subtotal).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
-                                                                : 'N/A'}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
-                                    </Grid>
-                                    <Grid item xs={12} md={2}>
-                                        <Typography variant="h6" gutterBottom>
-                                            Totales
-                                        </Typography>
-                                        <List sx={{ width: '100%' }}>
-                                            <ListItem>
-                                                <ListItemText primary="Gravado" secondary={venta.gravado
-                                                    ? Number(venta.gravado).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
-                                                    : 'N/A'} 
-                                                />
-                                            </ListItem>
-                                            <ListItem>
-                                                <ListItemText primary="IVA" secondary={venta.total_iva
-                                                    ? Number(venta.total_iva).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
-                                                    : 'N/A'}
-                                                />
-                                            </ListItem>
-                                            <ListItem>
-                                                <ListItemText primary="Otros tributos" secondary={venta.total_tributos
-                                                    ? Number(venta.total_tributos).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
-                                                    : 'N/A'}
-                                                />
-                                            </ListItem>
-                                            <ListItem>
-                                                <ListItemText primary="Total" secondary={venta.total
-                                                    ? Number(venta.total).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
-                                                    : 'N/A'}
-                                                />
-                                            </ListItem>
-                                        </List>
-                                    </Grid>
-                                </Grid>
                             </CardContent>
                         </Card>
                     </Grid>
