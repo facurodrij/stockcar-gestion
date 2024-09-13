@@ -175,6 +175,9 @@ def index_orden():
         )
     else:
         ventas = Venta.query.filter_by(estado="orden").all()
+    
+    if len(ventas) == 0:
+        return jsonify({"error": "No se encontraron ordenes"}), 404
 
     ventas_json = list(map(lambda x: x.to_json(), ventas))
     return jsonify({"ventas": ventas_json}), 200
