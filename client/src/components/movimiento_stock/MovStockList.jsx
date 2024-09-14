@@ -35,6 +35,7 @@ const CustomToolbar = () => {
                 to="/movimientos-stock/form"
                 size="small"
                 variant="contained"
+                color="success"
             >
                 Nuevo Movimiento de Stock
             </Button>

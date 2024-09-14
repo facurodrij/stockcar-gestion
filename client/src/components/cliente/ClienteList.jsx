@@ -32,6 +32,7 @@ const CustomToolbar = () => {
                 to="/clientes/form"
                 size="small"
                 variant="contained"
+                color="success"
             >
                 Nuevo Cliente
             </Button>

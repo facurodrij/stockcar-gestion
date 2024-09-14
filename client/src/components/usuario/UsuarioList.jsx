@@ -32,6 +32,7 @@ const CustomToolbar = () => {
                 to="/usuarios/form"
                 size="small"
                 variant="contained"
+                color="success"
             >
                 Nuevo Usuario
             </Button>

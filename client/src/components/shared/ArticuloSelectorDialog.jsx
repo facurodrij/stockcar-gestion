@@ -48,6 +48,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                     target="_blank"
                     size="small"
                     variant="contained"
+                    color="success"
                 >
                     Nuevo Artículo
                 </Button>

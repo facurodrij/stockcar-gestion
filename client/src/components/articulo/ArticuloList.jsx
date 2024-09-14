@@ -35,6 +35,7 @@ const CustomToolbar = () => {
                 to="/articulos/form"
                 size="small"
                 variant="contained"
+                color="success"
             >
                 Nuevo Artículo
             </Button>

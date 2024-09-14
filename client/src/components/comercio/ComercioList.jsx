@@ -32,6 +32,7 @@ const CustomToolbar = () => {
                 to="/comercios/form"
                 size="small"
                 variant="contained"
+                color="success"
             >
                 Nuevo Comercio
             </Button>
