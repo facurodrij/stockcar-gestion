@@ -18,11 +18,11 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
+import { Search, Add } from '@mui/icons-material';
 
 
 export default function VentaList({ onlyOrders }) {
@@ -58,7 +58,7 @@ export default function VentaList({ onlyOrders }) {
             } catch (error) {
                 console.error(error);
                 setSnackbar({
-                    message: `Error al obtener las ventas: ${error.message}`,
+                    message: error.message,
                     severity: 'error',
                     autoHideDuration: null,
                     onClose: handleCloseSnackbar
@@ -71,21 +71,40 @@ export default function VentaList({ onlyOrders }) {
     const CustomToolbar = () => {
         return (
             <GridToolbarContainer>
-                <GridToolbarQuickFilter size={'small'} />
-                <GridToolbarColumnsButton />
-                <GridToolbarFilterButton />
-                <GridToolbarDensitySelector />
-                <GridToolbarExport />
-                <Box sx={{ flexGrow: 1 }} />
-                <Button
-                    startIcon={<AddIcon />}
-                    component={Link}
-                    to={onlyOrders ? '/ventas-orden/form' : '/ventas/form'}
-                    size="small"
-                    variant="contained"
-                >
-                    {onlyOrders ? 'Nueva orden' : 'Nueva venta'}
-                </Button>
+                {onlyOrders ? (
+                    <>
+                        <Box sx={{ flexGrow: 1 }} />
+                        <Button
+                            startIcon={<Add />}
+                            component={Link}
+                            to='/ventas-orden/form'
+                            size="small"
+                            variant="contained"
+                            color='success'
+                        >
+                            Nueva orden
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        <GridToolbarQuickFilter size={'small'} />
+                        <GridToolbarColumnsButton />
+                        <GridToolbarFilterButton />
+                        <GridToolbarDensitySelector />
+                        <GridToolbarExport />
+                        <Box sx={{ flexGrow: 1 }} />
+                        <Button
+                            startIcon={<Add />}
+                            component={Link}
+                            to='/ventas/form'
+                            size="small"
+                            variant="contained"
+                            color='success'
+                        >
+                            Nueva venta
+                        </Button>
+                    </>
+                )}
             </GridToolbarContainer>
         );
     }
@@ -186,6 +205,7 @@ export default function VentaList({ onlyOrders }) {
                 </LocalizationProvider>
 
                 <Button
+                    startIcon={<Search />}
                     variant="contained"
                     color="primary"
                     sx={{ mt: 2 }}
@@ -202,9 +222,9 @@ export default function VentaList({ onlyOrders }) {
                     rowHeight={30}
                     pageSize={5}
                     rowsPerPageOptions={[5, 10, 20]}
-                    initialState={{ 
-                        sorting: { 
-                            sortModel: [{ field: 'fecha_hora', sort: 'desc' }] 
+                    initialState={{
+                        sorting: {
+                            sortModel: [{ field: 'fecha_hora', sort: 'desc' }]
                         },
                         columns: {
                             columnVisibilityModel: {
