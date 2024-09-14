@@ -35,7 +35,7 @@ import { useLoading } from '../../utils/loadingContext';
 
 const CustomToolbar = ({ onOpen }) => {
     return (
-        <GridToolbarContainer>
+        <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
             <Button
                 color='primary'
                 startIcon={<AddIcon />}
@@ -239,20 +239,22 @@ export default function MovStockForm() {
                         </Grid>
                     </Grid>
                     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Artículos</Typography>
-                    <Box sx={{ height: 500, width: '100%', '& .font-weight-bold': { fontWeight: '700' } }}>
+                    <Box sx={{ height: 500, width: '100%', '& .disabled-cell': { backgroundColor: '#f5f5f5' } }}>
                         <DataGrid
                             columns={[
                                 {
                                     field: 'codigo_principal',
                                     headerName: 'Código Principal',
                                     flex: 2,
-                                    editable: false
+                                    editable: false,
+                                    cellClassName: () => 'disabled-cell'
                                 },
                                 {
                                     field: 'descripcion',
                                     headerName: 'Descripción',
                                     flex: 2,
-                                    editable: false
+                                    editable: false,
+                                    cellClassName: () => 'disabled-cell'
                                 },
                                 {
                                     field: 'cantidad',

@@ -27,7 +27,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
 
     const CustomToolbar = () => {
         return (
-            <GridToolbarContainer>
+            <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
                 <GridToolbarQuickFilter size={'small'} />
                 <GridToolbarColumnsButton />
                 <GridToolbarFilterButton />
