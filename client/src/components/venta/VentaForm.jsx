@@ -36,7 +36,7 @@ import { useLoading } from '../../utils/loadingContext';
 
 const CustomToolbar = ({ onOpen }) => {
     return (
-        <GridToolbarContainer>
+        <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
             <Button
                 color='primary'
                 startIcon={<AddIcon />}
@@ -348,7 +348,13 @@ export default function VentaForm({ pk }) {
                         </Grid>
                     </Grid>
                     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Renglones de Venta</Typography>
-                    <Box sx={{ height: 500, width: '100%', '& .font-weight-bold': { fontWeight: '700' } }}>
+                    <Box sx={{
+                        height: 500,
+                        width: '100%',
+                        '& .font-weight-bold': { fontWeight: '700' },
+                        '& .disabled-cell': { backgroundColor: '#f5f5f5' }
+                    }}
+                    >
                         <DataGrid
                             columns={[
                                 {
@@ -407,7 +413,8 @@ export default function VentaForm({ pk }) {
                                             style: 'currency',
                                             currency: 'ARS'
                                         }).format(value);
-                                    }
+                                    },
+                                    cellClassName: () => 'disabled-cell'
                                 },
                                 {
                                     field: 'subtotal_gravado',
@@ -420,7 +427,8 @@ export default function VentaForm({ pk }) {
                                             style: 'currency',
                                             currency: 'ARS'
                                         }).format(value);
-                                    }
+                                    },
+                                    cellClassName: () => 'disabled-cell'
                                 },
                                 {
                                     field: 'subtotal',
@@ -434,7 +442,9 @@ export default function VentaForm({ pk }) {
                                             currency: 'ARS'
                                         }).format(value);
                                     },
-                                    cellClassName: () => 'font-weight-bold'
+                                    cellClassName: () => {
+                                        return 'font-weight-bold disabled-cell';
+                                    }
                                 },
                             ]}
                             rows={ventaRenglones}
@@ -699,7 +709,7 @@ export default function VentaForm({ pk }) {
                         </Box>
                     </Box>
                 </Box>
-            </Paper>
+            </Paper >
             <ArticuloSelectorDialog
                 open={openArticuloDialog}
                 onClose={() => setOpenArticuloDialog(false)}

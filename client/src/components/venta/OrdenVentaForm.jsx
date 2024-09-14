@@ -27,7 +27,7 @@ import { useLoading } from '../../utils/loadingContext';
 
 const CustomToolbar = ({ onOpen }) => {
     return (
-        <GridToolbarContainer>
+        <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
             <Button
                 color='primary'
                 startIcon={<AddIcon />}
@@ -222,7 +222,13 @@ export default function OrdenVentaForm({ pk }) {
                         </Grid>
                     </Grid>
                     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Renglones de Venta</Typography>
-                    <Box sx={{ height: 500, width: '100%', '& .font-weight-bold': { fontWeight: '700' } }}>
+                    <Box sx={{
+                        height: 500,
+                        width: '100%',
+                        '& .font-weight-bold': { fontWeight: '700' },
+                        '& .disabled-cell': { backgroundColor: '#f5f5f5' }
+                    }}
+                    >
                         <DataGrid
                             columns={[
                                 {
@@ -281,7 +287,8 @@ export default function OrdenVentaForm({ pk }) {
                                             style: 'currency',
                                             currency: 'ARS'
                                         }).format(value);
-                                    }
+                                    },
+                                    cellClassName: () => 'disabled-cell'
                                 },
                                 {
                                     field: 'subtotal_gravado',
@@ -294,7 +301,8 @@ export default function OrdenVentaForm({ pk }) {
                                             style: 'currency',
                                             currency: 'ARS'
                                         }).format(value);
-                                    }
+                                    },
+                                    cellClassName: () => 'disabled-cell'
                                 },
                                 {
                                     field: 'subtotal',
@@ -308,7 +316,9 @@ export default function OrdenVentaForm({ pk }) {
                                             currency: 'ARS'
                                         }).format(value);
                                     },
-                                    cellClassName: () => 'font-weight-bold'
+                                    cellClassName: () => {
+                                        return 'font-weight-bold disabled-cell';
+                                    }
                                 },
                             ]}
                             rows={ventaRenglones}
