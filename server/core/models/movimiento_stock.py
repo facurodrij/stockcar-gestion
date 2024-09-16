@@ -10,6 +10,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import relationship
+from server.core.utils import AuditMixin
 from server.config import db
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
@@ -35,7 +36,7 @@ class OrigenMovimiento(enum.Enum):
     devolucion = "Devolución"
 
 
-class MovimientoStock(db.Model):
+class MovimientoStock(AuditMixin, db.Model):
     """
     Modelo de datos para los movimientos de stock.
 
@@ -50,10 +51,6 @@ class MovimientoStock(db.Model):
     fecha_hora = Column(DateTime, default=func.now(), nullable=False)
     observacion = Column(String, nullable=True)
 
-    # Datos de auditoría
-    fecha_alta = Column(DateTime, default=func.now())
-    fecha_modificacion = Column(DateTime, onupdate=func.now())
-
     def to_json(self):
         return {
             "id": self.id,
@@ -61,15 +58,5 @@ class MovimientoStock(db.Model):
             "origen": self.origen.name,
             "fecha_hora": self.fecha_hora.isoformat(),
             "observacion": self.observacion,
-            # Convertir las fechas de utc a local
-            "fecha_alta": self.fecha_alta.replace(tzinfo=pytz.utc)
-            .astimezone(local_tz)
-            .isoformat(),
-            "fecha_modificacion": (
-                self.fecha_modificacion.replace(tzinfo=pytz.utc)
-                .astimezone(local_tz)
-                .isoformat()
-                if self.fecha_modificacion
-                else None
-            ),
+            **self.get_audit_fields(),
         }

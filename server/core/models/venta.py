@@ -7,12 +7,11 @@ from sqlalchemy import (
     Numeric,
     ForeignKey,
     DateTime,
-    Boolean,
     func,
     Enum,
 )
 from sqlalchemy.orm import relationship
-
+from server.core.utils import AuditMixin
 from server.config import db
 from server.core.models.association_table import tributo_venta
 from server.core.models.parametros import AlicuotaIVA
@@ -30,7 +29,7 @@ class EstadoVenta(enum.Enum):
     anulado = "Anulado"
 
 
-class Venta(db.Model):
+class Venta(AuditMixin, db.Model):
     """
     Modelo de datos para las ventas.
 
@@ -82,12 +81,6 @@ class Venta(db.Model):
     tributos = relationship(
         "Tributo", secondary="tributo_venta", back_populates="ventas"
     )
-
-    # Datos de Auditoría
-    fecha_alta = Column(DateTime, default=func.now())
-    fecha_modificacion = Column(DateTime, onupdate=func.now())
-    baja = Column(Boolean, default=False)
-    fecha_baja = Column(DateTime, nullable=True)
 
     def nro_comprobante(self):
         """
@@ -194,7 +187,11 @@ class Venta(db.Model):
 
         cod_articulos = []
         for item in self.items:
-            cod_articulos.append(item.articulo.codigo_principal) if item.articulo else ''
+            (
+                cod_articulos.append(item.articulo.codigo_principal)
+                if item.articulo
+                else ""
+            )
 
         return {
             "id": self.id,
@@ -222,5 +219,5 @@ class Venta(db.Model):
             "estado": self.estado.value,
             "tributos": tributos,
             "cod_articulos": cod_articulos,
-            "fecha_alta": self.fecha_alta.isoformat(),
+            **self.get_audit_fields(),
         }
