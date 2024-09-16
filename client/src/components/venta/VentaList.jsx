@@ -8,8 +8,6 @@ import {
     GridToolbarExport,
     GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
 import dayjs from "dayjs";
 import { API } from "../../App";
 import { Link } from "react-router-dom";
@@ -22,7 +20,7 @@ import Box from "@mui/material/Box";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
-import { Search, Add } from '@mui/icons-material';
+import { Search, Add, Visibility, Edit } from '@mui/icons-material';
 
 
 export default function VentaList({ onlyOrders }) {
@@ -140,7 +138,7 @@ export default function VentaList({ onlyOrders }) {
                 if (onlyOrders) {
                     actions.push(
                         <GridActionsCellItem
-                            icon={<EditIcon />}
+                            icon={<Edit />}
                             component={Link}
                             to={`/ventas-orden/form/${params.row.id}`}
                         />
@@ -149,12 +147,12 @@ export default function VentaList({ onlyOrders }) {
                 }
                 actions.push(
                     <GridActionsCellItem
-                        icon={<VisibilityIcon />}
+                        icon={<Visibility />}
                         component={Link}
                         to={`/ventas/${params.row.id}`}
                     />,
                     <GridActionsCellItem
-                        icon={<EditIcon />}
+                        icon={<Edit />}
                         component={Link}
                         to={`/ventas/form/${params.row.id}`}
                     />

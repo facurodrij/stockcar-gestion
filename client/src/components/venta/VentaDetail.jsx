@@ -21,14 +21,13 @@ import {
     CardContent,
     Alert
 } from "@mui/material";
+import { Block, Edit, Print, KeyboardArrowDown } from '@mui/icons-material';
 import { Link } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useConfirm } from 'material-ui-confirm';
 import { useLoading } from '../../utils/loadingContext';
 import dayjs from 'dayjs';
-
 
 
 const PaperSizeButton = ({ handlePrint }) => {
@@ -52,7 +51,8 @@ const PaperSizeButton = ({ handlePrint }) => {
                 color="primary"
                 sx={{ ml: 2 }}
                 onClick={handleClick}
-                endIcon={<KeyboardArrowDownIcon />}
+                startIcon={<Print />}
+                endIcon={<KeyboardArrowDown />}
             >
                 Imprimir
             </Button>
@@ -106,9 +106,10 @@ export default function VentaDetail({ pk }) {
             }
             catch (error) {
                 setSnackbar({
-                    message: 'Error al obtener la venta',
+                    message: error.message,
                     severity: 'error',
-                    onClose: () => handleCloseSnackbar(true)
+                    autoHideDuration: null,
+                    onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
             }
@@ -213,6 +214,7 @@ export default function VentaDetail({ pk }) {
                             && venta.tipo_comprobante['es_anulable']
                             && (
                                 <Button
+                                    startIcon={<Block />}
                                     variant="contained"
                                     color="error"
                                     onClick={handleAnular}
@@ -221,6 +223,7 @@ export default function VentaDetail({ pk }) {
                                 </Button>
                             )}
                         <Button
+                            startIcon={<Edit />}
                             variant="contained"
                             color="primary"
                             component={Link}
@@ -398,6 +401,33 @@ export default function VentaDetail({ pk }) {
                                             primary="Código postal"
                                             secondary={venta.cliente && venta.cliente['codigo_postal'] ? venta.cliente['codigo_postal'] : 'No disponible'}
                                         />
+                                    </ListItem>
+                                </List>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" component="div" gutterBottom>
+                                    Datos de auditoría
+                                </Typography>
+                                <List>
+                                    <ListItem>
+                                        <ListItemText primary="Fecha y hora de creación"
+                                            secondary={dayjs(venta.created_at).format('DD/MM/YYYY HH:mm:ss')} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Fecha y hora de actualización"
+                                            secondary={dayjs(venta.updated_at).format('DD/MM/YYYY HH:mm:ss')} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Usuario de creación"
+                                            secondary={venta.created_by && venta.created_by.username} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Usuario de actualización"
+                                            secondary={venta.updated_by && venta.updated_by.username} />
                                     </ListItem>
                                 </List>
                             </CardContent>
