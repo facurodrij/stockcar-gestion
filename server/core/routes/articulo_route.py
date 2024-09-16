@@ -2,7 +2,15 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from server.config import db
-from server.core.models import AlicuotaIVA, Tributo, Articulo, TipoArticulo, TipoUnidad
+from server.core.models import (
+    AlicuotaIVA,
+    Tributo,
+    Articulo,
+    TipoArticulo,
+    TipoUnidad,
+    MovimientoStock,
+    MovimientoStockItem,
+)
 from server.core.decorators import permission_required
 
 articulo_bp = Blueprint("articulo_bp", __name__)
@@ -47,10 +55,20 @@ def create():
         # Verificar si ya existen artículos con el mismo código principal
         codigo_principal = articulo_json.get("codigo_principal")
         if codigo_principal and not force:
-            articulos_existentes = Articulo.query.filter_by(codigo_principal=codigo_principal).all()
+            articulos_existentes = Articulo.query.filter_by(
+                codigo_principal=codigo_principal
+            ).all()
             if articulos_existentes:
                 ids_existentes = [articulo.id for articulo in articulos_existentes]
-                return jsonify({"warning": "Ya existen Artículos con el mismo código principal", "ids": ids_existentes}), 409
+                return (
+                    jsonify(
+                        {
+                            "warning": "Ya existen Artículos con el mismo código principal",
+                            "ids": ids_existentes,
+                        }
+                    ),
+                    409,
+                )
 
         try:
             articulo = Articulo(**articulo_json)
@@ -90,11 +108,25 @@ def update(pk):
 
         # Verificar si ya existen artículos con el mismo código principal
         codigo_principal = articulo_json.get("codigo_principal")
-        if codigo_principal and codigo_principal != articulo.codigo_principal and not force:
-            articulos_existentes = Articulo.query.filter_by(codigo_principal=codigo_principal).all()
+        if (
+            codigo_principal
+            and codigo_principal != articulo.codigo_principal
+            and not force
+        ):
+            articulos_existentes = Articulo.query.filter_by(
+                codigo_principal=codigo_principal
+            ).all()
             if articulos_existentes:
                 ids_existentes = [articulo.id for articulo in articulos_existentes]
-                return jsonify({"warning": "Existen Artículos con el mismo código principal", "ids": ids_existentes}), 409
+                return (
+                    jsonify(
+                        {
+                            "warning": "Existen Artículos con el mismo código principal",
+                            "ids": ids_existentes,
+                        }
+                    ),
+                    409,
+                )
 
         try:
             for key, value in articulo_json.items():
@@ -120,4 +152,13 @@ def update(pk):
 @permission_required(["articulo.view"])
 def detail(pk):
     articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
-    return jsonify({"articulo": articulo.to_json()}), 200
+    # Obtener los movimientos de stock, en donde uno de los items sea el artículo solicitado
+    # Obtener los ultimos 20 movimientos
+    movimientos = MovimientoStock.query.join(MovimientoStockItem).filter(
+        MovimientoStockItem.articulo_id == pk
+    ).order_by(MovimientoStock.fecha_hora.desc()).limit(20).all()
+    movimientos_json = list(map(lambda x: x.to_json(), movimientos))
+    return (
+        jsonify({"articulo": articulo.to_json(), "movimientos": movimientos_json}),
+        200,
+    )

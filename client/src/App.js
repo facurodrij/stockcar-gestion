@@ -12,6 +12,7 @@ import ClientePage from './pages/cliente/ClientePage';
 import ClienteFormPage from './pages/cliente/ClienteFormPage';
 import ArticuloPage from './pages/articulo/ArticuloPage';
 import ArticuloFormPage from './pages/articulo/ArticuloFormPage';
+import ArticuloDetailPage from "./pages/articulo/ArticuloDetailPage";
 import ComercioPage from './pages/comercio/ComercioPage';
 import ComercioFormPage from './pages/comercio/ComercioFormPage';
 import LoginPage from "./pages/auth/LoginPage";
@@ -46,6 +47,7 @@ function App() {
                         <Route path="/clientes/form" element={<ClienteFormPage/>}></Route>
                         <Route path="/clientes/form/:pk" element={<ClienteFormPage/>}></Route>
                         <Route path="/articulos" element={<ArticuloPage/>}></Route>
+                        <Route path="/articulos/:pk" element={<ArticuloDetailPage/>}></Route>
                         <Route path="/articulos/form" element={<ArticuloFormPage/>}></Route>
                         <Route path="/articulos/form/:pk" element={<ArticuloFormPage/>}></Route>
                         <Route path="/comercios" element={<ComercioPage/>}></Route>

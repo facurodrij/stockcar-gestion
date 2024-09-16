@@ -8,12 +8,11 @@ import {
     GridToolbarExport,
     GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
+import { Add, Edit, Visibility } from '@mui/icons-material';
 import { API } from "../../App";
 import { Link } from "react-router-dom";
 import { esES } from "@mui/x-data-grid/locales";
 import { Box, Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
@@ -30,7 +29,7 @@ const CustomToolbar = () => {
             <GridToolbarExport />
             <Box sx={{ flexGrow: 1 }} />
             <Button
-                startIcon={<AddIcon />}
+                startIcon={<Add />}
                 component={Link}
                 to="/articulos/form"
                 size="small"
@@ -95,7 +94,12 @@ export default function ArticuloList() {
             field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
             getActions: (params) => [
                 <GridActionsCellItem
-                    icon={<EditIcon />}
+                    icon={<Visibility />}
+                    component={Link}
+                    to={`/articulos/${params.row.id}`}
+                />,
+                <GridActionsCellItem
+                    icon={<Edit />}
                     component={Link}
                     to={`/articulos/form/${params.row.id}`}
                 />
