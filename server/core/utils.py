@@ -1,7 +1,9 @@
 import pytz
 from sqlalchemy import Column, func, DateTime, Boolean, Integer, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Query
 from sqlalchemy.ext.declarative import declared_attr
+from server.config import db
+
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
@@ -52,3 +54,60 @@ class AuditMixin:
             "created_by": self.created_by_user.to_json(),
             "updated_by": self.updated_by_user.to_json(),
         }
+
+
+class SoftDeleteMixin:
+    """
+    Clase que agrega un campo de eliminación lógica a las tablas de la base de datos.
+    """
+
+    @declared_attr
+    def deleted(cls):
+        return Column(Boolean, default=False, nullable=False)
+
+    @declared_attr
+    def deleted_at(cls):
+        return Column(DateTime, nullable=True)
+
+    def __init__(self, *args, **kwargs):
+        super(SoftDeleteMixin, self).__init__(*args, **kwargs)
+
+    def delete(self):
+        self.deleted = True
+        self.deleted_at = func.now()
+
+    def restore(self):
+        self.deleted = False
+
+    def is_deleted(self):
+        return self.deleted
+
+
+class QueryWithSoftDelete(Query):
+    _with_deleted = False
+
+    def __new__(cls, *args, **kwargs):
+        obj = super(QueryWithSoftDelete, cls).__new__(cls)
+        obj._with_deleted = kwargs.pop("with_deleted", False)
+        if len(args) > 0:
+            super(QueryWithSoftDelete, obj).__init__(*args, **kwargs)
+            return obj.filter_by(deleted=False) if not obj._with_deleted else obj
+        return obj
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def with_deleted(self):
+        return self.__class__(
+            self._only_full_mapper_zero("get"), session=db.session(), _with_deleted=True
+        )
+
+    def _get(self, *args, **kwargs):
+        # this call the original query.get function from the Query class
+        return super(QueryWithSoftDelete, self).get(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        # the query.get method does not like it if there is a filter clause
+        # pre-loaded, so we need to implement it using a workaround
+        obj = self.with_deleted()._get(*args, **kwargs)
+        return obj if obj is None or self._with_deleted or not obj.deleted else None
