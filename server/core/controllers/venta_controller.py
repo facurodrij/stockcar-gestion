@@ -109,7 +109,8 @@ class VentaController:
             else:
                 venta.estado = "ticket"
 
-            MovimientoStockController.create_movimiento_from_venta(venta)
+            if venta.tipo_comprobante.descontar_stock:
+                MovimientoStockController.create_movimiento_from_venta(venta)
 
             db.session.commit()
             return jsonify({"venta_id": venta.id}), 201
@@ -186,7 +187,8 @@ class VentaController:
                 else:
                     venta.estado = "ticket"
                 
-                MovimientoStockController.create_movimiento_from_venta(venta)
+                if venta.tipo_comprobante.descontar_stock:
+                    MovimientoStockController.create_movimiento_from_venta(venta)
 
             db.session.commit()
             return jsonify({"venta_id": venta.id}), 201
