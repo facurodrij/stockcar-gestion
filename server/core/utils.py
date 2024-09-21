@@ -103,10 +103,15 @@ class QueryWithSoftDelete(Query):
             self = self.filter_by(deleted=False)
         return super(QueryWithSoftDelete, self).__iter__()
 
-    def get(self, ident):
-        if not self._with_deleted:
-            self = self.filter_by(deleted=False)
-        return super(QueryWithSoftDelete, self).get(ident)
+    def _get(self, *args, **kwargs):
+        # this calls the original query.get function from the base class
+        return super(QueryWithSoftDelete, self).get(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        # the query.get method does not like it if there is a filter clause
+        # pre-loaded, so we need to implement it using a workaround
+        obj = self.with_deleted()._get(*args, **kwargs)
+        return obj if obj is None or self._with_deleted or not obj.deleted else None
 
     def get_or_404(self, ident, description: str | None = None):
         rv = self.with_deleted().get(ident)
