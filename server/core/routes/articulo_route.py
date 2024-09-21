@@ -1,6 +1,5 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from flask_jwt_extended import jwt_required
-
 from server.config import db
 from server.core.models import (
     AlicuotaIVA,
@@ -90,7 +89,11 @@ def create():
 @jwt_required()
 @permission_required(["articulo.update"])
 def update(pk):
-    articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+    try:
+        articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
     if request.method == "GET":
         return (
             jsonify(
@@ -151,14 +154,43 @@ def update(pk):
 @jwt_required()
 @permission_required(["articulo.view"])
 def detail(pk):
-    articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
-    # Obtener los movimientos de stock, en donde uno de los items sea el artículo solicitado
-    # Obtener los ultimos 20 movimientos
-    movimientos = MovimientoStock.query.join(MovimientoStockItem).filter(
-        MovimientoStockItem.articulo_id == pk
-    ).order_by(MovimientoStock.fecha_hora.desc()).limit(20).all()
-    movimientos_json = list(map(lambda x: x.to_json(), movimientos))
-    return (
-        jsonify({"articulo": articulo.to_json(), "movimientos": movimientos_json}),
-        200,
-    )
+    try:
+        articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+        movimientos = (
+            MovimientoStock.query.join(MovimientoStockItem)
+            .filter(MovimientoStockItem.articulo_id == pk)
+            .order_by(MovimientoStock.fecha_hora.desc())
+            .limit(20)
+            .all()
+        )
+        movimientos_json = list(map(lambda x: x.to_json(), movimientos))
+        return (
+            jsonify({"articulo": articulo.to_json(), "movimientos": movimientos_json}),
+            200,
+        )
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
+
+
+@articulo_bp.route("/articulos/<int:pk>/delete", methods=["DELETE"])
+@jwt_required()
+@permission_required(["articulo.delete"])
+def delete(pk):
+    try:
+        articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+        if articulo.is_deleted():
+            abort(404, "Artículo no encontrado")
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
+    try:
+        articulo.delete()
+        db.session.commit()
+        return jsonify({"message": "Artículo eliminado correctamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(e)
+        return jsonify({"error": str(e)}), 400
+    finally:
+        db.session.close()

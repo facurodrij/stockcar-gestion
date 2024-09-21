@@ -19,12 +19,13 @@ import {
     CardContent,
     IconButton
 } from "@mui/material";
-import { Edit, Visibility } from '@mui/icons-material';
+import { Delete, Edit, Visibility } from '@mui/icons-material';
 import { Link } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useLoading } from '../../utils/loadingContext';
 import dayjs from 'dayjs';
+import { useConfirm } from 'material-ui-confirm';
 
 
 export default function ArticuloDetail({ pk }) {
@@ -38,6 +39,7 @@ export default function ArticuloDetail({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const { withLoading } = useLoading();
+    const confirm = useConfirm();
 
     const handleCloseSnackbar = (redirect, url = '/articulos') => {
         setOpenSnackbar(false);
@@ -50,10 +52,12 @@ export default function ArticuloDetail({ pk }) {
         const fetchData = async () => {
             const url = `${API}/articulos/${pk}`;
             const res = await fetchWithAuth(url);
+            const data = await res.json();
             if (!res.ok) {
-                throw new Error('Error al obtener el artículo');
+                throw new Error(`Error al obtener el artículo: ${data['error']}`
+                );
             }
-            return await res.json();
+            return data;
         }
         const loadData = async () => {
             try {
@@ -65,14 +69,65 @@ export default function ArticuloDetail({ pk }) {
                 setSnackbar({
                     message: error.message,
                     severity: 'error',
-                    autoHideDuration: null,
-                    onClose: () => handleCloseSnackbar(false)
+                    autoHideDuration: 6000,
+                    onClose: () => handleCloseSnackbar(true)
                 });
             }
         }
 
         withLoading(loadData);
     }, [pk, withLoading]);
+
+    const handleDelete = async () => {
+        confirm({
+            title: 'Confirmar acción',
+            description: '¿Está seguro que desea eliminar el artículo?',
+            cancellationText: 'Cancelar',
+            confirmationText: 'Confirmar'
+
+        })
+            .then(() => {
+                withLoading(async () => {
+                    const url = `${API}/articulos/${pk}/delete`;
+                    fetchWithAuth(url, 'DELETE')
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data['error']);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            setSnackbar({
+                                message: data['message'],
+                                severity: 'success',
+                                autoHideDuration: 4000,
+                                onClose: () => handleCloseSnackbar(true)
+                            });
+                            setOpenSnackbar(true);
+                        })
+                        .catch((error) => {
+                            setSnackbar({
+                                message: `Error al eliminar el artículo: ${error.message}`,
+                                severity: 'error',
+                                autoHideDuration: 6000,
+                                onClose: () => handleCloseSnackbar(false)
+                            });
+                            setOpenSnackbar(true);
+                        });
+                });
+            })
+            .catch((error) => {
+                setSnackbar({
+                    message: 'Acción cancelada',
+                    severity: 'info',
+                    autoHideDuration: 4000,
+                    onClose: () => handleCloseSnackbar(false)
+                });
+                setOpenSnackbar(true);
+            });
+    }
 
     return (
         <>
@@ -91,6 +146,15 @@ export default function ArticuloDetail({ pk }) {
                             sx={{ ml: 2 }}
                         >
                             Editar
+                        </Button>
+                        <Button
+                            startIcon={<Delete />}
+                            variant="contained"
+                            color="error"
+                            onClick={handleDelete}
+                            sx={{ ml: 2 }}
+                        >
+                            Eliminar
                         </Button>
                     </Box>
                 </Box>

@@ -9,10 +9,10 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.mutable import MutableList
 from server.config import db
-from server.core.utils import AuditMixin
+from server.core.utils import AuditMixin, SoftDeleteMixin, QueryWithSoftDelete
 
 
-class Articulo(AuditMixin, db.Model):
+class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
     """
     Modelo de datos para los artículos.
 
@@ -21,6 +21,8 @@ class Articulo(AuditMixin, db.Model):
     """
 
     __tablename__ = "articulo"
+    query_class = QueryWithSoftDelete
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_principal = Column(String, nullable=False)
     codigo_secundario = Column(String, nullable=True)

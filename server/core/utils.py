@@ -78,6 +78,7 @@ class SoftDeleteMixin:
 
     def restore(self):
         self.deleted = False
+        self.deleted_at = None
 
     def is_deleted(self):
         return self.deleted
@@ -86,28 +87,41 @@ class SoftDeleteMixin:
 class QueryWithSoftDelete(Query):
     _with_deleted = False
 
-    def __new__(cls, *args, **kwargs):
-        obj = super(QueryWithSoftDelete, cls).__new__(cls)
-        obj._with_deleted = kwargs.pop("with_deleted", False)
-        if len(args) > 0:
-            super(QueryWithSoftDelete, obj).__init__(*args, **kwargs)
-            return obj.filter_by(deleted=False) if not obj._with_deleted else obj
-        return obj
-
     def __init__(self, *args, **kwargs):
-        pass
+        self._with_deleted = kwargs.pop("_with_deleted", False)
+        super(QueryWithSoftDelete, self).__init__(*args, **kwargs)
+        if not self._with_deleted:
+            self = self.filter_by(deleted=False)
 
     def with_deleted(self):
         return self.__class__(
-            self._only_full_mapper_zero("get"), session=db.session(), _with_deleted=True
+            self._only_full_mapper_zero("get"), session=self.session, _with_deleted=True
         )
 
-    def _get(self, *args, **kwargs):
-        # this call the original query.get function from the Query class
-        return super(QueryWithSoftDelete, self).get(*args, **kwargs)
+    def __iter__(self):
+        if not self._with_deleted:
+            self = self.filter_by(deleted=False)
+        return super(QueryWithSoftDelete, self).__iter__()
 
-    def get(self, *args, **kwargs):
-        # the query.get method does not like it if there is a filter clause
-        # pre-loaded, so we need to implement it using a workaround
-        obj = self.with_deleted()._get(*args, **kwargs)
-        return obj if obj is None or self._with_deleted or not obj.deleted else None
+    def get(self, ident):
+        if not self._with_deleted:
+            self = self.filter_by(deleted=False)
+        return super(QueryWithSoftDelete, self).get(ident)
+
+    def get_or_404(self, ident, description: str | None = None):
+        rv = self.with_deleted().get(ident)
+        if rv is None or (not self._with_deleted and rv.deleted):
+            from flask import abort
+
+            abort(404, description=description)
+        return rv
+
+    def first(self):
+        if not self._with_deleted:
+            self = self.filter_by(deleted=False)
+        return super(QueryWithSoftDelete, self).first()
+
+    def all(self):
+        if not self._with_deleted:
+            self = self.filter_by(deleted=False)
+        return super(QueryWithSoftDelete, self).all()
