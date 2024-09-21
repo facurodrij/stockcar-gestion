@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from server.config import db
 from server.core.models import (
     AlicuotaIVA,
@@ -9,6 +9,7 @@ from server.core.models import (
     TipoUnidad,
     MovimientoStock,
     MovimientoStockItem,
+    Usuario,
 )
 from server.core.decorators import permission_required
 
@@ -70,7 +71,10 @@ def create():
                 )
 
         try:
-            articulo = Articulo(**articulo_json)
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            articulo = Articulo(**articulo_json, created_by=user.id, updated_by=user.id)
             db.session.add(articulo)
             for tributo_id in data["tributos"]:
                 tributo = Tributo.query.get_or_404(tributo_id)
@@ -132,6 +136,10 @@ def update(pk):
                 )
 
         try:
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            articulo.updated_by = user.id
             for key, value in articulo_json.items():
                 setattr(articulo, key, value)
             articulo.tributos = []

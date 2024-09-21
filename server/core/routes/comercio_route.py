@@ -1,11 +1,9 @@
-import pytz
-
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from server.config import db
-from server.core.models import Comercio, TipoResponsable, Provincia, PuntoVenta
+from server.core.models import Comercio, TipoResponsable, Provincia, PuntoVenta, Usuario
 from server.core.decorators import permission_required
 
 comercio_bp = Blueprint("comercio_bp", __name__)
@@ -50,7 +48,10 @@ def create():
         data = request.json
         comercio_json = comercio_json_to_model(data["comercio"])
         try:
-            comercio = Comercio(**comercio_json)
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            comercio = Comercio(**comercio_json, created_by=user.id, updated_by=user.id)
             db.session.add(comercio)
             db.session.flush()
             puntos_venta = data["puntos_venta"]
@@ -59,7 +60,7 @@ def create():
                     numero=item["numero"],
                     nombre_fantasia=item["nombre_fantasia"],
                     domicilio=item["domicilio"],
-                    comercio_id=comercio.id
+                    comercio_id=comercio.id,
                 )
                 db.session.add(punto_venta)
             db.session.commit()
@@ -93,6 +94,10 @@ def update(pk):
         data = request.json
         comercio_json = comercio_json_to_model(data["comercio"])
         try:
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            comercio.updated_by = user.id
             for key, value in comercio_json.items():
                 setattr(comercio, key, value)
             current_puntos_venta_ids = list(map(lambda x: x.id, puntos_venta))
@@ -108,7 +113,7 @@ def update(pk):
                         numero=item["numero"],
                         nombre_fantasia=item["nombre_fantasia"],
                         domicilio=item["domicilio"],
-                        comercio_id=comercio.id
+                        comercio_id=comercio.id,
                     )
                     db.session.add(punto_venta)
             for id in current_puntos_venta_ids:

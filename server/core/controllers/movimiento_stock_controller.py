@@ -39,7 +39,11 @@ class MovimientoStockController:
             movimiento_json = MovimientoStockController.movimiento_json_to_model(
                 data["movimiento"]
             )
-            movimiento = MovimientoStock(**movimiento_json)
+            movimiento = MovimientoStock(
+                **movimiento_json,
+                created_by=data["created_by"],
+                updated_by=data["updated_by"]
+            )
             db.session.add(movimiento)
             db.session.flush()
             renglones = data["renglones"]
@@ -82,6 +86,8 @@ class MovimientoStockController:
                 origen="venta",
                 fecha_hora=datetime.now(tz=local_tz),
                 observacion="Venta nro. " + str(venta.id),
+                created_by=venta.created_by,
+                updated_by=venta.updated_by
             )
             db.session.add(movimiento)
             db.session.flush()

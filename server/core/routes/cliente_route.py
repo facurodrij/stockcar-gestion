@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from server.config import db
 from server.core.models import (
@@ -12,6 +12,7 @@ from server.core.models import (
     TipoPago,
     Moneda,
     Tributo,
+    Usuario,
 )
 from server.core.decorators import permission_required
 
@@ -70,7 +71,10 @@ def create():
         data = request.json
         cliente_json = cliente_json_to_model(data["cliente"])
         try:
-            cliente = Cliente(**cliente_json)
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            cliente = Cliente(**cliente_json, created_by=user.id, updated_by=user.id)
             db.session.add(cliente)
             for tributo_id in data["tributos"]:
                 tributo = Tributo.query.get_or_404(tributo_id)
@@ -101,6 +105,10 @@ def update(pk):
         data = request.json
         cliente_json = cliente_json_to_model(data["cliente"])
         try:
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            cliente.updated_by = user.id
             for key, value in cliente_json.items():
                 setattr(cliente, key, value)
             cliente.tributos = []

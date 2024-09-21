@@ -68,7 +68,11 @@ class VentaController:
     def create_venta(data):
         try:
             venta_json = VentaController.venta_json_to_model(data["venta"])
-            venta = Venta(**venta_json)
+            venta = Venta(
+                **venta_json,
+                created_by=data["created_by"],
+                updated_by=data["updated_by"]
+            )
             venta.numero = venta.get_last_number() + 1
             db.session.add(venta)
             db.session.flush()  # para obtener el id de la venta creada
@@ -126,6 +130,7 @@ class VentaController:
     def update_venta(data, venta: Venta, venta_items: list):
         try:
             venta_json = VentaController.venta_json_to_model(data["venta"])
+            venta.updated_by = data["updated_by"]
             for key, value in venta_json.items():
                 setattr(venta, key, value)
 
@@ -185,7 +190,7 @@ class VentaController:
                     venta.estado = "facturado"
                 else:
                     venta.estado = "ticket"
-                
+
                 MovimientoStockController.create_movimiento_from_venta(venta)
 
             db.session.commit()
@@ -294,7 +299,12 @@ class VentaController:
         try:
             venta_json = VentaController.venta_json_to_model(data["venta"])
             venta = Venta(
-                **venta_json, tipo_comprobante_id=9, punto_venta_id=1, estado="orden"
+                **venta_json,
+                tipo_comprobante_id=9,
+                punto_venta_id=1,
+                estado="orden",
+                created_by=data["created_by"],
+                updated_by=data["updated_by"]
             )
             venta.numero = venta.get_last_number() + 1
             db.session.add(venta)
@@ -324,6 +334,7 @@ class VentaController:
     def update_orden_venta(data, venta: Venta, venta_items: list):
         try:
             venta_json = VentaController.venta_json_to_model(data["venta"])
+            venta.updated_by = data["updated_by"]
             for key, value in venta_json.items():
                 setattr(venta, key, value)
 
