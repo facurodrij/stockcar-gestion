@@ -41,8 +41,8 @@ export default function VentaList({ onlyOrders }) {
     }
 
     const fetchData = async () => {
-        const fromStr = from ? from.toISOString() : null;
-        const toStr = to ? to.toISOString() : null;
+        const fromStr = from ? from.toISOString() : '';
+        const toStr = to ? to.toISOString() : '';
         let url = onlyOrders ? `${API}/ventas-orden` : `${API}/ventas`;
         url = (from || to) ? `${url}?desde=${fromStr}&hasta=${toStr}` : url;
         withLoading(async () => {

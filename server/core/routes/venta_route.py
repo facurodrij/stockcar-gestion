@@ -2,6 +2,7 @@ from io import BytesIO
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_sqlalchemy.query import Query
 
 from server.core.models import (
     Venta,
@@ -53,7 +54,7 @@ def index():
 
         if fecha_desde and fecha_hasta:
             ventas = Venta.query.filter(
-                Venta.fecha.between(
+                Venta.fecha_hora.between(
                     datetime.fromisoformat(fecha_desde),
                     (
                         datetime.fromisoformat(fecha_hasta)
@@ -63,18 +64,22 @@ def index():
             )
         elif fecha_desde:
             ventas = Venta.query.filter(
-                Venta.fecha >= datetime.fromisoformat(fecha_desde)
+                Venta.fecha_hora >= datetime.fromisoformat(fecha_desde)
             )
         elif fecha_hasta:
             ventas = Venta.query.filter(
-                Venta.fecha
+                Venta.fecha_hora
                 <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)
             )
         else:
             ventas = Venta.query.all()
 
+        if type(ventas) == Query:
+            ventas = list(ventas)
+
         if len(ventas) == 0:
             return jsonify({"error": "No se encontraron ventas"}), 404
+
         ventas_json = list(map(lambda x: x.to_json(), ventas))
         return jsonify({"ventas": ventas_json}), 200
     except Exception as e:
@@ -163,31 +168,46 @@ def detail(pk):
 @venta_bp.route("/ventas-orden", methods=["GET"])
 @jwt_required()
 def index_orden():
-    fecha_desde = request.args.get("desde")
-    fecha_hasta = request.args.get("hasta")
+    try:
+        fecha_desde = request.args.get("desde")
+        fecha_hasta = request.args.get("hasta")
 
-    if fecha_desde and fecha_hasta:
-        ventas = Venta.query.filter(
-            Venta.fecha.between(
-                datetime.fromisoformat(fecha_desde),
-                (datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)),
+        if fecha_desde and fecha_hasta:
+            ventas = Venta.query.filter(
+                Venta.fecha_hora.between(
+                    datetime.fromisoformat(fecha_desde),
+                    (
+                        datetime.fromisoformat(fecha_hasta)
+                        + timedelta(days=1, seconds=-1)
+                    ),
+                )
             )
-        )
-    elif fecha_desde:
-        ventas = Venta.query.filter(Venta.fecha >= datetime.fromisoformat(fecha_desde))
-    elif fecha_hasta:
-        ventas = Venta.query.filter(
-            Venta.fecha
-            <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)
-        )
-    else:
-        ventas = Venta.query.filter_by(estado="orden").all()
+            ventas = ventas.filter_by(estado="orden")
+        elif fecha_desde:
+            ventas = Venta.query.filter(
+                Venta.fecha_hora >= datetime.fromisoformat(fecha_desde)
+            )
+            ventas = ventas.filter_by(estado="orden")
+        elif fecha_hasta:
+            ventas = Venta.query.filter(
+                Venta.fecha_hora
+                <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)
+            )
+            ventas = ventas.filter_by(estado="orden")
+        else:
+            ventas = Venta.query.filter_by(estado="orden").all()
 
-    if len(ventas) == 0:
-        return jsonify({"error": "No se encontraron ordenes"}), 404
+        if type(ventas) == Query:
+            ventas = list(ventas)
 
-    ventas_json = list(map(lambda x: x.to_json(), ventas))
-    return jsonify({"ventas": ventas_json}), 200
+        if len(ventas) == 0:
+            return jsonify({"error": "No se encontraron ordenes"}), 404
+
+        ventas_json = list(map(lambda x: x.to_json(), ventas))
+        return jsonify({"ventas": ventas_json}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
 
 
 @venta_bp.route("/ventas-orden/create", methods=["GET", "POST"])
