@@ -151,13 +151,16 @@ export default function MovStockDetail({ pk }) {
                                 </Typography>
                                 <List>
                                     <ListItem>
-                                        <ListItemText primary="Fecha alta" secondary={dayjs(movimiento.fecha_alta).format('DD/MM/YYYY HH:mm:ss')} />
+                                        <ListItemText primary="Fecha y hora de creación" secondary={dayjs(movimiento.created_at).format('DD/MM/YYYY HH:mm:ss')} />
                                     </ListItem>
                                     <ListItem>
-                                        <ListItemText primary="Fecha última modificación" secondary={movimiento.fecha_modificacion || 'N/A'} />
+                                        <ListItemText primary="Fecha y hora de actualización" secondary={dayjs(movimiento.updated_at).format('DD/MM/YYYY HH:mm:ss')} />
                                     </ListItem>
                                     <ListItem>
-                                        <ListItemText primary="Usuario creador" secondary={"N/A"} />
+                                        <ListItemText primary="Usuario de creación" secondary={movimiento.created_by && movimiento.created_by.username} />
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText primary="Usuario de actualización" secondary={movimiento.updated_by && movimiento.updated_by.username} />
                                     </ListItem>
                                 </List>
                             </CardContent>

@@ -4,17 +4,15 @@ from sqlalchemy import (
     Integer,
     String,
     Numeric,
-    DateTime,
-    Boolean,
-    func,
     PickleType,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.mutable import MutableList
 from server.config import db
+from server.core.utils import AuditMixin, SoftDeleteMixin, QueryWithSoftDelete
 
 
-class Articulo(db.Model):
+class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
     """
     Modelo de datos para los artículos.
 
@@ -23,6 +21,8 @@ class Articulo(db.Model):
     """
 
     __tablename__ = "articulo"
+    query_class = QueryWithSoftDelete
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_principal = Column(String, nullable=False)
     codigo_secundario = Column(String, nullable=True)
@@ -54,12 +54,6 @@ class Articulo(db.Model):
         "Tributo", secondary="tributo_articulo", back_populates="articulos"
     )
 
-    # Datos de auditoría
-    fecha_alta = Column(DateTime, default=func.now())
-    fecha_modificacion = Column(DateTime, onupdate=func.now())
-    baja = Column(Boolean, default=False)
-    fecha_baja = Column(DateTime, nullable=True)
-
     def to_json(self):
         """
         Convierte los datos del artículo a formato JSON.
@@ -78,15 +72,12 @@ class Articulo(db.Model):
             "descripcion": self.descripcion,
             "linea_factura": self.linea_factura,
             "stock_actual": self.stock_actual,
-            "stock_minimo": self.stock_minimo,
-            "stock_maximo": self.stock_maximo,
+            "stock_minimo": self.stock_minimo if self.stock_minimo else 0,
+            "stock_maximo": self.stock_maximo if self.stock_maximo else 0,
             "observacion": self.observacion,
             "tipo_articulo": self.tipo_articulo.to_json(),
             "tipo_unidad": self.tipo_unidad.to_json(),
             "alicuota_iva": self.alicuota_iva.to_json(),
             "tributos": tributos,
-            "fecha_alta": self.fecha_alta,
-            "fecha_modificacion": self.fecha_modificacion,
-            "baja": self.baja,
-            "fecha_baja": self.fecha_baja,
+            **self.get_audit_fields(),
         }

@@ -1,8 +1,16 @@
-from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
-
+from flask import Blueprint, jsonify, request, abort
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from server.config import db
-from server.core.models import AlicuotaIVA, Tributo, Articulo, TipoArticulo, TipoUnidad
+from server.core.models import (
+    AlicuotaIVA,
+    Tributo,
+    Articulo,
+    TipoArticulo,
+    TipoUnidad,
+    MovimientoStock,
+    MovimientoStockItem,
+    Usuario,
+)
 from server.core.decorators import permission_required
 
 articulo_bp = Blueprint("articulo_bp", __name__)
@@ -47,13 +55,26 @@ def create():
         # Verificar si ya existen artículos con el mismo código principal
         codigo_principal = articulo_json.get("codigo_principal")
         if codigo_principal and not force:
-            articulos_existentes = Articulo.query.filter_by(codigo_principal=codigo_principal).all()
+            articulos_existentes = Articulo.query.filter_by(
+                codigo_principal=codigo_principal
+            ).all()
             if articulos_existentes:
                 ids_existentes = [articulo.id for articulo in articulos_existentes]
-                return jsonify({"warning": "Ya existen Artículos con el mismo código principal", "ids": ids_existentes}), 409
+                return (
+                    jsonify(
+                        {
+                            "warning": "Ya existen Artículos con el mismo código principal",
+                            "ids": ids_existentes,
+                        }
+                    ),
+                    409,
+                )
 
         try:
-            articulo = Articulo(**articulo_json)
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            articulo = Articulo(**articulo_json, created_by=user.id, updated_by=user.id)
             db.session.add(articulo)
             for tributo_id in data["tributos"]:
                 tributo = Tributo.query.get_or_404(tributo_id)
@@ -72,7 +93,11 @@ def create():
 @jwt_required()
 @permission_required(["articulo.update"])
 def update(pk):
-    articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+    try:
+        articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
     if request.method == "GET":
         return (
             jsonify(
@@ -90,13 +115,31 @@ def update(pk):
 
         # Verificar si ya existen artículos con el mismo código principal
         codigo_principal = articulo_json.get("codigo_principal")
-        if codigo_principal and codigo_principal != articulo.codigo_principal and not force:
-            articulos_existentes = Articulo.query.filter_by(codigo_principal=codigo_principal).all()
+        if (
+            codigo_principal
+            and codigo_principal != articulo.codigo_principal
+            and not force
+        ):
+            articulos_existentes = Articulo.query.filter_by(
+                codigo_principal=codigo_principal
+            ).all()
             if articulos_existentes:
                 ids_existentes = [articulo.id for articulo in articulos_existentes]
-                return jsonify({"warning": "Existen Artículos con el mismo código principal", "ids": ids_existentes}), 409
+                return (
+                    jsonify(
+                        {
+                            "warning": "Existen Artículos con el mismo código principal",
+                            "ids": ids_existentes,
+                        }
+                    ),
+                    409,
+                )
 
         try:
+            user = Usuario.query.filter_by(
+                username=get_jwt_identity()["username"]
+            ).first()
+            articulo.updated_by = user.id
             for key, value in articulo_json.items():
                 setattr(articulo, key, value)
             articulo.tributos = []
@@ -119,5 +162,43 @@ def update(pk):
 @jwt_required()
 @permission_required(["articulo.view"])
 def detail(pk):
-    articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
-    return jsonify({"articulo": articulo.to_json()}), 200
+    try:
+        articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+        movimientos = (
+            MovimientoStock.query.join(MovimientoStockItem)
+            .filter(MovimientoStockItem.articulo_id == pk)
+            .order_by(MovimientoStock.fecha_hora.desc())
+            .limit(20)
+            .all()
+        )
+        movimientos_json = list(map(lambda x: x.to_json(), movimientos))
+        return (
+            jsonify({"articulo": articulo.to_json(), "movimientos": movimientos_json}),
+            200,
+        )
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
+
+
+@articulo_bp.route("/articulos/<int:pk>/delete", methods=["DELETE"])
+@jwt_required()
+@permission_required(["articulo.delete"])
+def delete(pk):
+    try:
+        articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
+        if articulo.is_deleted():
+            abort(404, "Artículo no encontrado")
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
+    try:
+        articulo.delete()
+        db.session.commit()
+        return jsonify({"message": "Artículo eliminado correctamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(e)
+        return jsonify({"error": str(e)}), 400
+    finally:
+        db.session.close()

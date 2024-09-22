@@ -1,7 +1,7 @@
 from io import BytesIO
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request, send_file
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from server.core.models import (
     Venta,
@@ -14,6 +14,7 @@ from server.core.models import (
     EstadoVenta,
     PuntoVenta,
     AlicuotaIVA,
+    Usuario,
 )
 from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.core.decorators import permission_required
@@ -89,6 +90,10 @@ def create():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
+        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+        data["created_by"] = user.id
+        data["updated_by"] = user.id
+        print(data)
         return VentaController.create_venta(data)
 
 
@@ -111,6 +116,8 @@ def update(pk):
         )
     if request.method == "PUT":
         data = request.json
+        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+        data["updated_by"] = user.id
         return VentaController.update_venta(data, venta, venta_items)
 
 
@@ -175,7 +182,7 @@ def index_orden():
         )
     else:
         ventas = Venta.query.filter_by(estado="orden").all()
-    
+
     if len(ventas) == 0:
         return jsonify({"error": "No se encontraron ordenes"}), 404
 
@@ -190,6 +197,9 @@ def create_orden():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
+        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+        data["created_by"] = user.id
+        data["updated_by"] = user.id
         return VentaController.create_orden_venta(data)
 
 
@@ -213,4 +223,6 @@ def update_orden(pk):
         )
     if request.method == "PUT":
         data = request.json
+        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+        data["updated_by"] = user.id
         return VentaController.update_orden_venta(data, venta, venta_items)

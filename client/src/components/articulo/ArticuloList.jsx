@@ -8,15 +8,15 @@ import {
     GridToolbarExport,
     GridToolbarFilterButton, GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
+import { Add, Delete, Edit, Visibility } from '@mui/icons-material';
 import { API } from "../../App";
 import { Link } from "react-router-dom";
 import { esES } from "@mui/x-data-grid/locales";
 import { Box, Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
+import { useConfirm } from 'material-ui-confirm';
 
 
 
@@ -30,7 +30,7 @@ const CustomToolbar = () => {
             <GridToolbarExport />
             <Box sx={{ flexGrow: 1 }} />
             <Button
-                startIcon={<AddIcon />}
+                startIcon={<Add />}
                 component={Link}
                 to="/articulos/form"
                 size="small"
@@ -54,6 +54,7 @@ export default function ArticuloList() {
         onClose: () => handleCloseSnackbar(false)
     });
     const { withLoading } = useLoading();
+    const confirm = useConfirm();
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -92,12 +93,21 @@ export default function ArticuloList() {
         { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
         { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
         {
-            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
+            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.75,
             getActions: (params) => [
                 <GridActionsCellItem
-                    icon={<EditIcon />}
+                    icon={<Visibility />}
+                    component={Link}
+                    to={`/articulos/${params.row.id}`}
+                />,
+                <GridActionsCellItem
+                    icon={<Edit />}
                     component={Link}
                     to={`/articulos/form/${params.row.id}`}
+                />,
+                <GridActionsCellItem
+                    icon={<Delete />}
+                    onClick={() => handleDelete(params.row.id)}
                 />
             ]
         }
@@ -114,6 +124,59 @@ export default function ArticuloList() {
             descripcion: item.descripcion,
         }
     });
+
+    const handleDelete = async (pk) => {
+        confirm({
+            title: 'Confirmar acción',
+            description: '¿Está seguro que desea eliminar el artículo?',
+            cancellationText: 'Cancelar',
+            confirmationText: 'Confirmar'
+
+        })
+            .then(() => {
+                withLoading(async () => {
+                    const url = `${API}/articulos/${pk}/delete`;
+                    fetchWithAuth(url, 'DELETE')
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data['error']);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            setList(list.filter(item => item.id !== pk));
+                            setSnackbar({
+                                message: data['message'],
+                                severity: 'success',
+                                autoHideDuration: 4000,
+                                onClose: () => handleCloseSnackbar()
+                            });
+                            setOpenSnackbar(true);
+                        })
+                        .catch((error) => {
+                            setSnackbar({
+                                message: `Error al eliminar el artículo: ${error.message}`,
+                                severity: 'error',
+                                autoHideDuration: 6000,
+                                onClose: () => handleCloseSnackbar()
+                            });
+                            setOpenSnackbar(true);
+                        });
+                });
+            })
+            .catch((error) => {
+                setSnackbar({
+                    message: 'Acción cancelada',
+                    severity: 'info',
+                    autoHideDuration: 4000,
+                    onClose: () => handleCloseSnackbar()
+                });
+                setOpenSnackbar(true);
+            });
+    }
+
 
     return (
         <>

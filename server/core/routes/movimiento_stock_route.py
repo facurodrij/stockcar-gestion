@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from server.config import db
-from server.core.models import MovimientoStock, MovimientoStockItem
+from server.core.models import MovimientoStock, MovimientoStockItem, Usuario
 from server.core.models.movimiento_stock import TipoMovimiento, OrigenMovimiento
 from server.core.decorators import permission_required
 from server.core.controllers import MovimientoStockController
@@ -33,6 +33,9 @@ def create():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
+        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+        data["created_by"] = user.id
+        data["updated_by"] = user.id
         return MovimientoStockController.create_movimiento(data)
 
 
