@@ -131,7 +131,6 @@ class VentaController:
     def update_venta(data, venta: Venta, venta_items: list):
         try:
             venta_json = VentaController.venta_json_to_model(data["venta"])
-            venta.updated_by = data["updated_by"]
             for key, value in venta_json.items():
                 setattr(venta, key, value)
 
@@ -231,6 +230,8 @@ class VentaController:
                     moneda_id=venta.moneda_id,
                     moneda_cotizacion=venta.moneda_cotizacion,
                     venta_asociada_id=venta.id,
+                    created_by=venta.updated_by, # Es creado por el usuario que anula la venta
+                    updated_by=venta.updated_by
                 )
                 nota_credito.numero = nota_credito.get_last_number() + 1
                 db.session.add(nota_credito)

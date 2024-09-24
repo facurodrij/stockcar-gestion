@@ -122,7 +122,7 @@ def update(pk):
     if request.method == "PUT":
         data = request.json
         user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-        data["updated_by"] = user.id
+        venta.updated_by = user.id
         return VentaController.update_venta(data, venta, venta_items)
 
 
@@ -162,6 +162,8 @@ def detail(pk):
                 mimetype="application/pdf",
             )
         elif data["action"] == "anular":
+            user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+            venta.updated_by = user.id
             return VentaController.anular_venta(venta)
 
 

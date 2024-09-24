@@ -123,6 +123,8 @@ class MovimientoStockController:
                 origen="devolucion",
                 fecha_hora=datetime.now(tz=local_tz),
                 observacion="Devolución de venta nro. " + str(venta.id),
+                created_by=venta.updated_by, # Es creado por el usuario que realiza la devolución
+                updated_by=venta.updated_by
             )
             db.session.add(movimiento)
             db.session.flush()
