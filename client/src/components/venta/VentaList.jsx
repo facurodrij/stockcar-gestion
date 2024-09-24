@@ -15,12 +15,11 @@ import { esES } from "@mui/x-data-grid/locales";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { Button } from "@mui/material";
-import Box from "@mui/material/Box";
+import { Button, Box, Chip } from "@mui/material";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
-import { Search, Add, Visibility, Edit } from '@mui/icons-material';
+import { Search, Add, Visibility, Edit, Done, Block, Info } from '@mui/icons-material';
 
 
 export default function VentaList({ onlyOrders }) {
@@ -130,11 +129,48 @@ export default function VentaList({ onlyOrders }) {
                 }).format(value);
             }
         },
-        { field: 'estado', headerName: 'Estado', flex: 1 },
+        {
+            field: 'estado',
+            headerName: 'Estado',
+            flex: 1,
+            renderCell: (params) => {
+                let color;
+                let icon;
+                switch (params.value) {
+                    case 'Ticket':
+                        color = 'success';
+                        icon = <Done />;
+                        break;
+                    case 'Facturado':
+                        color = 'success';
+                        icon = <Done />;
+                        break;
+                    case 'Anulado':
+                        color = 'error';
+                        icon = <Block />;
+                        break;
+                    case 'Orden':
+                        color = 'info';
+                        icon = <Info />;
+                        break;
+                    default:
+                        color = 'default';
+                        icon = null;
+                }
+                return <Chip variant='outlined' label={params.value} color={color} size='small' icon={icon} />;
+            },
+        },
         {
             field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
             getActions: (params) => {
                 const actions = [];
+                actions.push(
+                    <GridActionsCellItem
+                        icon={<Visibility />}
+                        component={Link}
+                        to={`/ventas/${params.row.id}`}
+                    />
+                );
                 if (onlyOrders) {
                     actions.push(
                         <GridActionsCellItem
@@ -146,11 +182,6 @@ export default function VentaList({ onlyOrders }) {
                     return actions;
                 }
                 actions.push(
-                    <GridActionsCellItem
-                        icon={<Visibility />}
-                        component={Link}
-                        to={`/ventas/${params.row.id}`}
-                    />,
                     <GridActionsCellItem
                         icon={<Edit />}
                         component={Link}
