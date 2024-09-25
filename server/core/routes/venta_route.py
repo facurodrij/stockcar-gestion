@@ -98,7 +98,6 @@ def create():
         user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
         data["created_by"] = user.id
         data["updated_by"] = user.id
-        print(data)
         return VentaController.create_venta(data)
 
 
