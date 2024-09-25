@@ -125,6 +125,11 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                         checkboxSelection
                         disableRowSelectionOnClick
                         onRowSelectionModelChange={(newSelection) => {
+                            if (listArticulo.length === 0) {
+                                // Importante condicion para que no resetee los renglones
+                                // mientras se carga la lista de articulos
+                                return;
+                            }
                             const rowSelectionArticulo = newSelection.map((row) => {
                                 return listArticulo.find((item) => item.id === row);
                             });
