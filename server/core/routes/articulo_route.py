@@ -12,6 +12,7 @@ from server.core.models import (
     Usuario,
 )
 from server.core.decorators import permission_required
+from server.core.controllers import ArticuloController
 
 articulo_bp = Blueprint("articulo_bp", __name__)
 
@@ -46,47 +47,10 @@ def create():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
-        articulo_json = data["articulo"]
-        force = data.get("force", False)
-        for key, value in articulo_json.items():
-            if value == "":
-                articulo_json[key] = None
-
-        # Verificar si ya existen artículos con el mismo código principal
-        codigo_principal = articulo_json.get("codigo_principal")
-        if codigo_principal and not force:
-            articulos_existentes = Articulo.query.filter_by(
-                codigo_principal=codigo_principal
-            ).all()
-            if articulos_existentes:
-                ids_existentes = [articulo.id for articulo in articulos_existentes]
-                return (
-                    jsonify(
-                        {
-                            "warning": "Ya existen Artículos con el mismo código principal",
-                            "ids": ids_existentes,
-                        }
-                    ),
-                    409,
-                )
-
-        try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
-            articulo = Articulo(**articulo_json, created_by=user.id, updated_by=user.id)
-            db.session.add(articulo)
-            for tributo_id in data["tributos"]:
-                tributo = Tributo.query.get_or_404(tributo_id)
-                articulo.tributos.append(tributo)
-            db.session.commit()
-            return jsonify({"articulo_id": articulo.id}), 201
-        except Exception as e:
-            db.session.rollback()
-            print(e)
-            return jsonify({"error": str(e)}), 400
-        finally:
-            db.session.close()
+        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+        data["created_by"] = user.id
+        data["updated_by"] = user.id
+        return ArticuloController.create_articulo(data)
 
 
 @articulo_bp.route("/articulos/<int:pk>/update", methods=["GET", "PUT"])
@@ -107,55 +71,9 @@ def update(pk):
         )
     if request.method == "PUT":
         data = request.json
-        articulo_json = data["articulo"]
-        force = data.get("force", False)
-        for key, value in articulo_json.items():
-            if value == "":
-                articulo_json[key] = None
-
-        # Verificar si ya existen artículos con el mismo código principal
-        codigo_principal = articulo_json.get("codigo_principal")
-        if (
-            codigo_principal
-            and codigo_principal != articulo.codigo_principal
-            and not force
-        ):
-            articulos_existentes = Articulo.query.filter_by(
-                codigo_principal=codigo_principal
-            ).all()
-            if articulos_existentes:
-                ids_existentes = [articulo.id for articulo in articulos_existentes]
-                return (
-                    jsonify(
-                        {
-                            "warning": "Existen Artículos con el mismo código principal",
-                            "ids": ids_existentes,
-                        }
-                    ),
-                    409,
-                )
-
-        try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
-            articulo.updated_by = user.id
-            for key, value in articulo_json.items():
-                setattr(articulo, key, value)
-            articulo.tributos = []
-            nuevos_tributos = Tributo.query.filter(
-                Tributo.id.in_(data["tributos"])
-            ).all()
-            for tributo in nuevos_tributos:
-                articulo.tributos.append(tributo)
-            db.session.commit()
-            return jsonify({"articulo_id": articulo.id}), 201
-        except Exception as e:
-            db.session.rollback()
-            print(e)
-            return jsonify({"error": str(e)}), 400
-        finally:
-            db.session.close()
+        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
+        articulo.updated_by = user.id
+        return ArticuloController.update_articulo(data, articulo)
 
 
 @articulo_bp.route("/articulos/<int:pk>", methods=["GET"])

@@ -87,7 +87,7 @@ class MovimientoStockController:
                 fecha_hora=datetime.now(tz=local_tz),
                 observacion="Venta nro. " + str(venta.id),
                 created_by=venta.created_by,
-                updated_by=venta.updated_by
+                updated_by=venta.updated_by,
             )
             db.session.add(movimiento)
             db.session.flush()
@@ -123,8 +123,8 @@ class MovimientoStockController:
                 origen="devolucion",
                 fecha_hora=datetime.now(tz=local_tz),
                 observacion="Devolución de venta nro. " + str(venta.id),
-                created_by=venta.updated_by, # Es creado por el usuario que realiza la devolución
-                updated_by=venta.updated_by
+                created_by=venta.updated_by,  # Es creado por el usuario que realiza la devolución
+                updated_by=venta.updated_by,
             )
             db.session.add(movimiento)
             db.session.flush()
@@ -140,6 +140,47 @@ class MovimientoStockController:
                 movimiento_item.stock_posterior = articulo.stock_actual
                 db.session.add(movimiento_item)
                 db.session.add(articulo)
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            raise e
+
+    @staticmethod
+    def create_movimiento_from_articulo(articulo: Articulo, cantidad: int):
+        """
+        Crea un nuevo movimiento de stock en la base de datos a partir de un artículo
+        y actualiza el stock del artículo involucrado.
+
+        Importante: el `db.session.commit()` debe realizarse dentro de la función
+        que llame a este método.
+        """
+        try:
+            tipo_movimiento = "egreso" if cantidad < 0 else "ingreso"
+            movimiento = MovimientoStock(
+                tipo_movimiento=tipo_movimiento,
+                origen="ajuste",
+                fecha_hora=datetime.now(tz=local_tz),
+                observacion="Ajuste de stock desde formulario de artículo",
+                created_by=articulo.updated_by,
+                updated_by=articulo.updated_by,
+            )
+            db.session.add(movimiento)
+            db.session.flush()
+
+            # Verifica si el artículo es nuevo
+            if articulo.id is None:
+                stock_posterior = float(articulo.stock_actual)
+            else:
+                stock_posterior = float(articulo.stock_actual) + float(cantidad)
+
+            movimiento_item = MovimientoStockItem(
+                articulo=articulo,
+                movimiento_stock_id=movimiento.id,
+                codigo_principal=articulo.codigo_principal,
+                cantidad=cantidad,
+                stock_posterior=stock_posterior,
+            )
+            db.session.add(movimiento_item)
         except Exception as e:
             db.session.rollback()
             print(e)

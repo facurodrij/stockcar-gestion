@@ -1,2 +1,3 @@
 from .venta_controller import VentaController
 from .movimiento_stock_controller import MovimientoStockController
+from .articulo_controller import ArticuloController
