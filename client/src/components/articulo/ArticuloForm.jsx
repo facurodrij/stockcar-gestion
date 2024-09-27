@@ -212,8 +212,15 @@ export default function ArticuloForm({ pk }) {
         <>
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
                 sx={{ mt: 2, padding: 2 }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={tabValue} onChange={handleTabChange} centered>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', justifyContent: 'center', display: 'flex' }}>
+                    <Tabs
+                        value={tabValue}
+                        onChange={handleTabChange}
+                        variant="scrollable"
+                        scrollButtons
+                        allowScrollButtonsMobile
+                        aria-label="scrollable force tabs example"
+                    >
                         <Tab label="Principal" />
                         <Tab label="Códigos" />
                         <Tab label="Facturación" />
@@ -316,7 +323,7 @@ export default function ArticuloForm({ pk }) {
                     </Grid>
                     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Inventario</Typography>
                     <Grid container spacing={2}>
-                        <Grid item xs={4}>
+                        <Grid item xs={12} md={4}>
                             <FormControl fullWidth>
                                 <Controller
                                     name="stock_actual"
@@ -338,7 +345,7 @@ export default function ArticuloForm({ pk }) {
                                 />
                             </FormControl>
                         </Grid>
-                        <Grid item xs={4}>
+                        <Grid item xs={12} md={4}>
                             <FormControl fullWidth>
                                 <Controller
                                     name="stock_minimo"
@@ -356,7 +363,7 @@ export default function ArticuloForm({ pk }) {
                                 />
                             </FormControl>
                         </Grid>
-                        <Grid item xs={4}>
+                        <Grid item xs={12} md={4}>
                             <FormControl fullWidth>
                                 <Controller
                                     name="stock_maximo"
@@ -451,7 +458,7 @@ export default function ArticuloForm({ pk }) {
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={2}>
                     <Grid container spacing={2}>
-                        <Grid item xs={6}>
+                        <Grid item xs={12} md={6}>
                             <FormControl fullWidth required error={Boolean(errors.tipo_articulo)}>
                                 <InputLabel id="tipo_articulo_label">Tipo de artículo</InputLabel>
                                 <Controller
@@ -475,7 +482,7 @@ export default function ArticuloForm({ pk }) {
                                 <FormHelperText>{errors.tipo_articulo && errors.tipo_articulo.message}</FormHelperText>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid item xs={12} md={6}>
                             <FormControl fullWidth required error={Boolean(errors.tipo_unidad)}>
                                 <InputLabel id="tipo_unidad_label">Tipo de unidad</InputLabel>
                                 <Controller
@@ -499,7 +506,7 @@ export default function ArticuloForm({ pk }) {
                                 <FormHelperText>{errors.tipo_unidad && errors.tipo_unidad.message}</FormHelperText>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid item xs={12} md={6}>
                             <FormControl fullWidth required error={Boolean(errors.alicuota_iva)}>
                                 <InputLabel id="alicuota_iva_label">Alícuota de IVA</InputLabel>
                                 <Controller
