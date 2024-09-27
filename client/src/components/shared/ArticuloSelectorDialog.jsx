@@ -17,9 +17,11 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import fetchWithAuth from '../../utils/fetchWithAuth';
 
+
 const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones }) => {
     const [listArticulo, setListArticulo] = useState([]);
     const [showSelected, setShowSelected] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const filteredArticulo = showSelected
         ? listArticulo.filter((item) => selectedArticulo.includes(item.id))
@@ -57,6 +59,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
     }
 
     const fetchData = async () => {
+        setLoading(true);
         const url = `${API}/articulos`;
         try {
             const res = await fetchWithAuth(url);
@@ -68,6 +71,8 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
         } catch (error) {
             console.error(error);
             alert('Error al cargar los datos');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -99,6 +104,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
             <DialogContent dividers>
                 <div style={{ height: 400, width: '100%' }}>
                     <DataGrid
+                        loading={loading}
                         columns={[
                             { field: 'descripcion', headerName: 'Descripción', flex: 2 },
                             { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
