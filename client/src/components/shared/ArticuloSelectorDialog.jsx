@@ -85,7 +85,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
             open={open}
             onClose={onClose}
             fullWidth={true}
-            maxWidth={'lg'}
+            maxWidth={'xl'}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
@@ -106,9 +106,10 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                     <DataGrid
                         loading={loading}
                         columns={[
+                            { field: 'stock_actual', headerName: 'Stock', flex: 0.5 },
                             { field: 'descripcion', headerName: 'Descripción', flex: 2 },
                             { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
-                            { field: 'codigo_secundario', headerName: 'Código secundario', flex: 0.75 },
+                            { field: 'codigo_secundario', headerName: 'Código secundario', flex: 1 },
                             { field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75 },
                             { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
                             { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
@@ -116,6 +117,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                         rows={filteredArticulo.map((item) => {
                             return {
                                 id: item.id,
+                                stock_actual: item.stock_actual,
                                 descripcion: item.descripcion,
                                 codigo_principal: item.codigo_principal,
                                 codigo_secundario: item.codigo_secundario,
