@@ -219,7 +219,7 @@ export default function ArticuloForm({ pk }) {
                         variant="scrollable"
                         scrollButtons
                         allowScrollButtonsMobile
-                        aria-label="scrollable force tabs example"
+                        aria-label="scrollable force tabs"
                     >
                         <Tab label="Principal" />
                         <Tab label="Códigos" />

@@ -163,8 +163,15 @@ export default function MovStockForm() {
         <>
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
                 sx={{ mt: 2, padding: 2 }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={tabValue} onChange={handleTabChange} centered>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', justifyContent: 'center', display: 'flex' }}>
+                    <Tabs
+                        value={tabValue}
+                        onChange={handleTabChange}
+                        variant="scrollable"
+                        scrollButtons
+                        allowScrollButtonsMobile
+                        aria-label="scrollable force tabs"
+                    >
                         <Tab label="Principal" />
                         <Tab label="Observaciones" />
                     </Tabs>
