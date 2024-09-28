@@ -16,7 +16,6 @@ import { Box, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
-import { useLoading } from '../../utils/loadingContext';
 import dayjs from "dayjs";
 
 
@@ -53,7 +52,7 @@ export default function MovStockList() {
         autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
-    const { withLoading } = useLoading();
+    const [loading, setLoading] = useState(false);
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -61,6 +60,7 @@ export default function MovStockList() {
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             const url = `${API}/movimientos-stock`;
             try {
                 const res = await fetchWithAuth(url);
@@ -78,11 +78,13 @@ export default function MovStockList() {
                     onClose: () => handleCloseSnackbar
                 });
                 setOpenSnackbar(true);
+            } finally {
+                setLoading(false);
             }
         }
 
-        withLoading(fetchData);
-    }, [withLoading]);
+        fetchData();
+    }, []);
 
     const columns = [
         {
@@ -123,6 +125,7 @@ export default function MovStockList() {
         <>
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
+                    loading={loading}
                     columns={columns}
                     rows={rows}
                     disableSelectionOnClick

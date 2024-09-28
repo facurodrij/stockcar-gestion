@@ -43,8 +43,10 @@ const CustomToolbar = () => {
 
 export default function ClienteList() {
     const [list, setList] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const fetchData = async () => {
+        setLoading(true);
         const url = `${API}/clientes`;
         try {
             const res = await fetchWithAuth(url);
@@ -56,6 +58,8 @@ export default function ClienteList() {
         } catch (error) {
             console.error(error);
             alert('Error al cargar los datos');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -98,6 +102,7 @@ export default function ClienteList() {
         <>
             <div style={{height: 500, width: '100%'}}>
                 <DataGrid
+                    loading={loading}
                     columns={columns}
                     rows={rows}
                     disableRowSelectionOnClick

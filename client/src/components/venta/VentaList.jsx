@@ -18,7 +18,6 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Button, Box, Chip } from "@mui/material";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
-import { useLoading } from '../../utils/loadingContext';
 import { Search, Add, Visibility, Edit, Done, Block, Info } from '@mui/icons-material';
 
 
@@ -33,37 +32,38 @@ export default function VentaList({ onlyOrders }) {
         autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
-    const { withLoading } = useLoading();
+    const [loading, setLoading] = useState(false);
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
     }
 
     const fetchData = async () => {
+        setLoading(true);
         const fromStr = from ? from.toISOString() : '';
         const toStr = to ? to.toISOString() : '';
         let url = onlyOrders ? `${API}/ventas-orden` : `${API}/ventas`;
         url = (from || to) ? `${url}?desde=${fromStr}&hasta=${toStr}` : url;
-        withLoading(async () => {
-            try {
-                const res = await fetchWithAuth(url);
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data['error']);
-                }
-                setList(data['ventas']);
-            } catch (error) {
-                console.error(error);
-                setSnackbar({
-                    message: error.message,
-                    severity: 'error',
-                    autoHideDuration: null,
-                    onClose: handleCloseSnackbar
-                });
-                setOpenSnackbar(true);
+        try {
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data['error']);
             }
-        });
-    };
+            setList(data['ventas']);
+        } catch (error) {
+            console.error(error);
+            setSnackbar({
+                message: error.message,
+                severity: 'error',
+                autoHideDuration: null,
+                onClose: handleCloseSnackbar
+            });
+            setOpenSnackbar(true);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const CustomToolbar = () => {
         return (
@@ -245,6 +245,7 @@ export default function VentaList({ onlyOrders }) {
             </Box>
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
+                    loading={loading}
                     columns={columns}
                     rows={rows}
                     disableRowSelectionOnClick

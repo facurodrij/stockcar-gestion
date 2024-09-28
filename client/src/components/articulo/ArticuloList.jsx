@@ -54,6 +54,8 @@ export default function ArticuloList() {
         onClose: () => handleCloseSnackbar(false)
     });
     const { withLoading } = useLoading();
+    const [loading, setLoading] = useState(false);
+
     const confirm = useConfirm();
 
     const handleCloseSnackbar = () => {
@@ -62,6 +64,7 @@ export default function ArticuloList() {
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             const url = `${API}/articulos`;
             try {
                 const res = await fetchWithAuth(url);
@@ -79,16 +82,19 @@ export default function ArticuloList() {
                     onClose: handleCloseSnackbar
                 });
                 setOpenSnackbar(true);
+            } finally {
+                setLoading(false);
             }
         }
 
-        withLoading(fetchData);
-    }, [withLoading]);
+        fetchData();
+    }, []);
 
     const columns = [
+        { field: 'stock_actual', headerName: 'Stock', flex: 0.5 },
         { field: 'descripcion', headerName: 'Descripción', flex: 2 },
         { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
-        { field: 'codigo_secundario', headerName: 'Código secundario', flex: 0.75 },
+        { field: 'codigo_secundario', headerName: 'Código secundario', flex: 1 },
         { field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75 },
         { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
         { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
@@ -116,6 +122,7 @@ export default function ArticuloList() {
     let rows = list.map(item => {
         return {
             id: item.id,
+            stock_actual: item.stock_actual,
             codigo_principal: item.codigo_principal,
             codigo_secundario: item.codigo_secundario,
             codigo_terciario: item.codigo_terciario,
@@ -182,6 +189,7 @@ export default function ArticuloList() {
         <>
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
+                    loading={loading}
                     columns={columns}
                     rows={rows}
                     disableRowSelectionOnClick

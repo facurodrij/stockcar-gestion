@@ -43,8 +43,10 @@ const CustomToolbar = () => {
 
 export default function ComercioList() {
     const [list, setList] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const fetchData = async () => {
+        setLoading(true);
         const url = `${API}/comercios`;
         try {
             const res = await fetchWithAuth(url);
@@ -56,6 +58,8 @@ export default function ComercioList() {
         } catch (error) {
             console.error(error);
             alert('Error al cargar los datos');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -96,6 +100,7 @@ export default function ComercioList() {
         <>
             <div style={{height: 500, width: '100%'}}>
                 <DataGrid
+                    loading={loading}
                     columns={columns}
                     rows={rows}
                     disableRowSelectionOnClick
