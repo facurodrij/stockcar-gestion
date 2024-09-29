@@ -177,6 +177,20 @@ class Venta(AuditMixin, db.Model):
                 return self.venta_asociada.cliente.nro_documento
         return None
 
+    def to_json_min(self):
+        """
+        Devuelve un diccionario con los datos mínimos de la venta.
+        """
+        return {
+            "id": self.id,
+            "fecha_hora": self.fecha_hora.isoformat(),
+            "tipo_comprobante": self.tipo_comprobante.to_json(),
+            "nro_comprobante": self.nro_comprobante(),
+            "nombre_cliente": self.nombre_cliente,
+            "total": self.total,
+            "estado": self.estado.value,
+        }
+
     def to_json(self):
         """
         Convierte los datos de la venta a formato JSON.

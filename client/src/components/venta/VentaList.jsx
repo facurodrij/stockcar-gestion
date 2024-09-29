@@ -107,7 +107,6 @@ export default function VentaList({ onlyOrders }) {
     }
 
     const columns = [
-        { field: 'cod_articulo', headerName: 'Códigos de artículos', flex: 3 },
         {
             field: 'fecha_hora', headerName: 'Fecha y hora', type: 'dateTime', flex: 1,
             valueFormatter: (value) => {
@@ -201,8 +200,7 @@ export default function VentaList({ onlyOrders }) {
             nro_comprobante: item.nro_comprobante,
             cliente: item.nombre_cliente,
             total: item.total,
-            estado: item.estado,
-            cod_articulo: item.cod_articulos
+            estado: item.estado
         }
     });
 
@@ -255,11 +253,6 @@ export default function VentaList({ onlyOrders }) {
                     initialState={{
                         sorting: {
                             sortModel: [{ field: 'fecha_hora', sort: 'desc' }]
-                        },
-                        columns: {
-                            columnVisibilityModel: {
-                                cod_articulo: false
-                            }
                         }
                     }}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}

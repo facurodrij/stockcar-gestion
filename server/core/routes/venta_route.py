@@ -80,7 +80,7 @@ def index():
         if len(ventas) == 0:
             return jsonify({"error": "No se encontraron ventas"}), 404
 
-        ventas_json = list(map(lambda x: x.to_json(), ventas))
+        ventas_json = list(map(lambda x: x.to_json_min(), ventas))
         return jsonify({"ventas": ventas_json}), 200
     except Exception as e:
         print(e)
