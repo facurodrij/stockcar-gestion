@@ -1,18 +1,23 @@
 import pytest
-import json
+import os
 from pysimplesoap.client import SimpleXMLElement
 from .wsfev1 import WSFEv1
 from .wsaa import WSAA
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 @pytest.fixture
 def wsfev1_instance():
-    wsfev1 = WSFEv1({
-        "CUIT": 20428129572,
-        "cert": "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_test.cert",
-        "key": "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_test.key",
-        "passphrase": "",
-        "production": False
-    })
+    wsfev1 = WSFEv1(
+        {
+            "CUIT": 20428129572,
+            "cert": os.path.join(BASE_DIR, "../instance", "afipws_test.cert"),
+            "key": os.path.join(BASE_DIR, "../instance", "afipws_test.key"),
+            "passphrase": "",
+            "production": False,
+        }
+    )
     assert wsfev1.token == str(wsfev1.wsaa.credentials.token)
     assert wsfev1.sign == str(wsfev1.wsaa.credentials.sign)
     assert wsfev1.expiration_time == str(wsfev1.wsaa.header.expirationTime)
@@ -38,23 +43,15 @@ def test_CAESolicitar(wsfev1_instance):
         "MonId": "PES",
         "MonCotiz": 1,
         "Iva": [
-            {
-                "Id": 5,
-                "BaseImp": 100,
-                "Importe": 21
-            },
-            {
-                "Id": 4,
-                "BaseImp": 50,
-                "Importe": 5.25
-            }
-        ]
+            {"Id": 5, "BaseImp": 100, "Importe": 21},
+            {"Id": 4, "BaseImp": 50, "Importe": 5.25},
+        ],
     }
-    response = wsfev1_instance.CAESolicitar(data, return_response=True, fetch_last_cbte=True)
+    response = wsfev1_instance.CAESolicitar(
+        data, return_response=True, fetch_last_cbte=True
+    )
     print(response)
-    #assert isinstance(response, dict)
-    #print(json.dumps(response, indent=4))
-    
+
 
 def test_CompUltimoAutorizado(wsfev1_instance):
     response = wsfev1_instance.CompUltimoAutorizado(3, 6)
@@ -62,18 +59,66 @@ def test_CompUltimoAutorizado(wsfev1_instance):
     print(response)
 
 
-@pytest.fixture
-def wsaa_instance():
-    wsaa = WSAA({
-        "cert": "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_prod.crt",
-        "key": "/home/facurodrij/VSCodeProjects/stockcar-gestion/server/instance/afipws_prod.key",
-        "passphrase": "",
-        "service": "wsfe",
-        "production": True
-    })
-    return wsaa
+def test_ParamGetTiposCbte(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposCbte(return_response=False)
+    assert isinstance(response, list)
+    print(response)
 
-def test_get_ticket_access(wsaa_instance):
-    response = wsaa_instance.get_ticket_access()
-    assert isinstance(response, SimpleXMLElement)
-    print(response.as_xml())
+
+def test_ParamGetTiposConcepto(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposConcepto(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_ParamGetTiposDoc(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposDoc(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_ParamGetTiposIva(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposIva(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_ParamGetTiposMonedas(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposMonedas(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_ParamGetTiposOpcional(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposOpcional(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_ParamGetTiposTributos(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposTributos(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_ParamGetPtosVenta(wsfev1_instance):
+    response = wsfev1_instance.ParamGetPtosVenta(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_Dummy(wsfev1_instance):
+    response = wsfev1_instance.Dummy()
+    print(response)
+
+
+def test_ParamGetTiposPaises(wsfev1_instance):
+    response = wsfev1_instance.ParamGetTiposPaises(return_response=False)
+    assert isinstance(response, list)
+    print(response)
+
+
+def test_ParamGetActividades(wsfev1_instance):
+    response = wsfev1_instance.ParamGetActividades(return_response=False)
+    assert isinstance(response, list)
+    print(response)

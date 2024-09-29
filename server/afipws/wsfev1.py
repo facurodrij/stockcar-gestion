@@ -223,7 +223,7 @@ class WSFEv1:
             return res
 
         if "Errors" in res and res["Errors"] is not None:
-                raise Exception(res["Errors"])
+            raise Exception(res["Errors"])
 
         if not res["FeCabResp"]["Resultado"] == "A":
             if "Errors" in res and res["Errors"] is not None:
@@ -262,3 +262,127 @@ class WSFEv1:
         if return_response:
             return res
         return res["CbteNro"]
+
+    def ParamGetTiposCbte(self, return_response: bool = False):
+        "Obtener los tipos de comprobantes"
+        res = self.client.service.FEParamGetTiposCbte(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["CbteTipo"]
+
+    def ParamGetTiposConcepto(self, return_response: bool = False):
+        "Obtener los tipos de concepto"
+        res = self.client.service.FEParamGetTiposConcepto(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["ConceptoTipo"]
+
+    def ParamGetTiposDoc(self, return_response: bool = False):
+        "Obtener los tipos de documentos"
+        res = self.client.service.FEParamGetTiposDoc(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["DocTipo"]
+
+    def ParamGetTiposIva(self, return_response: bool = False):
+        "Obtener los tipos de IVA"
+        res = self.client.service.FEParamGetTiposIva(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["IvaTipo"]
+
+    def ParamGetTiposMonedas(self, return_response: bool = False):
+        "Obtener los tipos de monedas"
+        res = self.client.service.FEParamGetTiposMonedas(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["Moneda"]
+
+    def ParamGetTiposOpcional(self, return_response: bool = False):
+        "Obtener los tipos de opcionales"
+        res = self.client.service.FEParamGetTiposOpcional(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["OpcionalTipo"]
+
+    def ParamGetTiposTributos(self, return_response: bool = False):
+        "Obtener los tipos de tributos"
+        res = self.client.service.FEParamGetTiposTributos(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["TributoTipo"]
+
+    def ParamGetPtosVenta(self, return_response: bool = False):
+        "Obtener los puntos de venta asignados a Facturación Electrónica que soporten CAE o CAEA vía WS"
+        res = self.client.service.FEParamGetPtosVenta(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        if res["ResultGet"] is not None:
+            return res["ResultGet"]["PtoVenta"]
+        return []
+
+    def ParamGetCotizacion(self, MonId: str, return_response: bool = False):
+        "Obtener la cotización de la moneda"
+        res = self.client.service.FEParamGetCotizacion(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT},
+            MonId=MonId,
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["MonCotiz"]
+
+    def Dummy(self):
+        "Verificar el funcionamiento del servicio"
+        res = self.client.service.FEDummy()
+        return res
+        
+
+    def ParamGetTiposPaises(self, return_response: bool = False):
+        "Obtener los tipos de paises"
+        res = self.client.service.FEParamGetTiposPaises(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["PaisTipo"]
+
+    def ParamGetActividades(self, return_response: bool = False):
+        "Obtener las actividades"
+        res = self.client.service.FEParamGetActividades(
+            Auth={"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        )
+        if return_response:
+            return res
+        return res["ResultGet"]["ActividadesTipo"]
+
+    def CompConsultar(self, data: dict, return_response: bool = False):
+        "Consultar comprobante"
+        data = data.copy()
+        Auth = {"Token": self.token, "Sign": self.sign, "Cuit": self.CUIT}
+        Req = {
+            "FeCompConsReq": {
+                "CbteTipo": data["CbteTipo"],  # int
+                "PtoVta": data["PtoVta"],  # int
+                "CbteNro": data["CbteNro"],  # long
+            }
+        }
+        res = self.client.service.FECompConsultar(Auth=Auth, FeCompConsReq=Req)
+        if return_response:
+            return res
+        return res["Resultado"]
