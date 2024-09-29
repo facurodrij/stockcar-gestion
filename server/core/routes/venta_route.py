@@ -25,6 +25,9 @@ venta_bp = Blueprint("venta_bp", __name__)
 
 
 def get_select_options():
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de ventas.
+    """
     cliente = Cliente.query.all()
     tipo_comprobante = TipoComprobante.query.all()
     tipo_pago = TipoPago.query.all()

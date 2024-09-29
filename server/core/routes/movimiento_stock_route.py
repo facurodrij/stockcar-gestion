@@ -11,6 +11,9 @@ movimiento_stock_bp = Blueprint("movimiento_stock_bp", __name__)
 
 
 def get_select_options():
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de movimientos de stock.
+    """
     tipo_movimiento = [{"id": x.name, "nombre": x.value} for x in TipoMovimiento]
     origen = [{"id": x.name, "nombre": x.value} for x in OrigenMovimiento]
     return {"tipo_movimiento": tipo_movimiento, "origen": origen}

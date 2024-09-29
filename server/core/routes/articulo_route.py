@@ -18,6 +18,9 @@ articulo_bp = Blueprint("articulo_bp", __name__)
 
 
 def get_select_options():
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de artículos.
+    """
     tipo_articulo = TipoArticulo.query.all()
     tipo_unidad = TipoUnidad.query.all()
     alicuota_iva = AlicuotaIVA.query.all()

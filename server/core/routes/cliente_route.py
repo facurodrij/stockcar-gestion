@@ -20,6 +20,9 @@ cliente_bp = Blueprint("cliente_bp", __name__)
 
 
 def get_select_options():
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de clientes.
+    """
     tipo_documento = TipoDocumento.query.all()
     tipo_responsable = TipoResponsable.query.all()
     provincia = Provincia.query.all()

@@ -10,6 +10,9 @@ comercio_bp = Blueprint("comercio_bp", __name__)
 
 
 def get_select_options():
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de comercios.
+    """
     tipo_responsable = TipoResponsable.query.all()
     provincia = Provincia.query.all()
 

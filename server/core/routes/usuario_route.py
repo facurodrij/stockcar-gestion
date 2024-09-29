@@ -8,6 +8,9 @@ usuario_bp = Blueprint("usuario_bp", __name__)
 
 
 def get_select_options():
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de usuarios.
+    """
     permisos = Permiso.query.all()
     return {"permisos": list(map(lambda x: x.to_json(), permisos))}
 
