@@ -54,6 +54,22 @@ class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
         "Tributo", secondary="tributo_articulo", back_populates="articulos"
     )
 
+    def to_json_min(self):
+        """
+        Devuelve un diccionario con los datos mínimos del artículo.
+        """
+        return {
+            "id": self.id,
+            "codigo_principal": self.codigo_principal,
+            "codigo_secundario": self.codigo_secundario,
+            "codigo_terciario": self.codigo_terciario,
+            "codigo_cuaternario": self.codigo_cuaternario,
+            "codigo_adicional": self.codigo_adicional,
+            "descripcion": self.descripcion,
+            "linea_factura": self.linea_factura,
+            "stock_actual": float(self.stock_actual),
+        }
+
     def to_json(self):
         """
         Convierte los datos del artículo a formato JSON.

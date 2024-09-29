@@ -35,7 +35,8 @@ def get_select_options():
 @permission_required(["articulo.view_all"])
 def index():
     articulos = Articulo.query.all()
-    articulos_json = list(map(lambda x: x.to_json(), articulos))
+    articulos_json = list(map(lambda x: x.to_json_min(), articulos))
+
     return jsonify({"articulos": articulos_json}), 200
 
 
