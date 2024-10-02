@@ -23,6 +23,8 @@ import UsuarioFormPage from "./pages/usuario/UsuarioFormPage";
 import MovStockPage from "./pages/movimiento_stock/MovStockPage";
 import MovStockFormPage from "./pages/movimiento_stock/MovStockFormPage";
 import MovStockDetailPage from "./pages/movimiento_stock/MovStockDetailPage";
+import ProveedorPage from "./pages/proveedor/ProveedorPage";
+import ProveedorFormPage from "./pages/proveedor/ProveedorFormPage";
 
 export const API = process.env.REACT_APP_API_URL;
 
@@ -59,6 +61,9 @@ function App() {
                         <Route path="/movimientos-stock" element={<MovStockPage/>}></Route>
                         <Route path="/movimientos-stock/:pk" element={<MovStockDetailPage/>}></Route>
                         <Route path="/movimientos-stock/form" element={<MovStockFormPage/>}></Route>
+                        <Route path="/proveedores" element={<ProveedorPage/>}></Route>
+                        <Route path="/proveedores/form" element={<ProveedorFormPage/>}></Route>
+                        <Route path="/proveedores/form/:pk" element={<ProveedorFormPage/>}></Route>
                     </Routes>
                 </Container>
             </Box>

@@ -5,3 +5,4 @@ from .comercio_route import comercio_bp
 from .usuario_route import usuario_bp
 from .auth_route import auth_bp
 from .movimiento_stock_route import movimiento_stock_bp
+from .proveedor_route import proveedor_bp
