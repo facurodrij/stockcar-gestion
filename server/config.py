@@ -1,11 +1,11 @@
 import os
-from flask import Flask
 from flask_cors import CORS
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from server import app
 
 
 class Base(DeclarativeBase):
@@ -16,7 +16,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-app = Flask(__name__)
 
 # CORS Configuration (Local & Codespaces)
 CORS(
@@ -26,7 +25,7 @@ CORS(
             "origins": [
                 "http://127.0.0.1:3000",
                 "http://localhost:3000",
-                "http://192.168.0.19:3000",
+                "http://192.168.0.114:3000",
                 "https://shiny-space-journey-4rppp59wj6j3jj9p-3000.app.github.dev",
                 "https://xs2wpms2-3000.brs.devtunnels.ms",
             ]
