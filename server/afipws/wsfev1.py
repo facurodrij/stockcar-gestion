@@ -1,75 +1,15 @@
-import zeep
-import ssl
-import os
-
-from requests import Session
-from requests.adapters import HTTPAdapter
-from zeep.transports import Transport
-from urllib3.poolmanager import PoolManager
-from .wsaa import WSAA
+from .wsbase import WSBase
 
 
-class TLSAdapter(HTTPAdapter):
-    def init_poolmanager(self, connections, maxsize, block=False):
-        """Create and initialize the urllib3 PoolManager."""
-        ctx = ssl.create_default_context()
-        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
-        self.poolmanager = PoolManager(
-            num_pools=connections,
-            maxsize=maxsize,
-            block=block,
-            ssl_version=ssl.PROTOCOL_TLS,
-            ssl_context=ctx,
-        )
-
-
-class WSFEv1:
+class WSFEv1(WSBase):
     WSDL = "https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL"
     URL = "https://servicios1.afip.gov.ar/wsfev1/service.asmx"
     WSDL_TEST = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL"
     URL_TEST = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx"
     SERVICE = "wsfe"
-    CACERT = os.path.join(os.path.dirname(__file__), "cacert.pem")
 
     def __init__(self, options: dict):
-        if not (options.get("CUIT")) or not (
-            options.get("cert") and options.get("key")
-        ):
-            raise Exception("Faltan datos de configuración (CUIT, cert, key)")
-        self.CUIT = options.get("CUIT")
-
-        if options.get("production"):
-            "!Produccion"
-            session = Session()
-            session.verify = self.CACERT
-            adapter = TLSAdapter()
-            session.mount("https://", adapter)
-            transport = Transport(session=session)
-            self.client = zeep.Client(wsdl=self.WSDL, transport=transport)
-            self.production = True
-        else:
-            self.client = zeep.Client(wsdl=self.WSDL_TEST)
-            self.production = False
-
-        self.wsaa = WSAA(
-            {
-                "cert": options.get("cert"),
-                "key": options.get("key"),
-                "passphrase": (
-                    options.get("passphrase") if options.get("passphrase") else ""
-                ),
-                "service": self.SERVICE,
-                "production": self.production,
-            }
-        ).get_ticket_access()
-
-        self.token = str(
-            self.wsaa.credentials.token
-        )  # Token de acceso obtenido por WSAA
-        self.sign = str(self.wsaa.credentials.sign)  # Sign obtenido por WSAA
-        self.expiration_time = str(
-            self.wsaa.header.expirationTime
-        )  # Fecha de expiración del token
+        super().__init__(options)
 
     def CAESolicitar(
         self, data: dict, return_response: bool = False, fetch_last_cbte: bool = False
@@ -347,11 +287,10 @@ class WSFEv1:
             return res
         return res["ResultGet"]["MonCotiz"]
 
-    def Dummy(self):
+    def ServerStatus(self):
         "Verificar el funcionamiento del servicio"
         res = self.client.service.FEDummy()
         return res
-        
 
     def ParamGetTiposPaises(self, return_response: bool = False):
         "Obtener los tipos de paises"

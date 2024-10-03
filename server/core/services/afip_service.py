@@ -2,7 +2,7 @@ import re
 import os
 
 from server.core.models import Venta
-from server.afipws import WSFEv1
+from server.afipws import WSFEv1, WSSrPadronA13
 from server.config import BASE_DIR
 
 
@@ -15,30 +15,75 @@ class AfipServiceError(Exception):
 
 
 class AfipService:
-    "Servicio para interactuar con la API de AFIP y los modelos de la base de datos."
-    CUIT = 20400434108
-    CERT = os.path.join(BASE_DIR, "instance", "afipws_prod.crt")
-    KEY = os.path.join(BASE_DIR, "instance", "afipws_prod.key")
+    """
+    Servicio para interactuar con los servicios web de AFIP y los modelos de la base de datos.
+
+    Este servicio se encarga de conectar con los servicios web de AFIP para la generación de
+    comprobantes y la obtención de datos de personas. Dado que los servicios de AFIP devuelven
+    una gran cantidad de datos, este servicio filtra y extrae únicamente la información necesaria
+    para el funcionamiento de la aplicación.
+
+    Atributos:
+    - CUIT: Número de CUIT del contribuyente que utiliza el servicio.
+    - CERT: Ruta al certificado digital.
+    - KEY: Ruta a la clave privada.
+    - PASSPHRASE: Frase de contraseña para la clave privada.
+    - PRODUCTION: Indicador de si se está en modo producción o homologación.
+
+    Métodos:
+    - obtener_cae: Solicita el CAE para una venta.
+    - anular_cae: Anula el CAE de una venta mediante una Nota de Crédito.
+    - get_persona: Obtiene los datos de una persona a partir de su identificador (CUIT).
+    """
+
+    CUIT = 20428129572
+    CERT = os.path.join(BASE_DIR, "instance", "afipws_test.cert")
+    KEY = os.path.join(BASE_DIR, "instance", "afipws_test.key")
     PASSPHRASE = ""
-    PRODUCTION = True
+    PRODUCTION = False
 
     def __init__(self):
-        "Inicializar el servicio de AFIP."
+        "Inicializar los servicios de AFIP."
+        self.wsfev1 = None
+        self.ws_sr_padron_a13 = None
+
+    def _initialize_wsfev1(self):
+        """Inicializar el servicio WSFEv1 si no está ya inicializado."""
         try:
-            self.wsfev1 = WSFEv1(
-                {
-                    "CUIT": self.CUIT,
-                    "cert": self.CERT,
-                    "key": self.KEY,
-                    "passphrase": self.PASSPHRASE,
-                    "production": self.PRODUCTION,
-                }
-            )
+            if self.wsfev1 is None:
+                self.wsfev1 = WSFEv1(
+                    {
+                        "CUIT": self.CUIT,
+                        "cert": self.CERT,
+                        "key": self.KEY,
+                        "passphrase": self.PASSPHRASE,
+                        "production": self.PRODUCTION,
+                    }
+                )
         except Exception as e:
-            raise AfipServiceError(e)
+            raise AfipServiceError(f"Error inicializando el servicio WSFEv1: {e}")
+
+    def _initialize_ws_sr_padron_a13(self):
+        """Inicializar el servicio WSSrPadronA13 si no está ya inicializado."""
+        try:
+            if self.ws_sr_padron_a13 is None:
+                self.ws_sr_padron_a13 = WSSrPadronA13(
+                    {
+                        "CUIT": self.CUIT,
+                        "cert": self.CERT,
+                        "key": self.KEY,
+                        "passphrase": self.PASSPHRASE,
+                        "production": self.PRODUCTION,
+                    }
+                )
+        except Exception as e:
+            raise AfipServiceError(
+                f"Error inicializando el servicio WSSrPadronA13: {e}"
+            )
 
     def obtener_cae(self, venta: Venta):
         "Obtener el CAE para una venta."
+        self._initialize_wsfev1()
         try:
             data = {
                 "CantReg": 1,  # Cantidad de facturas a registrar
@@ -109,16 +154,17 @@ class AfipService:
                 ),
             }
             res = self.wsfev1.CAESolicitar(data, fetch_last_cbte=True)
+            return {
+                "numero": res["NroCbte"],
+                "cae": res["CAE"],
+                "vencimiento_cae": self.formatDate(res["CAEFchVto"]),
+            }
         except Exception as e:
-            raise AfipServiceError(e)
-        return {
-            "numero": res["NroCbte"],
-            "cae": res["CAE"],
-            "vencimiento_cae": self.formatDate(res["CAEFchVto"]),
-        }
+            raise AfipServiceError(f"Error obteniendo CAE: {e}")
 
     def anular_cae(self, venta: Venta):
         "Anular el CAE de una venta con una Nota de Crédito."
+        self._initialize_wsfev1()
         try:
             data = {
                 "CantReg": 1,
@@ -139,13 +185,9 @@ class AfipService:
                     )
                 ),
                 "ImpTotConc": 0,
-                "ImpNeto": float(
-                    "{:.2f}".format(venta.gravado)
-                ),
+                "ImpNeto": float("{:.2f}".format(venta.gravado)),
                 "ImpOpEx": 0,
-                "ImpIVA": float(
-                    "{:.2f}".format(venta.total_iva)
-                ),
+                "ImpIVA": float("{:.2f}".format(venta.total_iva)),
                 "ImpTrib": float("{:.2f}".format(venta.total_tributos)),
                 "MonId": venta.moneda.codigo_afip,
                 "MonCotiz": float(venta.moneda_cotizacion),
@@ -156,7 +198,9 @@ class AfipService:
                             "PtoVta": venta.venta_asociada.punto_venta.numero,
                             "Nro": venta.venta_asociada.numero,
                             "Cuit": venta.venta_asociada.get_cbte_asoc_cuit(),
-                            "CbteFch": venta.venta_asociada.fecha_hora.strftime("%Y%m%d"),
+                            "CbteFch": venta.venta_asociada.fecha_hora.strftime(
+                                "%Y%m%d"
+                            ),
                         }
                     ]
                 ),
@@ -180,25 +224,38 @@ class AfipService:
                             "BaseImp": float("{:.2f}".format(venta.gravado)),
                             "Alic": float("{:.2f}".format(tributo.alicuota)),
                             "Importe": float(
-                                "{:.2f}".format(venta.venta_asociada.get_tributo_importe(tributo.id))
+                                "{:.2f}".format(
+                                    venta.venta_asociada.get_tributo_importe(tributo.id)
+                                )
                             ),
                         }
                         for tributo in venta.venta_asociada.tributos
                     ]
                     if venta.venta_asociada.tributos
                     else None
-                )
+                ),
             }
             res = self.wsfev1.CAESolicitar(data, fetch_last_cbte=True)
+            return {
+                "numero": res["NroCbte"],
+                "cae": res["CAE"],
+                "vencimiento_cae": self.formatDate(res["CAEFchVto"]),
+            }
         except Exception as e:
-            raise AfipServiceError(e)
-        return {
-            "numero": res["NroCbte"],
-            "cae": res["CAE"],
-            "vencimiento_cae": self.formatDate(res["CAEFchVto"]),
-        }
+            raise AfipServiceError(f"Error anulando CAE: {e}")
 
-    # Change date from AFIP used format (yyyymmdd) to yyyy-mm-dd
     def formatDate(self, date: int) -> str:
+        """
+        Cambia el formato de la fecha de AFIP (yyyymmdd) a yyyy-mm-dd
+        """
         m = re.search(r"(\d{4})(\d{2})(\d{2})", str(date))
         return "%s-%s-%s" % (m.group(1), m.group(2), m.group(3))
+
+    def get_persona(self, identifier: int):
+        "Obtener los datos de una persona."
+        self._initialize_ws_sr_padron_a13()
+        try:
+            res = self.ws_sr_padron_a13.GetPersona(identifier)
+            return res
+        except Exception as e:
+            raise AfipServiceError(f"Error obteniendo persona: {e}")
