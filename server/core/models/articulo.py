@@ -68,6 +68,7 @@ class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
             "descripcion": self.descripcion,
             "linea_factura": self.linea_factura,
             "stock_actual": float(self.stock_actual),
+            "alicuota_iva": self.alicuota_iva.to_json(),
         }
 
     def to_json(self):
