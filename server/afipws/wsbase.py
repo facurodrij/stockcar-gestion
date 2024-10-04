@@ -1,6 +1,7 @@
 import zeep
 import ssl
 import os
+import xml.etree.ElementTree as ET
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -13,6 +14,7 @@ class TLSAdapter(HTTPAdapter):
     """
     Clase para configurar el adaptador TLS para el cliente HTTP
     """
+
     def init_poolmanager(self, connections, maxsize, block=False):
         """Create and initialize the urllib3 PoolManager."""
         ctx = ssl.create_default_context()
@@ -47,9 +49,9 @@ class WSBase:
         self.client = self._configure_client()
         self.wsaa = self._configure_wsaa(options)
 
-        self.token = str(self.wsaa.credentials.token)
-        self.sign = str(self.wsaa.credentials.sign)
-        self.expiration_time = str(self.wsaa.header.expirationTime)
+        self.token = str(self.wsaa.find("credentials/token").text)
+        self.sign = str(self.wsaa.find("credentials/sign").text)
+        self.expiration_time = str(self.wsaa.find("header/expirationTime").text)
 
     def _validate_options(self, options: dict):
         """
@@ -75,7 +77,7 @@ class WSBase:
         else:
             return zeep.Client(wsdl=self.WSDL_TEST)
 
-    def _configure_wsaa(self, options: dict):
+    def _configure_wsaa(self, options: dict) -> ET.Element:
         """
         Configura el objeto WSAA
         """
