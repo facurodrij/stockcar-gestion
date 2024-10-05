@@ -21,7 +21,7 @@ import {
     CardContent,
     Alert
 } from "@mui/material";
-import { Block, Edit, Print, KeyboardArrowDown } from '@mui/icons-material';
+import { Block, Edit, Print, KeyboardArrowDown, Delete } from '@mui/icons-material';
 import { Link } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import fetchWithAuth from '../../utils/fetchWithAuth';
@@ -93,10 +93,11 @@ export default function VentaDetail({ pk }) {
         const fetchData = async () => {
             const url = `${API}/ventas/${pk}`;
             const res = await fetchWithAuth(url);
+            const data = await res.json();
             if (!res.ok) {
-                throw new Error('Error al obtener la venta');
+                throw new Error(`Error al obtener la venta: ${data['error']}`);
             }
-            return await res.json();
+            return data;
         }
         const loadData = async () => {
             try {
@@ -108,8 +109,8 @@ export default function VentaDetail({ pk }) {
                 setSnackbar({
                     message: error.message,
                     severity: 'error',
-                    autoHideDuration: null,
-                    onClose: () => handleCloseSnackbar(false)
+                    autoHideDuration: 6000,
+                    onClose: () => handleCloseSnackbar(true)
                 });
                 setOpenSnackbar(true);
             }
@@ -190,6 +191,56 @@ export default function VentaDetail({ pk }) {
             });
     }
 
+    const handleDelete = async () => {
+        confirm({
+            title: 'Confirmar acción',
+            description: '¿Está seguro que desea eliminar la orden de venta?',
+            cancellationText: 'Cancelar',
+            confirmationText: 'Confirmar'
+        })
+            .then(() => {
+                withLoading(async () => {
+                    const url = `${API}/ventas-orden/${pk}/delete`;
+                    fetchWithAuth(url, 'DELETE')
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data['error']);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            setSnackbar({
+                                message: data['message'],
+                                severity: 'success',
+                                autoHideDuration: 4000,
+                                onClose: () => handleCloseSnackbar(true)
+                            });
+                            setOpenSnackbar(true);
+                        })
+                        .catch((error) => {
+                            setSnackbar({
+                                message: `Error al eliminar la orden de venta: ${error.message}`,
+                                severity: 'error',
+                                autoHideDuration: 6000,
+                                onClose: () => handleCloseSnackbar(false)
+                            });
+                            setOpenSnackbar(true);
+                        });
+                });
+            })
+            .catch((error) => {
+                setSnackbar({
+                    message: 'Acción cancelada',
+                    severity: 'info',
+                    autoHideDuration: 4000,
+                    onClose: () => handleCloseSnackbar(false)
+                });
+                setOpenSnackbar(true);
+            });
+    }
+
     return (
         <>
             {venta.estado === 'Anulado' && (
@@ -234,6 +285,17 @@ export default function VentaDetail({ pk }) {
                         </Button>
                         {venta.estado !== 'Orden' && (
                             <PaperSizeButton handlePrint={handlePrint} />
+                        )}
+                        {venta.estado === 'Orden' && (
+                            <Button
+                                startIcon={<Delete />}
+                                variant="contained"
+                                color="error"
+                                onClick={handleDelete}
+                                sx={{ ml: 2 }}
+                            >
+                                Eliminar
+                            </Button>
                         )}
                     </Box>
                 </Box>

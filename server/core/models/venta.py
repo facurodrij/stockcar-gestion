@@ -11,7 +11,7 @@ from sqlalchemy import (
     Enum,
 )
 from sqlalchemy.orm import relationship
-from server.core.utils import AuditMixin
+from server.core.utils import AuditMixin, SoftDeleteMixin, QueryWithSoftDelete
 from server.config import db
 from server.core.models.association_table import tributo_venta
 from server.core.models.parametros import AlicuotaIVA
@@ -29,7 +29,7 @@ class EstadoVenta(enum.Enum):
     anulado = "Anulado"
 
 
-class Venta(AuditMixin, db.Model):
+class Venta(AuditMixin, SoftDeleteMixin, db.Model):
     """
     Modelo de datos para las ventas.
 
@@ -38,6 +38,7 @@ class Venta(AuditMixin, db.Model):
     """
 
     __tablename__ = "venta"
+    query_class = QueryWithSoftDelete
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     numero = Column(Integer, nullable=False)

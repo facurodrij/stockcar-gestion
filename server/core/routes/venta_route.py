@@ -1,6 +1,6 @@
 from io import BytesIO
 from datetime import datetime, timedelta
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_sqlalchemy.query import Query
 
@@ -17,6 +17,7 @@ from server.core.models import (
     AlicuotaIVA,
     Usuario,
 )
+from server.config import db
 from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.core.decorators import permission_required
 from server.core.controllers import VentaController
@@ -132,41 +133,47 @@ def update(pk):
 @jwt_required()
 @permission_required("venta.view")
 def detail(pk):
-    venta = Venta.query.get_or_404(pk, "Venta no encontrada")
-    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
-    if request.method == "GET":
-        return (
-            jsonify(
-                {
-                    "venta": venta.to_json(),
-                    "renglones": list(map(lambda x: x.to_json(), venta_items)),
-                }
-            ),
-            200,
-        )
-    if request.method == "POST":
-        data = request.json
-        if data["action"] == "print":
-            size = data["size"]
-            buffer = BytesIO()
-            if size == "A4":
-                c = A4PDFGenerator(buffer)
-                c.generate_pdf(venta)
-                buffer.seek(0)
-            else:
-                c = TicketPDFGenerator(buffer)
-                c.generate_pdf(venta)
-                buffer.seek(0)
-            return send_file(
-                buffer,
-                as_attachment=True,
-                download_name=f"venta_{venta.numero}.pdf",
-                mimetype="application/pdf",
+    try:
+        venta = Venta.query.get_or_404(pk, "Venta no encontrada")
+        venta_items = VentaItem.query.filter_by(venta_id=pk).all()
+        if request.method == "GET":
+            return (
+                jsonify(
+                    {
+                        "venta": venta.to_json(),
+                        "renglones": list(map(lambda x: x.to_json(), venta_items)),
+                    }
+                ),
+                200,
             )
-        elif data["action"] == "anular":
-            user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-            venta.updated_by = user.id
-            return VentaController.anular_venta(venta)
+        if request.method == "POST":
+            data = request.json
+            if data["action"] == "print":
+                size = data["size"]
+                buffer = BytesIO()
+                if size == "A4":
+                    c = A4PDFGenerator(buffer)
+                    c.generate_pdf(venta)
+                    buffer.seek(0)
+                else:
+                    c = TicketPDFGenerator(buffer)
+                    c.generate_pdf(venta)
+                    buffer.seek(0)
+                return send_file(
+                    buffer,
+                    as_attachment=True,
+                    download_name=f"venta_{venta.numero}.pdf",
+                    mimetype="application/pdf",
+                )
+            elif data["action"] == "anular":
+                user = Usuario.query.filter_by(
+                    username=get_jwt_identity()["username"]
+                ).first()
+                venta.updated_by = user.id
+                return VentaController.anular_venta(venta)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
 
 
 @venta_bp.route("/ventas-orden", methods=["GET"])
@@ -230,7 +237,7 @@ def create_orden():
 @venta_bp.route("/ventas-orden/<int:pk>/update", methods=["GET", "PUT"])
 @jwt_required()
 def update_orden(pk):
-    venta = Venta.query.get_or_404(pk, "Venta no encontrada")
+    venta: Venta = Venta.query.get_or_404(pk, "Venta no encontrada")
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
     if venta.estado != EstadoVenta.orden:
         return jsonify({"error": "La venta no está en estado orden"}), 400
@@ -250,3 +257,27 @@ def update_orden(pk):
         user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
         data["updated_by"] = user.id
         return VentaController.update_orden_venta(data, venta, venta_items)
+
+
+@venta_bp.route("/ventas-orden/<int:pk>/delete", methods=["DELETE"])
+@jwt_required()
+def delete_orden(pk):
+    try:
+        venta: Venta = Venta.query.get_or_404(pk, "Venta no encontrada")
+        if venta.is_deleted():
+            abort(404, "Venta no encontrada")
+        if venta.estado != EstadoVenta.orden:
+            abort(400, "Solo se pueden eliminar ventas en estado orden")
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
+    try:
+        venta.delete()
+        db.session.commit()
+        return jsonify({"message": "Orden de venta eliminada correctamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(e)
+        return jsonify({"error": str(e)}), 400
+    finally:
+        db.session.close()

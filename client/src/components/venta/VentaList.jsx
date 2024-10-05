@@ -18,7 +18,9 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Button, Box, Chip } from "@mui/material";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
-import { Search, Add, Visibility, Edit, Done, Block, Info } from '@mui/icons-material';
+import { Search, Add, Visibility, Edit, Done, Block, Info, Delete } from '@mui/icons-material';
+import { useLoading } from '../../utils/loadingContext';
+import { useConfirm } from 'material-ui-confirm';
 
 
 export default function VentaList({ onlyOrders }) {
@@ -32,7 +34,10 @@ export default function VentaList({ onlyOrders }) {
         autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
+    const { withLoading } = useLoading();
     const [loading, setLoading] = useState(false);
+
+    const confirm = useConfirm();
 
     const handleCloseSnackbar = () => {
         setOpenSnackbar(false);
@@ -160,7 +165,7 @@ export default function VentaList({ onlyOrders }) {
             },
         },
         {
-            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.5,
+            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.75,
             getActions: (params) => {
                 const actions = [];
                 actions.push(
@@ -176,6 +181,10 @@ export default function VentaList({ onlyOrders }) {
                             icon={<Edit />}
                             component={Link}
                             to={`/ventas-orden/form/${params.row.id}`}
+                        />,
+                        <GridActionsCellItem
+                            icon={<Delete />}
+                            onClick={() => handleDelete(params.row.id)}
                         />
                     );
                     return actions;
@@ -187,6 +196,14 @@ export default function VentaList({ onlyOrders }) {
                         to={`/ventas/form/${params.row.id}`}
                     />
                 );
+                if (params.row.estado === 'Orden') {
+                    actions.push(
+                        <GridActionsCellItem
+                            icon={<Delete />}
+                            onClick={() => handleDelete(params.row.id)}
+                        />
+                    );
+                }
                 return actions;
             }
         }
@@ -203,6 +220,58 @@ export default function VentaList({ onlyOrders }) {
             estado: item.estado
         }
     });
+
+    const handleDelete = async (pk) => {
+        confirm({
+            title: 'Confirmar acción',
+            description: '¿Está seguro que desea eliminar la orden de venta?',
+            cancellationText: 'Cancelar',
+            confirmationText: 'Confirmar'
+
+        })
+            .then(() => {
+                withLoading(async () => {
+                    const url = `${API}/ventas-orden/${pk}/delete`;
+                    fetchWithAuth(url, 'DELETE')
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data['error']);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            setList(list.filter(item => item.id !== pk));
+                            setSnackbar({
+                                message: data['message'],
+                                severity: 'success',
+                                autoHideDuration: 4000,
+                                onClose: () => handleCloseSnackbar()
+                            });
+                            setOpenSnackbar(true);
+                        })
+                        .catch((error) => {
+                            setSnackbar({
+                                message: `Error al eliminar la orden de venta: ${error.message}`,
+                                severity: 'error',
+                                autoHideDuration: 6000,
+                                onClose: () => handleCloseSnackbar()
+                            });
+                            setOpenSnackbar(true);
+                        });
+                });
+            })
+            .catch((error) => {
+                setSnackbar({
+                    message: 'Acción cancelada',
+                    severity: 'info',
+                    autoHideDuration: 4000,
+                    onClose: () => handleCloseSnackbar()
+                });
+                setOpenSnackbar(true);
+            });
+    }
 
     return (
         <>
