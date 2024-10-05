@@ -36,11 +36,11 @@ class AfipService:
     - get_persona: Obtiene los datos de una persona a partir de su identificador (CUIT).
     """
 
-    CUIT = 20428129572
-    CERT = os.path.join(BASE_DIR, "instance", "afipws_test.cert")
-    KEY = os.path.join(BASE_DIR, "instance", "afipws_test.key")
+    CUIT = 20400434108
+    CERT = os.path.join(BASE_DIR, "instance", "afipws_prod.crt")
+    KEY = os.path.join(BASE_DIR, "instance", "afipws_prod.key")
     PASSPHRASE = ""
-    PRODUCTION = False
+    PRODUCTION = True
 
     def __init__(self):
         "Inicializar los servicios de AFIP."
