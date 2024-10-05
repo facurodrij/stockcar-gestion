@@ -17,14 +17,14 @@ def ws_sr_padron_instance():
             "production": False,
         }
     )
-    assert ws_sr_padron.token == str(ws_sr_padron.wsaa.credentials.token)
-    assert ws_sr_padron.sign == str(ws_sr_padron.wsaa.credentials.sign)
-    assert ws_sr_padron.expiration_time == str(ws_sr_padron.wsaa.header.expirationTime)
+    assert ws_sr_padron.token == str(ws_sr_padron.wsaa.find("credentials/token").text)
+    assert ws_sr_padron.sign == str(ws_sr_padron.wsaa.find("credentials/sign").text)
+    assert ws_sr_padron.expiration_time == str(ws_sr_padron.wsaa.find("header/expirationTime").text)
     return ws_sr_padron
 
 
 def test_GetPersona(ws_sr_padron_instance):
-    response = ws_sr_padron_instance.GetPersona(123456)
+    response = ws_sr_padron_instance.GetPersona(30615429038)
     print(response)
 
 def test_ServerStatus(ws_sr_padron_instance):
