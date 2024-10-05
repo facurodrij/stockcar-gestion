@@ -54,8 +54,7 @@ export default function ArticuloDetail({ pk }) {
             const res = await fetchWithAuth(url);
             const data = await res.json();
             if (!res.ok) {
-                throw new Error(`Error al obtener el artículo: ${data['error']}`
-                );
+                throw new Error(`Error al obtener el artículo: ${data['error']}`);
             }
             return data;
         }
@@ -65,13 +64,13 @@ export default function ArticuloDetail({ pk }) {
                 setArticulo(data['articulo']);
                 setMovimientos(data['movimientos']);
             } catch (error) {
-                setOpenSnackbar(true);
                 setSnackbar({
                     message: error.message,
                     severity: 'error',
                     autoHideDuration: 6000,
                     onClose: () => handleCloseSnackbar(true)
                 });
+                setOpenSnackbar(true);
             }
         }
 

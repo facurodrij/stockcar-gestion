@@ -19,7 +19,6 @@ import { useLoading } from '../../utils/loadingContext';
 import { useConfirm } from 'material-ui-confirm';
 
 
-
 const CustomToolbar = () => {
     return (
         <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
