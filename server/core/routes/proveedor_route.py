@@ -1,4 +1,3 @@
-from datetime import date, datetime
 from flask import Blueprint, jsonify, request, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -11,6 +10,7 @@ from server.core.models import (
     Usuario,
 )
 from server.core.decorators import permission_required
+from server.core.services import AfipService
 
 proveedor_bp = Blueprint("proveedor_bp", __name__)
 
@@ -25,7 +25,7 @@ def get_select_options():
     return {
         "tipo_documento": list(map(lambda x: x.to_json(), tipo_documento)),
         "tipo_responsable": list(map(lambda x: x.to_json(), tipo_responsable)),
-        "provincia": list(map(lambda x: x.to_json(), provincia))
+        "provincia": list(map(lambda x: x.to_json(), provincia)),
     }
 
 
@@ -145,3 +145,32 @@ def delete(pk):
         return jsonify({"error": str(e)}), 400
     finally:
         db.session.close()
+
+
+@proveedor_bp.route("/proveedores/afip", methods=["GET"])
+@jwt_required()
+def get_afip_data():
+    """
+    Obtiene los datos de un proveedor desde la API de AFIP.
+    """
+    try:
+        nro_documento: int = int(request.args.get("nro_documento"))
+        afip = AfipService()
+        res = afip.get_persona(nro_documento)
+
+        return (
+            jsonify(
+                {
+                    "tipo_responsable_id": res["tipo_responsable_id"],
+                    "razon_social": res["razon_social"],
+                    "direccion": res["direccion"],
+                    "localidad": res["localidad"],
+                    "provincia_id": res["provincia_id"],
+                    "codigo_postal": res["codigo_postal"],
+                }
+            ),
+            200,
+        )
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400

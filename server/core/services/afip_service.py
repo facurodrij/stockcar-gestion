@@ -256,6 +256,16 @@ class AfipService:
         self._initialize_ws_sr_padron_a13()
         try:
             res = self.ws_sr_padron_a13.GetPersona(identifier)
-            return res
+            if "persona" in res:
+                res = res["persona"]
+
+            return {
+                "tipo_responsable_id": 1,
+                "razon_social": res["razonSocial"],
+                "direccion": res["domicilio"][0]["direccion"],
+                "provincia_id": res["domicilio"][0]["idProvincia"],
+                "localidad": res["domicilio"][0]["localidad"],
+                "codigo_postal": res["domicilio"][0]["codigoPostal"],
+            }
         except Exception as e:
-            raise AfipServiceError(f"Error obteniendo persona: {e}")
+            raise AfipServiceError(f"Error obteniendo datos de la persona: {e}")
