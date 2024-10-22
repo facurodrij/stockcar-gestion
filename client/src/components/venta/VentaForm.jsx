@@ -724,6 +724,7 @@ export default function VentaForm({ pk }) {
                 setSelectedArticulo={setSelectedArticulo}
                 renglones={ventaRenglones}
                 setRenglones={setVentaRenglones}
+                allowCreate={true}
             />
             <SnackbarAlert
                 open={openSnackbar}

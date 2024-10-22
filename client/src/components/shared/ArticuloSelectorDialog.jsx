@@ -18,7 +18,41 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import fetchWithAuth from '../../utils/fetchWithAuth';
 
 
-const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones }) => {
+const SelectorToolbar = ({ show_btn_add, txt_btn_add, url_btn_add, showSelected, setShowSelected }) => {
+    return (
+        <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
+            <GridToolbarQuickFilter size={'small'} />
+            <GridToolbarColumnsButton />
+            <GridToolbarFilterButton />
+            <Button
+                startIcon={<ChecklistIcon />}
+                size="small"
+                onClick={() => {
+                    setShowSelected(!showSelected);
+                }}
+            >
+                {showSelected ? 'Ver Todos' : 'Ver Seleccionados'}
+            </Button>
+            <Box sx={{ flexGrow: 1 }} />
+            {show_btn_add && (
+                <Button
+                    startIcon={<AddIcon />}
+                    component={Link}
+                    to={url_btn_add}
+                    target='_blank'
+                    size="small"
+                    variant="contained"
+                    color="success"
+                >
+                    {txt_btn_add}
+                </Button>
+            )}
+        </GridToolbarContainer>
+    );
+}
+
+
+const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones, allowCreate }) => {
     const [listArticulo, setListArticulo] = useState([]);
     const [showSelected, setShowSelected] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -26,37 +60,6 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
     const filteredArticulo = showSelected
         ? listArticulo.filter((item) => selectedArticulo.includes(item.id))
         : listArticulo;
-
-    const CustomToolbar = () => {
-        return (
-            <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
-                <GridToolbarQuickFilter size={'small'} />
-                <GridToolbarColumnsButton />
-                <GridToolbarFilterButton />
-                <Button
-                    startIcon={<ChecklistIcon />}
-                    size="small"
-                    onClick={() => {
-                        setShowSelected(!showSelected);
-                    }}
-                >
-                    {showSelected ? 'Ver Todos' : 'Ver Seleccionados'}
-                </Button>
-                <Box sx={{ flexGrow: 1 }} />
-                <Button
-                    startIcon={<AddIcon />}
-                    component={Link}
-                    to="/articulos/form"
-                    target="_blank"
-                    size="small"
-                    variant="contained"
-                    color="success"
-                >
-                    Nuevo Artículo
-                </Button>
-            </GridToolbarContainer>
-        );
-    }
 
     const fetchData = async () => {
         setLoading(true);
@@ -159,7 +162,16 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                             setSelectedArticulo(newSelection);
                         }}
                         rowSelectionModel={selectedArticulo}
-                        slots={{ toolbar: CustomToolbar }}
+                        slots={{
+                            toolbar: (props) => <SelectorToolbar
+                                {...props}
+                                show_btn_add={allowCreate}
+                                txt_btn_add="Nuevo Artículo"
+                                url_btn_add="/articulos/form"
+                                showSelected={showSelected}
+                                setShowSelected={setShowSelected}
+                            />
+                        }}
                         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     />
                 </div>
