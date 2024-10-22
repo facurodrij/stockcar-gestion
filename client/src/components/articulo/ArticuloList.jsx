@@ -1,49 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import {
     DataGrid,
-    GridActionsCellItem,
-    GridToolbarColumnsButton,
-    GridToolbarContainer,
-    GridToolbarDensitySelector,
-    GridToolbarExport,
-    GridToolbarFilterButton, GridToolbarQuickFilter
+    GridActionsCellItem
 } from '@mui/x-data-grid';
-import { Add, Delete, Edit, Visibility } from '@mui/icons-material';
+import { Delete, Edit, Visibility } from '@mui/icons-material';
 import { API } from "../../App";
 import { Link } from "react-router-dom";
 import { esES } from "@mui/x-data-grid/locales";
-import { Box, Button } from "@mui/material";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
 import { useConfirm } from 'material-ui-confirm';
+import ListToolbar from '../shared/ListToolbar';
 
 
-const CustomToolbar = () => {
-    return (
-        <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
-            <GridToolbarQuickFilter size={'small'} />
-            <GridToolbarColumnsButton />
-            <GridToolbarFilterButton />
-            <GridToolbarDensitySelector />
-            <GridToolbarExport />
-            <Box sx={{ flexGrow: 1 }} />
-            <Button
-                startIcon={<Add />}
-                component={Link}
-                to="/articulos/form"
-                size="small"
-                variant="contained"
-                color="success"
-            >
-                Nuevo Artículo
-            </Button>
-        </GridToolbarContainer>
-    );
-}
-
-
-export default function ArticuloList() {
+export default function ArticuloList({ allowView, allowCreate, allowUpdate, allowDelete }) {
     const [list, setList] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
@@ -100,21 +71,27 @@ export default function ArticuloList() {
         {
             field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.75,
             getActions: (params) => [
-                <GridActionsCellItem
-                    icon={<Visibility />}
-                    component={Link}
-                    to={`/articulos/${params.row.id}`}
-                />,
-                <GridActionsCellItem
-                    icon={<Edit />}
-                    component={Link}
-                    to={`/articulos/form/${params.row.id}`}
-                />,
-                <GridActionsCellItem
-                    icon={<Delete />}
-                    onClick={() => handleDelete(params.row.id)}
-                />
-            ]
+                allowView && (
+                    <GridActionsCellItem
+                        icon={<Visibility />}
+                        component={Link}
+                        to={`/articulos/${params.row.id}`}
+                    />
+                ),
+                allowUpdate && (
+                    <GridActionsCellItem
+                        icon={<Edit />}
+                        component={Link}
+                        to={`/articulos/form/${params.row.id}`}
+                    />
+                ),
+                allowDelete && (
+                    <GridActionsCellItem
+                        icon={<Delete />}
+                        onClick={() => handleDelete(params.row.id)}
+                    />
+                )
+            ].filter(Boolean) // Remove undefined values
         }
     ];
 
@@ -197,7 +174,13 @@ export default function ArticuloList() {
                     rowsPerPageOptions={[5, 10, 20]}
                     initialState={{ sorting: { sortModel: [{ field: 'id', sort: 'desc' }] } }}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
-                    slots={{ toolbar: CustomToolbar }}
+                    slots={{
+                        toolbar: () => <ListToolbar
+                            show_btn_add={allowCreate}
+                            txt_btn_add='Nuevo Artículo'
+                            url_btn_add='/articulos/form'
+                        />
+                    }}
                     ignoreDiacritics
                 />
             </div>
