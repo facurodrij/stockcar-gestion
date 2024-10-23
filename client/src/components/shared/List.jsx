@@ -1,20 +1,31 @@
-import React, { useEffect, useState } from 'react'
-import {
-    DataGrid,
-    GridActionsCellItem
-} from '@mui/x-data-grid';
+import React, { useState, useEffect } from 'react';
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { Delete, Edit, Visibility } from '@mui/icons-material';
-import { API } from "../../App";
-import { Link } from "react-router-dom";
-import { esES } from "@mui/x-data-grid/locales";
-import fetchWithAuth from '../../utils/fetchWithAuth';
-import SnackbarAlert from '../shared/SnackbarAlert';
+import { Link } from 'react-router-dom';
+import SnackbarAlert from './SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
 import { useConfirm } from 'material-ui-confirm';
-import ListToolbar from '../shared/ListToolbar';
+import fetchWithAuth from '../../utils/fetchWithAuth';
+import { esES } from '@mui/x-data-grid/locales';
+import ListToolbar from './ListToolbar';
 
-
-export default function ArticuloList({ allowView, allowCreate, allowUpdate, allowDelete }) {
+const List = ({
+    apiUrl,
+    editUrl,
+    detailUrl,
+    allowView,
+    allowUpdate,
+    allowDelete,
+    columns,
+    rowHeight = 30,
+    pageSize = 5,
+    rowsPerPageOptions = [5, 10, 20],
+    initialSortField = 'id',
+    initialSortOrder = 'desc',
+    toolbarProps,
+    snackbarMessages,
+    mapDataToRows
+}) => {
     const [list, setList] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
@@ -35,18 +46,17 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const url = `${API}/articulos`;
             try {
-                const res = await fetchWithAuth(url);
+                const res = await fetchWithAuth(apiUrl);
                 const data = await res.json();
                 if (!res.ok) {
                     throw new Error(data['error']);
                 }
-                setList(data['articulos']);
+                setList(mapDataToRows(data));
             } catch (error) {
                 console.error(error);
                 setSnackbar({
-                    message: `Error al obtener los artículos: ${error.message}`,
+                    message: snackbarMessages.fetchError(error.message),
                     severity: 'error',
                     autoHideDuration: null,
                     onClose: handleCloseSnackbar
@@ -58,55 +68,7 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
         }
 
         fetchData();
-    }, []);
-
-    const columns = [
-        { field: 'stock_actual', headerName: 'Stock', flex: 0.5 },
-        { field: 'descripcion', headerName: 'Descripción', flex: 2 },
-        { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
-        { field: 'codigo_secundario', headerName: 'Código secundario', flex: 1 },
-        { field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75 },
-        { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
-        { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
-        {
-            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.75,
-            getActions: (params) => [
-                allowView && (
-                    <GridActionsCellItem
-                        icon={<Visibility />}
-                        component={Link}
-                        to={`/articulos/${params.row.id}`}
-                    />
-                ),
-                allowUpdate && (
-                    <GridActionsCellItem
-                        icon={<Edit />}
-                        component={Link}
-                        to={`/articulos/form/${params.row.id}`}
-                    />
-                ),
-                allowDelete && (
-                    <GridActionsCellItem
-                        icon={<Delete />}
-                        onClick={() => handleDelete(params.row.id)}
-                    />
-                )
-            ].filter(Boolean) // Remove undefined values
-        }
-    ];
-
-    let rows = list.map(item => {
-        return {
-            id: item.id,
-            stock_actual: item.stock_actual,
-            codigo_principal: item.codigo_principal,
-            codigo_secundario: item.codigo_secundario,
-            codigo_terciario: item.codigo_terciario,
-            codigo_cuaternario: item.codigo_cuaternario,
-            codigo_adicional: item.codigo_adicional,
-            descripcion: item.descripcion,
-        }
-    });
+    }, [apiUrl, snackbarMessages, mapDataToRows]);
 
     const handleDelete = async (pk) => {
         confirm({
@@ -114,11 +76,10 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
             description: '¿Está seguro que desea eliminar el artículo?',
             cancellationText: 'Cancelar',
             confirmationText: 'Confirmar'
-
         })
             .then(() => {
                 withLoading(async () => {
-                    const url = `${API}/articulos/${pk}/delete`;
+                    const url = `${apiUrl}/${pk}/delete`;
                     fetchWithAuth(url, 'DELETE')
                         .then(response => {
                             if (!response.ok) {
@@ -131,7 +92,7 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
                         .then(data => {
                             setList(list.filter(item => item.id !== pk));
                             setSnackbar({
-                                message: data['message'],
+                                message: snackbarMessages.deleteSuccess(data['message']),
                                 severity: 'success',
                                 autoHideDuration: 4000,
                                 onClose: () => handleCloseSnackbar()
@@ -140,7 +101,7 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
                         })
                         .catch((error) => {
                             setSnackbar({
-                                message: `Error al eliminar el artículo: ${error.message}`,
+                                message: snackbarMessages.deleteError(error.message),
                                 severity: 'error',
                                 autoHideDuration: 6000,
                                 onClose: () => handleCloseSnackbar()
@@ -151,7 +112,7 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
             })
             .catch((error) => {
                 setSnackbar({
-                    message: 'Acción cancelada',
+                    message: snackbarMessages.actionCancelled,
                     severity: 'info',
                     autoHideDuration: 4000,
                     onClose: () => handleCloseSnackbar()
@@ -160,26 +121,50 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
             });
     }
 
+    const enhancedColumns = [
+        ...columns,
+        {
+            field: 'actions', type: 'actions', headerName: 'Acciones', flex: 0.75,
+            getActions: (params) => [
+                allowView && (
+                    <GridActionsCellItem
+                        icon={<Visibility />}
+                        component={Link}
+                        to={`${detailUrl}/${params.row.id}`}
+                    />
+                ),
+                allowUpdate && (
+                    <GridActionsCellItem
+                        icon={<Edit />}
+                        component={Link}
+                        to={`${editUrl}/${params.row.id}`}
+                    />
+                ),
+                allowDelete && (
+                    <GridActionsCellItem
+                        icon={<Delete />}
+                        onClick={() => handleDelete(params.row.id)}
+                    />
+                )
+            ].filter(Boolean) // Remove undefined values
+        }
+    ];
 
     return (
         <>
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
                     loading={loading}
-                    columns={columns}
-                    rows={rows}
+                    columns={enhancedColumns}
+                    rows={list}
                     disableRowSelectionOnClick
-                    rowHeight={30}
-                    pageSize={5}
-                    rowsPerPageOptions={[5, 10, 20]}
-                    initialState={{ sorting: { sortModel: [{ field: 'id', sort: 'desc' }] } }}
+                    rowHeight={rowHeight}
+                    pageSize={pageSize}
+                    rowsPerPageOptions={rowsPerPageOptions}
+                    initialState={{ sorting: { sortModel: [{ field: initialSortField, sort: initialSortOrder }] } }}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{
-                        toolbar: () => <ListToolbar
-                            show_btn_add={allowCreate}
-                            txt_btn_add='Nuevo Artículo'
-                            url_btn_add='/articulos/form'
-                        />
+                        toolbar: () => <ListToolbar {...toolbarProps} />
                     }}
                     ignoreDiacritics
                 />
@@ -194,3 +179,5 @@ export default function ArticuloList({ allowView, allowCreate, allowUpdate, allo
         </>
     );
 };
+
+export default List;
