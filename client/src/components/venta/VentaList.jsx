@@ -59,7 +59,7 @@ export default function VentaList({ onlyOrders }) {
         } catch (error) {
             console.error(error);
             setSnackbar({
-                message: error.message,
+                message: `Error al obtener las ventas: ${error.message}`,
                 severity: 'error',
                 autoHideDuration: null,
                 onClose: handleCloseSnackbar
