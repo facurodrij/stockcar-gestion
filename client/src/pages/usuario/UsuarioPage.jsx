@@ -37,8 +37,8 @@ export default function UsuarioPage() {
             id: item.id,
             username: item.username,
             email: item.email,
-            first_name: item.first_name,
-            last_name: item.last_name,
+            first_name: item.nombre,
+            last_name: item.apellido,
             is_superuser: item.is_superuser,
             is_staff: item.is_staff
         }));
