@@ -23,12 +23,13 @@ import {
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import { API } from "../../App";
 import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
+import { Search, Save } from '@mui/icons-material';
+import { useLoading } from '../../utils/loadingContext';
 
 
 export default function ClienteForm({ pk }) {
@@ -36,7 +37,8 @@ export default function ClienteForm({ pk }) {
         handleSubmit,
         control,
         formState: { errors },
-        setValue
+        setValue,
+        getValues
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
         tipo_documento: [],
@@ -57,6 +59,8 @@ export default function ClienteForm({ pk }) {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [allowSearch, setAllowSearch] = useState(false);
+    const { withLoading } = useLoading();
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -132,8 +136,49 @@ export default function ClienteForm({ pk }) {
                 setOpenSnackbar(true);
             }
         }
-        loadData();
-    }, [pk, setValue]);
+        withLoading(loadData);
+    }, [pk, setValue, withLoading]);
+
+    const searchAfip = async () => {
+        const fetchData = async () => {
+            const nro_documento = getValues('nro_documento');
+            if (!nro_documento) {
+                throw new Error('Debe ingresar un número de documento');
+            }
+            if (!/^[0-9]*$/.test(nro_documento)) {
+                throw new Error('El número de documento debe ser numérico');
+            }
+            const url = `${API}/clientes/afip?nro_documento=${nro_documento}`;
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data['error']);
+            }
+            return data;
+        }
+        const loadData = async () => {
+            try {
+                const data = await fetchData();
+                setValue('tipo_responsable_id', data['tipo_responsable_id']);
+                setValue('razon_social', data['razon_social']);
+                setValue('direccion', data['direccion']);
+                setValue('localidad', data['localidad']);
+                setValue('codigo_postal', data['codigo_postal']);
+                setValue('provincia_id', data['provincia_id']);
+                setValue('telefono', data['telefono']);
+                setValue('email', data['email']);
+            } catch (e) {
+                setSnackbar({
+                    message: e.message,
+                    severity: 'error',
+                    autoHideDuration: null,
+                    onClose: () => handleCloseSnackbar(false)
+                });
+                setOpenSnackbar(true);
+            }
+        }
+        withLoading(loadData);
+    }
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -199,6 +244,74 @@ export default function ClienteForm({ pk }) {
                 </Box>
                 <SimpleTabPanel value={tabValue} index={0}>
                     <Grid container spacing={2}>
+                        <Grid item xs={12} md={4}>
+                            <FormControl fullWidth required error={Boolean(errors.tipo_documento_id)}>
+                                <InputLabel id="tipo_documento_label">Tipo de Documento</InputLabel>
+                                <Controller
+                                    name="tipo_documento_id"
+                                    control={control}
+                                    defaultValue=""
+                                    rules={{ required: "Este campo es requerido" }}
+                                    render={({ field }) => (
+                                        <Select
+                                            {...field}
+                                            id="tipo_documento"
+                                            labelId="tipo_documento_label"
+                                            label="Tipo de Documento"
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                                // Si el tipo de documento es CUIT, se permite la búsqueda en AFIP
+                                                setAllowSearch(e.target.value === 1);
+                                            }
+                                            }
+                                        >
+                                            {selectOptions.tipo_documento.map((item) => (
+                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                        </Select>
+                                    )}
+                                />
+                                <FormHelperText>{errors.tipo_documento_id && errors.tipo_documento_id.message}</FormHelperText>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={5}>
+                            <FormControl fullWidth>
+                                <Controller
+                                    name="nro_documento"
+                                    control={control}
+                                    defaultValue=""
+                                    rules={{
+                                        required: "Este campo es requerido",
+                                        pattern: {
+                                            value: /^[0-9]*$/,
+                                            message: "El número de documento debe ser numérico"
+                                        }
+                                    }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            required
+                                            id="nro_documento"
+                                            label="Número de Documento"
+                                            variant="outlined"
+                                            error={Boolean(errors.nro_documento)}
+                                            helperText={errors.nro_documento && errors.nro_documento.message}
+                                        />
+                                    )}
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Button
+                                startIcon={<Search />}
+                                variant="contained"
+                                color="primary"
+                                fullWidth
+                                disabled={!allowSearch}
+                                onClick={searchAfip}
+                            >
+                                Buscar en AFIP
+                            </Button>
+                        </Grid>
                         <Grid item xs={4}>
                             <FormControl fullWidth required error={Boolean(errors.tipo_responsable_id)}>
                                 <InputLabel id="tipo_responsable_label">Tipo de Responsable IVA</InputLabel>
@@ -238,56 +351,6 @@ export default function ClienteForm({ pk }) {
                                             variant="outlined"
                                             error={Boolean(errors.razon_social)}
                                             helperText={errors.razon_social && errors.razon_social.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={4}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_documento_id)}>
-                                <InputLabel id="tipo_documento_label">Tipo de Documento</InputLabel>
-                                <Controller
-                                    name="tipo_documento_id"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{ required: "Este campo es requerido" }}
-                                    render={({ field }) => (
-                                        <Select
-                                            {...field}
-                                            id="tipo_documento"
-                                            labelId="tipo_documento_label"
-                                            label="Tipo de Documento"
-                                        >
-                                            {selectOptions.tipo_documento.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
-                                        </Select>
-                                    )}
-                                />
-                                <FormHelperText>{errors.tipo_documento_id && errors.tipo_documento_id.message}</FormHelperText>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={8}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="nro_documento"
-                                    control={control}
-                                    defaultValue=""
-                                    rules={{
-                                        required: "Este campo es requerido",
-                                        pattern: {
-                                            value: /^[0-9]*$/,
-                                            message: "El número de documento debe ser numérico"
-                                        }
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            required
-                                            id="nro_documento"
-                                            label="Número de Documento"
-                                            variant="outlined"
-                                            error={Boolean(errors.nro_documento)}
-                                            helperText={errors.nro_documento && errors.nro_documento.message}
                                         />
                                     )}
                                 />
@@ -652,7 +715,7 @@ export default function ClienteForm({ pk }) {
                     <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
                         <Button
                             variant="contained"
-                            startIcon={<SaveIcon />}
+                            startIcon={<Save />}
                             type="button"
                             onClick={handleSubmit(onSubmit, onError)}
                             disabled={isSubmitting}

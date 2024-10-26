@@ -15,6 +15,7 @@ from server.models import (
     Usuario,
 )
 from server.api.decorators import permission_required
+from server.api.services import AfipService
 
 cliente_bp = Blueprint("cliente_bp", __name__)
 
@@ -136,3 +137,32 @@ def update(pk):
 def detail(pk):
     cliente = Cliente.query.get_or_404(pk, "Cliente no encontrado")
     return jsonify({"cliente": cliente.to_json()}), 200
+
+
+@cliente_bp.route("/clientes/afip", methods=["GET"])
+@jwt_required()
+def get_afip_data():
+    """
+    Obtiene los datos de un proveedor desde la API de AFIP.
+    """
+    try:
+        nro_documento: int = int(request.args.get("nro_documento"))
+        afip = AfipService()
+        res = afip.get_persona(nro_documento)
+
+        return (
+            jsonify(
+                {
+                    "tipo_responsable_id": res["tipo_responsable_id"],
+                    "razon_social": res["razon_social"],
+                    "direccion": res["direccion"],
+                    "localidad": res["localidad"],
+                    "provincia_id": res["provincia_id"],
+                    "codigo_postal": res["codigo_postal"],
+                }
+            ),
+            200,
+        )
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 400
