@@ -1,55 +1,87 @@
-# Instalación y Ejecución
+## Acerca del Proyecto
+
+<p>
+<img src="docs/Demo.png" alt="Terminales" width="1080">
+</p>
+
+Sistema de facturación y gestión de inventario para Repuestos Stock Car, una empresa dedicada a la venta de repuestos automotores. Este sistema actualmente se encuentra en estado de producción dentro de la empresa y en constante actualización con nuevas funcionalidades.
+
+### Desarrollado con
+
+<p align="left">
+<a href="https://flask.palletsprojects.com/en/3.0.x/" target="blank"><img align="center" src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=Flask&logoColor=white"/></a>
+
+<a href="https://es.react.dev/" target="blank"><img align="center" src="https://shields.io/badge/react-black?logo=react&style=for-the-badge"/></a>
+
+<a href="https://mui.com/material-ui/getting-started/" target="blank"><img align="center" src="https://img.shields.io/badge/Material%20UI-007FFF?style=for-the-badge&logo=mui&logoColor=white"/></a>
+</p>
+
+## Iniciando
 
 Este documento proporciona instrucciones detalladas para instalar y ejecutar el proyecto, que consta de un servidor Flask y un cliente React.
 
-## Requisitos
+### Prerequisitos
 
-### Servidor (Flask)
 - Python 3.11 o superior
 
-### Cliente (React)
 - npm 10.5 o superior
 
-## Instalación de Dependencias
+### Instalación
 
-### Servidor (Flask)
+1. **Clonar el repositorio**:
 
-1. **Crear y activar un entorno virtual**:
+    ```sh
+    git clone https://github.com/facurodrij/stockcar-gestion.git
+    ```
+
+Es necesario descargar las dependencias necesarias para el backend y el frontend.
+
+### Descarga de Dependencias
+
+#### Backend (Flask)
+
+2. **Crear y activar un entorno virtual (Recomendado)**:
+
     ```sh
     python -m venv venv
 
     source venv/bin/activate  # En Windows usa `venv\Scripts\activate`
     ```
 
-2. **Ejecutar en la terminal**:
+3. **Ejecutar en la terminal**:
+
     ```sh
     pip install -r server/requirements.txt
     ```
     
-### Cliente (React)
+#### Frontend (React)
 
-1. **Movernos dentro del directorio `client/` y ejecutar**:
+4. **Movernos dentro del directorio `client/` y ejecutar**:
+
     ```sh
     cd client/ # Para movernos dentro del directorio
 
     npm install
     ```
 
-## Migración de Base de Datos
+## Ejecución
 
 Antes de iniciar el servidor Flask debemos inicializar la base de datos.
 
 1. **Movernos dentro del directorio `server/`**:
+
     ```sh
     cd server/
     ```
 
 2. **Inicializar la base de datos**:
+
     ```sh
     flask db init
     ```
 
 3. **Crear y ejecutar las migraciones**:
+
     ```sh
     flask db migrate -m "Nombre-de-la-migración"
 
@@ -57,20 +89,13 @@ Antes de iniciar el servidor Flask debemos inicializar la base de datos.
     ```
 
 4. **(Opcional) Poblar las tablas con datos preestablecidos**:
+
     ```sh
     flask load_fixtures
     ```
 
-## Ejecución
+5. **Create superusuario y permisos**:
 
-### Servidor (Flask)
-
-1. **Iniciar el servidor**:
-    ```sh
-    flask run
-    ```
-
-2. **Create superusuario y permisos**:
     ```sh
     flask create_superuser `username` `password` `email`
     ```
@@ -78,19 +103,31 @@ Antes de iniciar el servidor Flask debemos inicializar la base de datos.
     flask create_permissions
     ```
 
-### Cliente (React)
+6. **Iniciar el servidor**:
 
-1. **Crear variable de entorno con el puerto del servidor Flask**:
+    ```sh
+    flask run
+    ```
+
+Antes de iniciar el cliente React debemos configurar una variable de entorno.
+
+7. **Crear variable de entorno con el puerto del servidor Flask**:
     Dentro de la carpeta `client` debemos crear un archivo con nombre `.env`. En ese archivo debemos escribir la siguiente línea:
+
     ```
     REACT_APP_API_URL=http://127.0.0.1:5000/
     ```
     En caso de cambiar la url y puerto del servidor Flask es necesario actualizar la variable `REACT_APP_API_URL`.
 
-2. **Iniciar el servidor**:
+8. **Iniciar el cliente**:
+
     ```sh
     npm start
     ```
+
+En este punto deberiamos ver las dos terminales ejecutandose de la siguiente manera:
+
+<img src="docs/TerminalsOnRun.png" alt="Terminales" width="800">
 
 ## Configuración Adicional
 
