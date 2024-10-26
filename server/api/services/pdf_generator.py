@@ -134,19 +134,19 @@ class A4PDFGenerator(BasePDFGenerator):
 
     def draw_customer_data(self):
         "Draw customer data below the header"
-        self.rect(20, 660, 555, 55)
+        self.rect(20, 650, 555, 65)
         self.setFont("Helvetica-Bold", 10)
         self.drawString(30, 700, "Cliente:")
-        self.drawString(30, 685, "Domicilio:")
-        self.drawString(30, 670, "Localidad:")
-        self.drawString(320, 700, f"{self.venta.cliente.tipo_documento.descripcion}:")
+        self.drawString(30, 685, f"{self.venta.cliente.tipo_documento.descripcion}:")
+        self.drawString(30, 670, "Domicilio:")
+        self.drawString(30, 655, "Localidad:")
         self.drawString(320, 685, "Condición de IVA:")
         self.drawString(320, 670, "Condición de Venta:")
         self.setFont("Helvetica", 10)
-        self.drawString(80, 700, f"{self.venta.cliente.razon_social}")
-        self.drawString(90, 685, f"{self.venta.cliente.direccion}")
-        self.drawString(90, 670, f"{self.venta.cliente.localidad}")
-        self.drawString(360, 700, f"{self.venta.cliente.nro_documento}")
+        self.drawString(90, 700, f"{self.venta.cliente.razon_social}")
+        self.drawString(90, 685, f"{self.venta.cliente.nro_documento}")
+        self.drawString(90, 670, f"{self.venta.cliente.direccion}")
+        self.drawString(90, 655, f"{self.venta.cliente.localidad}")
         self.drawString(420, 685, f"{self.venta.cliente.tipo_responsable.descripcion}")
         self.drawString(420, 670, f"{self.venta.tipo_pago.nombre}")
 
@@ -173,7 +173,7 @@ class A4PDFGenerator(BasePDFGenerator):
                     f"${locale.format_string('%.2f', item.subtotal, grouping=True)}",
                 ]
             )
-        table_y_max = 655  # Max Y position for the table
+        table_y_max = 645  # Max Y position for the table
         row_heights = [20] + [17] * (len(table_data) - 1)
         table = Table(
             table_data, colWidths=[120, 185, 45, 85, 35, 85], rowHeights=row_heights
