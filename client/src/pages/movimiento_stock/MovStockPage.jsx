@@ -79,6 +79,8 @@ export default function MovStockPage() {
                 mapDataToRows={mapDataToRows}
                 snackbarMessages={snackbarMessages}
                 toolbarProps={toolbarProps}
+                initialSortField = 'fecha_hora'
+                initialSortOrder = 'desc'
             />
         </>
     );
