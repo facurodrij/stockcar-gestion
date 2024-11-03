@@ -1,7 +1,7 @@
 from functools import wraps
-from flask import request, jsonify
-from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
-from server.models import Usuario
+from flask import jsonify
+from flask_jwt_extended import verify_jwt_in_request, current_user
+from server.auth.models import Usuario
 
 
 def permission_required(permissions: list):
@@ -9,8 +9,7 @@ def permission_required(permissions: list):
         @wraps(fn)
         def wrapper(*args, **kwargs):
             verify_jwt_in_request()
-            current_user: dict = get_jwt_identity()
-            user = Usuario.query.filter_by(username=current_user["username"]).first()
+            user: Usuario = current_user
             if user.is_superuser:
                 return fn(*args, **kwargs)
             for permission in permissions:

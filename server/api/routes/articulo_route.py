@@ -8,9 +8,9 @@ from server.models import (
     TipoArticulo,
     TipoUnidad,
     MovimientoStock,
-    MovimientoStockItem,
-    Usuario,
+    MovimientoStockItem
 )
+from server.auth.models import Usuario
 from server.api.decorators import permission_required
 from server.api.controllers import ArticuloController
 

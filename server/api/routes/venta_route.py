@@ -14,9 +14,9 @@ from server.models import (
     Tributo,
     EstadoVenta,
     PuntoVenta,
-    AlicuotaIVA,
-    Usuario,
+    AlicuotaIVA
 )
+from server.auth.models import Usuario
 from server.config import db
 from server.api.services import A4PDFGenerator, TicketPDFGenerator
 from server.api.decorators import permission_required

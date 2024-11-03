@@ -6,9 +6,9 @@ from server.models import (
     Proveedor,
     TipoDocumento,
     TipoResponsable,
-    Provincia,
-    Usuario,
+    Provincia
 )
+from server.auth.models import Usuario
 from server.api.decorators import permission_required
 from server.api.services import AfipService
 

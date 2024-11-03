@@ -1,18 +1,38 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from server.models import Usuario, Permiso, usuario_permiso
+from server.auth.models import Usuario, Permiso, usuario_permiso
 from server.config import db
 from server.api.decorators import permission_required
 
 usuario_bp = Blueprint("usuario_bp", __name__)
 
 
-def get_select_options():
+def get_select_options(models: list = []) -> dict:
     """
     Obtiene los datos necesarios para los campos select de los formularios de usuarios.
     """
-    permisos = Permiso.query.all()
-    return {"permisos": list(map(lambda x: x.to_json(), permisos))}
+    select_options = {}
+
+    for model in models:
+        model_name = model.__tablename__
+        records = model.query.all()
+        select_options[model_name] = list(map(lambda x: x.to_select_dict(), records))
+
+    return select_options
+
+
+def get_datagrid_options(models: list = []) -> dict:
+    """
+    Obtiene los datos necesarios para las columnas de los datagrid en los formularios de usuarios.
+    """
+    datagrid_options = {}
+
+    for model in models:
+        model_name = model.__tablename__
+        records = model.query.all()
+        datagrid_options[model_name] = list(map(lambda x: x.to_dict(), records))
+
+    return datagrid_options
 
 
 @usuario_bp.route("/usuarios", methods=["GET"])
@@ -20,8 +40,8 @@ def get_select_options():
 @permission_required("usuario.view_all")
 def index():
     users = Usuario.query.all()
-    users_json = list(map(lambda x: x.to_json(), users))
-    return jsonify({"usuarios": users_json}), 200
+    users_dict: list = list(map(lambda x: x.to_dict(), users))
+    return jsonify({"usuarios": users_dict}), 200
 
 
 @usuario_bp.route("/usuarios/create", methods=["GET", "POST"])
@@ -29,7 +49,7 @@ def index():
 @permission_required("usuario.create")
 def create():
     if request.method == "GET":
-        return jsonify({"select_options": get_select_options()}), 200
+        return (jsonify(get_datagrid_options([Permiso])), 200)
     if request.method == "POST":
         data = request.json
         try:
@@ -58,11 +78,14 @@ def create():
 @jwt_required()
 @permission_required("usuario.update")
 def update(pk):
-    user = Usuario.query.get(pk)
+    user: Usuario = Usuario.query.get(pk)
     if request.method == "GET":
         return (
             jsonify(
-                {"select_options": get_select_options(), "usuario": user.to_json()}
+                {
+                    **get_datagrid_options([Permiso]),
+                    "usuario": user.to_dict(include_relationships=True),
+                }
             ),
             200,
         )

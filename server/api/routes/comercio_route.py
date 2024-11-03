@@ -3,7 +3,8 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from server.config import db
-from server.models import Comercio, TipoResponsable, Provincia, PuntoVenta, Usuario
+from server.models import Comercio, TipoResponsable, Provincia, PuntoVenta
+from server.auth.models import Usuario
 from server.api.decorators import permission_required
 
 comercio_bp = Blueprint("comercio_bp", __name__)

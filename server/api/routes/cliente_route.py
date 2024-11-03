@@ -11,9 +11,9 @@ from server.models import (
     Genero,
     TipoPago,
     Moneda,
-    Tributo,
-    Usuario,
+    Tributo
 )
+from server.auth.models import Usuario
 from server.api.decorators import permission_required
 from server.api.services import AfipService
 

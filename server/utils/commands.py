@@ -16,10 +16,9 @@ from server.models import (
     TipoUnidad,
     TipoTributo,
     Tributo,
-    Comercio,
-    Usuario,
-    Rol,
+    Comercio
 )
+from server.auth.models import Usuario, Rol, Permiso
 
 
 @app.cli.command("load_fixtures")

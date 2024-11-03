@@ -2,8 +2,9 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from server.config import db
-from server.models import MovimientoStock, MovimientoStockItem, Usuario
+from server.models import MovimientoStock, MovimientoStockItem
 from server.models.movimiento_stock import TipoMovimiento, OrigenMovimiento
+from server.auth.models import Usuario
 from server.api.decorators import permission_required
 from server.api.controllers import MovimientoStockController
 

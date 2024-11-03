@@ -3,17 +3,19 @@ import os
 import logging
 
 # Asegúrate de que el directorio raíz del proyecto esté en el PYTHONPATH
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from flask import jsonify
 from waitress import serve
 from server.config import app
 from server.api.routes import *
+from server.auth.routes import *
+
 # noinspection PyUnresolvedReferences
 from server.utils.commands import load_fixtures
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('waitress')
+logger = logging.getLogger("waitress")
 logger.setLevel(logging.INFO)
 
 app.register_blueprint(venta_bp)
@@ -25,17 +27,21 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(movimiento_stock_bp)
 app.register_blueprint(proveedor_bp)
 
-@app.route('/')
+
+@app.route("/")
 def index():
-    return jsonify({'message': 'Hello, World!'})
+    return jsonify({"message": "Hello, World!"})
+
 
 mode = "prod"
+
 
 def create_app():
     return app
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if mode == "dev":
-        app.run(host='0.0.0.0', port=50100, debug=True)
+        app.run(host="0.0.0.0", port=50100, debug=True)
     else:
-        serve(app, host='0.0.0.0', port=50100, threads=1)
+        serve(app, host="0.0.0.0", port=50100, threads=1)

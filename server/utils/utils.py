@@ -51,8 +51,8 @@ class AuditMixin:
             "updated_at": self.updated_at.replace(tzinfo=pytz.utc)
             .astimezone(local_tz)
             .isoformat(),
-            "created_by": self.created_by_user.to_json(),
-            "updated_by": self.updated_by_user.to_json(),
+            "created_by": self.created_by_user.to_dict(),
+            "updated_by": self.updated_by_user.to_dict(),
         }
 
 
