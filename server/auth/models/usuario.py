@@ -1,4 +1,3 @@
-# TODO - Relacionar con el modelo Comercio
 from sqlalchemy import (
     Column,
     String,
@@ -21,6 +20,7 @@ class Usuario(db.Model):
     """
 
     __tablename__ = "usuario"
+    __pluralname__ = "usuarios"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, nullable=False, unique=True)

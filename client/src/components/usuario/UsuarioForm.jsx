@@ -60,7 +60,7 @@ export default function UsuarioForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                setAvailablePermissions(data['permiso']);
+                setAvailablePermissions(data['permisos']);
                 if (Boolean(pk)) {
                     const usuario = data['usuario'];
                     const permisos = usuario['permisos']
@@ -97,9 +97,8 @@ export default function UsuarioForm({ pk }) {
         const url = Boolean(pk) ? `${API}/usuarios/${pk}/update` : `${API}/usuarios/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            const res = await fetchWithAuth(url, method, {
-                usuario: data, permisos: selectedPermissions
-            });
+            data['permisos'] = selectedPermissions;
+            const res = await fetchWithAuth(url, method, data);
             const resJson = await res.json();
             if (!res.ok) {
                 throw new Error(`${resJson['error']}`);

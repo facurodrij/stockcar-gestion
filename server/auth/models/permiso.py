@@ -13,6 +13,7 @@ class Permiso(db.Model):
     """
 
     __tablename__ = "permiso"
+    __pluralname__ = "permisos"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False)

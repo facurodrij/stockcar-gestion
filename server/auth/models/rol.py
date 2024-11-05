@@ -13,6 +13,7 @@ class Rol(db.Model):
     """
 
     __tablename__ = "rol"
+    __pluralname__ = "roles"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False)

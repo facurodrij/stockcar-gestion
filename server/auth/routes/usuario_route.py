@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from server.auth.models import Usuario, Permiso, usuario_permiso
+from server.auth.models import Usuario, Permiso
+from server.auth.schemas import usuario_schema
 from server.config import db
 from server.api.decorators import permission_required
+from marshmallow import ValidationError
 
 usuario_bp = Blueprint("usuario_bp", __name__)
 
@@ -14,7 +16,7 @@ def get_select_options(models: list = []) -> dict:
     select_options = {}
 
     for model in models:
-        model_name = model.__tablename__
+        model_name = model.__pluralname__
         records = model.query.all()
         select_options[model_name] = list(map(lambda x: x.to_select_dict(), records))
 
@@ -28,7 +30,7 @@ def get_datagrid_options(models: list = []) -> dict:
     datagrid_options = {}
 
     for model in models:
-        model_name = model.__tablename__
+        model_name = model.__pluralname__
         records = model.query.all()
         datagrid_options[model_name] = list(map(lambda x: x.to_dict(), records))
 
@@ -50,22 +52,18 @@ def index():
 def create():
     if request.method == "GET":
         return (jsonify(get_datagrid_options([Permiso])), 200)
+
     if request.method == "POST":
         data = request.json
         try:
-            user = Usuario(**data["usuario"])
-            db.session.add(user)
-            db.session.flush()
-            permisos = data["permisos"]
-            permisos = Permiso.query.filter(Permiso.id.in_(data["permisos"])).all()
-            for permiso in permisos:
-                db.session.execute(
-                    usuario_permiso.insert().values(
-                        usuario_id=user.id, permiso_id=permiso.id
-                    )
-                )
+            new_usuario = usuario_schema.load(data, session=db.session)
+            db.session.add(new_usuario)
             db.session.commit()
-            return jsonify({"usuario_id": user.id}), 201
+            return jsonify({"usuario_id": new_usuario.id}), 201
+        except ValidationError as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({"error": e.messages}), 400
         except Exception as e:
             db.session.rollback()
             print(e)
@@ -78,13 +76,13 @@ def create():
 @jwt_required()
 @permission_required("usuario.update")
 def update(pk):
-    user: Usuario = Usuario.query.get(pk)
+    usuario: Usuario = Usuario.query.get_or_404(pk)
     if request.method == "GET":
         return (
             jsonify(
                 {
                     **get_datagrid_options([Permiso]),
-                    "usuario": user.to_dict(include_relationships=True),
+                    "usuario": usuario.to_dict(include_relationships=True),
                 }
             ),
             200,
@@ -92,28 +90,15 @@ def update(pk):
     if request.method == "PUT":
         data = request.json
         try:
-            for key, value in data["usuario"].items():
-                setattr(user, key, value)
-            current_permiso_ids = list(map(lambda x: x.id, user.permisos))
-            new_permiso_ids = data["permisos"]
-            for item in new_permiso_ids:
-                permiso = Permiso.query.get(item)
-                if item not in current_permiso_ids:
-                    db.session.execute(
-                        usuario_permiso.insert().values(
-                            usuario_id=user.id, permiso_id=permiso.id
-                        )
-                    )
-            for item in current_permiso_ids:
-                permiso = Permiso.query.get(item)
-                if item not in new_permiso_ids:
-                    db.session.execute(
-                        usuario_permiso.delete()
-                        .where(usuario_permiso.c.usuario_id == user.id)
-                        .where(usuario_permiso.c.permiso_id == permiso.id)
-                    )
+            updated_usuario = usuario_schema.load(
+                data, instance=usuario, session=db.session
+            )
             db.session.commit()
-            return jsonify({"usuario_id": user.id}), 200
+            return jsonify({"usuario_id": updated_usuario.id}), 200
+        except ValidationError as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({"error": e.messages}), 400
         except Exception as e:
             db.session.rollback()
             print(e)
