@@ -3,7 +3,7 @@ import click
 import pandas as pd
 
 from server.config import db, app
-from server.models import (
+from server.core.models import (
     Genero,
     Provincia,
     TipoDocumento,
@@ -110,7 +110,7 @@ def create_roles():
 @app.cli.command("create_permissions")
 def create_permissions():
     """Create the default permissions in the database."""
-    from server.models import Permiso
+    from server.core.models import Permiso
 
     # Get all models from the models package
     models = importlib.import_module("server.core.models")

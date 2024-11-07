@@ -1,8 +1,8 @@
 import pytz
 from datetime import datetime
-from flask import request, jsonify
+from flask import jsonify
 from server.config import db
-from server.models import MovimientoStock, Articulo, MovimientoStockItem, Venta
+from server.core.models import MovimientoStock, Articulo, MovimientoStockItem, Venta
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 

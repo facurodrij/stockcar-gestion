@@ -2,7 +2,6 @@ import pytz
 from sqlalchemy import Column, func, DateTime, Boolean, Integer, ForeignKey
 from sqlalchemy.orm import relationship, Query
 from sqlalchemy.ext.declarative import declared_attr
-from server.config import db
 
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")

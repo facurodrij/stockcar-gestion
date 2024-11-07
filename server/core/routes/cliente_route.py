@@ -1,9 +1,9 @@
 from datetime import date, datetime
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, current_user
 
 from server.config import db
-from server.models import (
+from server.core.models import (
     Cliente,
     TipoDocumento,
     TipoResponsable,
@@ -11,11 +11,11 @@ from server.models import (
     Genero,
     TipoPago,
     Moneda,
-    Tributo
+    Tributo,
 )
 from server.auth.models import Usuario
 from server.auth.decorators import permission_required
-from server.api.services import AfipService
+from server.core.services import AfipService
 
 cliente_bp = Blueprint("cliente_bp", __name__)
 
@@ -75,10 +75,9 @@ def create():
         data = request.json
         cliente_json = cliente_json_to_model(data["cliente"])
         try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
-            cliente = Cliente(**cliente_json, created_by=user.id, updated_by=user.id)
+            cliente = Cliente(
+                **cliente_json, created_by=current_user.id, updated_by=current_user.id
+            )
             db.session.add(cliente)
             for tributo_id in data["tributos"]:
                 tributo = Tributo.query.get_or_404(tributo_id)
@@ -109,10 +108,7 @@ def update(pk):
         data = request.json
         cliente_json = cliente_json_to_model(data["cliente"])
         try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
-            cliente.updated_by = user.id
+            cliente.updated_by = current_user.id
             for key, value in cliente_json.items():
                 setattr(cliente, key, value)
             cliente.tributos = []

@@ -1,7 +1,7 @@
 from flask import jsonify
 from server.config import db
-from server.models import Articulo, Tributo
-from server.api.controllers import MovimientoStockController
+from server.core.models import Articulo, Tributo
+from server.core.controllers import MovimientoStockController
 
 
 class ArticuloController:

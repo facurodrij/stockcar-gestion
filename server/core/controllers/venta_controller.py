@@ -2,7 +2,7 @@ import pytz
 from flask import jsonify
 from datetime import datetime
 from server.config import db
-from server.models import (
+from server.core.models import (
     Venta,
     VentaItem,
     Cliente,
@@ -10,9 +10,9 @@ from server.models import (
     Articulo,
     Tributo,
 )
-from server.models.tributo import BaseCalculo
-from server.models.association_table import tributo_venta
-from server.api.services import AfipService
+from server.core.models.tributo import BaseCalculo
+from server.core.models.association_table import tributo_venta
+from server.core.services import AfipService
 from .movimiento_stock_controller import MovimientoStockController
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")

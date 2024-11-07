@@ -13,8 +13,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from server.utils.utils import AuditMixin, SoftDeleteMixin, QueryWithSoftDelete
 from server.config import db
-from server.models.association_table import tributo_venta
-from server.models.parametros import AlicuotaIVA
+from server.core.models.association_table import tributo_venta
+from server.core.models.parametros import AlicuotaIVA
 
 
 class EstadoVenta(enum.Enum):

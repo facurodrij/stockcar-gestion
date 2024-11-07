@@ -12,7 +12,7 @@ from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from num2words import num2words
 
-from server.models import Venta, EstadoVenta
+from server.core.models import Venta, EstadoVenta
 from server.config import STATIC_DIR
 
 locale.setlocale(locale.LC_ALL, "es_AR.UTF-8")

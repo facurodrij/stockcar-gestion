@@ -1,10 +1,10 @@
 from io import BytesIO
 from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request, send_file, abort
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, current_user
 from flask_sqlalchemy.query import Query
 
-from server.models import (
+from server.core.models import (
     Venta,
     VentaItem,
     Moneda,
@@ -14,13 +14,13 @@ from server.models import (
     Tributo,
     EstadoVenta,
     PuntoVenta,
-    AlicuotaIVA
+    AlicuotaIVA,
 )
 from server.auth.models import Usuario
 from server.config import db
-from server.api.services import A4PDFGenerator, TicketPDFGenerator
+from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.auth.decorators import permission_required
-from server.api.controllers import VentaController
+from server.core.controllers import VentaController
 
 venta_bp = Blueprint("venta_bp", __name__)
 
@@ -99,9 +99,8 @@ def create():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
-        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-        data["created_by"] = user.id
-        data["updated_by"] = user.id
+        data["created_by"] = current_user.id
+        data["updated_by"] = current_user.id
         return VentaController.create_venta(data)
 
 
@@ -124,8 +123,7 @@ def update(pk):
         )
     if request.method == "PUT":
         data = request.json
-        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-        venta.updated_by = user.id
+        venta.updated_by = current_user.id
         return VentaController.update_venta(data, venta, venta_items)
 
 
@@ -166,10 +164,7 @@ def detail(pk):
                     mimetype="application/pdf",
                 )
             elif data["action"] == "anular":
-                user = Usuario.query.filter_by(
-                    username=get_jwt_identity()["username"]
-                ).first()
-                venta.updated_by = user.id
+                venta.updated_by = current_user.id
                 return VentaController.anular_venta(venta)
     except Exception as e:
         print(e)
@@ -228,9 +223,8 @@ def create_orden():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
-        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-        data["created_by"] = user.id
-        data["updated_by"] = user.id
+        data["created_by"] = current_user.id
+        data["updated_by"] = current_user.id
         return VentaController.create_orden_venta(data)
 
 
@@ -254,8 +248,7 @@ def update_orden(pk):
         )
     if request.method == "PUT":
         data = request.json
-        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-        data["updated_by"] = user.id
+        data["updated_by"] = current_user.id
         return VentaController.update_orden_venta(data, venta, venta_items)
 
 

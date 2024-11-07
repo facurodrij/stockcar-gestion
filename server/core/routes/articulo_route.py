@@ -1,18 +1,18 @@
 from flask import Blueprint, jsonify, request, abort
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, current_user
 from server.config import db
-from server.models import (
+from server.core.models import (
     AlicuotaIVA,
     Tributo,
     Articulo,
     TipoArticulo,
     TipoUnidad,
     MovimientoStock,
-    MovimientoStockItem
+    MovimientoStockItem,
 )
 from server.auth.models import Usuario
 from server.auth.decorators import permission_required
-from server.api.controllers import ArticuloController
+from server.core.controllers import ArticuloController
 
 articulo_bp = Blueprint("articulo_bp", __name__)
 
@@ -51,9 +51,8 @@ def create():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
-        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-        data["created_by"] = user.id
-        data["updated_by"] = user.id
+        data["created_by"] = current_user.id
+        data["updated_by"] = current_user.id
         return ArticuloController.create_articulo(data)
 
 
@@ -75,8 +74,7 @@ def update(pk):
         )
     if request.method == "PUT":
         data = request.json
-        user = Usuario.query.filter_by(username=get_jwt_identity()["username"]).first()
-        articulo.updated_by = user.id
+        articulo.updated_by = current_user.id
         return ArticuloController.update_articulo(data, articulo)
 
 

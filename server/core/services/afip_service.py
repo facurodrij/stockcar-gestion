@@ -1,7 +1,7 @@
 import re
 import os
 
-from server.models import Venta
+from server.core.models import Venta
 from server.afipws import WSFEv1, WSSrPadronA13
 from server.config import BASE_DIR
 

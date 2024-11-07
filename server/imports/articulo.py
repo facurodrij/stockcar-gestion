@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from server.config import db, app
-from server.models import Articulo
+from server.core.models import Articulo
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 

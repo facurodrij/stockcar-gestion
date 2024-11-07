@@ -1,16 +1,11 @@
 from flask import Blueprint, jsonify, request, abort
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, current_user
 
 from server.config import db
-from server.models import (
-    Proveedor,
-    TipoDocumento,
-    TipoResponsable,
-    Provincia
-)
+from server.core.models import Proveedor, TipoDocumento, TipoResponsable, Provincia
 from server.auth.models import Usuario
 from server.auth.decorators import permission_required
-from server.api.services import AfipService
+from server.core.services import AfipService
 
 proveedor_bp = Blueprint("proveedor_bp", __name__)
 
@@ -64,11 +59,8 @@ def create():
         data = request.json
         proveedor_json = proveedor_json_to_model(data["proveedor"])
         try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
             proveedor = Proveedor(
-                **proveedor_json, created_by=user.id, updated_by=user.id
+                **proveedor_json, created_by=current_user.id, updated_by=current_user.id
             )
             db.session.add(proveedor)
             db.session.commit()
@@ -100,10 +92,7 @@ def update(pk):
         data = request.json
         proveedor_json = proveedor_json_to_model(data["proveedor"])
         try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
-            proveedor.updated_by = user.id
+            proveedor.updated_by = current_user.id
             for key, value in proveedor_json.items():
                 setattr(proveedor, key, value)
             db.session.commit()

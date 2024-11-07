@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from flask import jsonify
 from waitress import serve
 from server.config import app
-from server.api.routes import *
+from server.core.routes import *
 from server.auth.routes import *
 
 # noinspection PyUnresolvedReferences

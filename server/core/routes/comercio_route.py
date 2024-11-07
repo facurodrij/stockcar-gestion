@@ -1,9 +1,9 @@
 from datetime import datetime
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, current_user
 
 from server.config import db
-from server.models import Comercio, TipoResponsable, Provincia, PuntoVenta
+from server.core.models import Comercio, TipoResponsable, Provincia, PuntoVenta
 from server.auth.models import Usuario
 from server.auth.decorators import permission_required
 
@@ -52,10 +52,9 @@ def create():
         data = request.json
         comercio_json = comercio_json_to_model(data["comercio"])
         try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
-            comercio = Comercio(**comercio_json, created_by=user.id, updated_by=user.id)
+            comercio = Comercio(
+                **comercio_json, created_by=current_user.id, updated_by=current_user.id
+            )
             db.session.add(comercio)
             db.session.flush()
             puntos_venta = data["puntos_venta"]
@@ -98,10 +97,7 @@ def update(pk):
         data = request.json
         comercio_json = comercio_json_to_model(data["comercio"])
         try:
-            user = Usuario.query.filter_by(
-                username=get_jwt_identity()["username"]
-            ).first()
-            comercio.updated_by = user.id
+            comercio.updated_by = current_user.id
             for key, value in comercio_json.items():
                 setattr(comercio, key, value)
             current_puntos_venta_ids = list(map(lambda x: x.id, puntos_venta))
