@@ -9,7 +9,7 @@ from server.models import (
     Provincia
 )
 from server.auth.models import Usuario
-from server.api.decorators import permission_required
+from server.auth.decorators import permission_required
 from server.api.services import AfipService
 
 proveedor_bp = Blueprint("proveedor_bp", __name__)

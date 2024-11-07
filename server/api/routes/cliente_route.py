@@ -14,7 +14,7 @@ from server.models import (
     Tributo
 )
 from server.auth.models import Usuario
-from server.api.decorators import permission_required
+from server.auth.decorators import permission_required
 from server.api.services import AfipService
 
 cliente_bp = Blueprint("cliente_bp", __name__)

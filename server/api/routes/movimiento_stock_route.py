@@ -5,7 +5,7 @@ from server.config import db
 from server.models import MovimientoStock, MovimientoStockItem
 from server.models.movimiento_stock import TipoMovimiento, OrigenMovimiento
 from server.auth.models import Usuario
-from server.api.decorators import permission_required
+from server.auth.decorators import permission_required
 from server.api.controllers import MovimientoStockController
 
 movimiento_stock_bp = Blueprint("movimiento_stock_bp", __name__)

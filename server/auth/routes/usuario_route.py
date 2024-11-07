@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required
 from server.auth.models import Usuario, Permiso
 from server.auth.schemas import usuario_schema
 from server.config import db
-from server.api.decorators import permission_required
+from server.auth.decorators import permission_required
 from marshmallow import ValidationError
 
 usuario_bp = Blueprint("usuario_bp", __name__)

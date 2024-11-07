@@ -11,7 +11,7 @@ from server.models import (
     MovimientoStockItem
 )
 from server.auth.models import Usuario
-from server.api.decorators import permission_required
+from server.auth.decorators import permission_required
 from server.api.controllers import ArticuloController
 
 articulo_bp = Blueprint("articulo_bp", __name__)

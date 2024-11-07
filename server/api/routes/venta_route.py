@@ -19,7 +19,7 @@ from server.models import (
 from server.auth.models import Usuario
 from server.config import db
 from server.api.services import A4PDFGenerator, TicketPDFGenerator
-from server.api.decorators import permission_required
+from server.auth.decorators import permission_required
 from server.api.controllers import VentaController
 
 venta_bp = Blueprint("venta_bp", __name__)
