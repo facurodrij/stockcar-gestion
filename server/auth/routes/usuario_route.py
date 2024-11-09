@@ -1,26 +1,14 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
+from marshmallow import ValidationError
+
 from server.auth.models import Usuario, Permiso
 from server.auth.schemas import usuario_schema
 from server.config import db
 from server.auth.decorators import permission_required
-from marshmallow import ValidationError
+from server.utils.utils import get_datagrid_options
 
 usuario_bp = Blueprint("usuario_bp", __name__)
-
-
-def get_datagrid_options(models: list = []) -> dict:
-    """
-    Obtiene los datos necesarios para las columnas de los datagrid en los formularios de usuarios.
-    """
-    datagrid_options = {}
-
-    for model in models:
-        model_name = model.__pluralname__
-        records = model.query.all()
-        datagrid_options[model_name] = list(map(lambda x: x.to_dict(), records))
-
-    return datagrid_options
 
 
 @usuario_bp.route("/usuarios", methods=["GET"])

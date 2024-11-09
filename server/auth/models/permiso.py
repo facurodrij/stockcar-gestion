@@ -48,14 +48,27 @@ class Permiso(db.Model):
             "usuarios": usuarios,
         }
 
+    def to_datagrid_dict(self) -> dict:
+        """
+        Convierte los datos del permiso a formato JSON para ser utilizado en un datagrid.
+        """
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "descripcion": self.descripcion,
+        }
+
+    def to_select_dict(self) -> dict:
+        """
+        Convierte los datos del permiso a formato JSON para ser utilizado en un select.
+        """
+        return {
+            "value": self.id,
+            "label": self.nombre,
+        }
+
     def __repr__(self) -> str:
         return f"<Permiso {self.nombre}>"
 
     def __str__(self) -> str:
         return self.nombre
-
-    def to_select_dict(self) -> dict:
-        return {
-            "value": self.id,
-            "label": self.nombre,
-        }

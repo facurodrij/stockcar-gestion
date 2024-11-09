@@ -143,3 +143,19 @@ def get_select_options(models: list = []) -> dict:
         select_options[model_name] = list(map(lambda x: x.to_select_dict(), records))
 
     return select_options
+
+
+def get_datagrid_options(models: list = []) -> dict:
+    """
+    Obtiene los datos necesarios para las columnas de los datagrid en los formularios de usuarios.
+    """
+    datagrid_options = {}
+
+    for model in models:
+        model_name = model.__pluralname__
+        records = model.query.all()
+        datagrid_options[model_name] = list(
+            map(lambda x: x.to_datagrid_dict(), records)
+        )
+
+    return datagrid_options
