@@ -5,29 +5,32 @@ from server.config import db
 
 
 class Provincia(db.Model):
-    __tablename__ = 'provincia'
+    __tablename__ = "provincia"
+    __pluralname__ = "provincia"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False)
     codigo_afip = Column(Integer, nullable=True)
 
-    def to_json(self):
-        return {
-            'id': self.id,
-            'nombre': self.nombre,
-            'codigo_afip': self.codigo_afip
-        }
+    def to_dict(self) -> dict:
+        return {"id": self.id, "nombre": self.nombre, "codigo_afip": self.codigo_afip}
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.nombre}
 
 
 class Genero(db.Model):
-    __tablename__ = 'genero'
+    __tablename__ = "genero"
+    __pluralname__ = "genero"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False, unique=True)
 
-    def to_json(self):
-        return {
-            'id': self.id,
-            'nombre': self.nombre
-        }
+    def to_dict(self) -> dict:
+        return {"id": self.id, "nombre": self.nombre}
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.nombre}
 
 
 class TipoDocumento(db.Model):
@@ -37,37 +40,56 @@ class TipoDocumento(db.Model):
     Esta tabla se llena con datos importados desde el webservice de factura electrónica de AFIP.
     Cada registro representa un tipo de documento específico según la clasificación de AFIP.
     """
-    __tablename__ = 'tipo_documento'
+
+    __tablename__ = "tipo_documento"
+    __pluralname__ = "tipo_documento"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_afip = Column(Integer, nullable=True)
     descripcion = Column(String, nullable=True)
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'codigo_afip': self.codigo_afip,
-            'descripcion': self.descripcion
+            "id": self.id,
+            "codigo_afip": self.codigo_afip,
+            "descripcion": self.descripcion,
         }
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.descripcion}
 
 
 class TipoResponsable(db.Model):
     """Tipo de responsable de IVA"""
-    __tablename__ = 'tipo_responsable'
+
+    __tablename__ = "tipo_responsable"
+    __pluralname__ = "tipo_responsable"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     descripcion = Column(String, nullable=False, unique=True)
     abreviatura = Column(String(5), nullable=False, unique=True)
 
     # Relación muchos a muchos con TipoComprobante
-    comprobantes = relationship('TipoComprobante', secondary='responsable_comprobante',
-                                back_populates='responsables')
-    tributos = relationship('Tributo', secondary='tributo_tipo_responsable', back_populates='tipo_responsables')
+    comprobantes = relationship(
+        "TipoComprobante",
+        secondary="responsable_comprobante",
+        back_populates="responsables",
+    )
+    tributos = relationship(
+        "Tributo",
+        secondary="tributo_tipo_responsable",
+        back_populates="tipo_responsables",
+    )
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'descripcion': self.descripcion,
-            'abreviatura': self.abreviatura
+            "id": self.id,
+            "descripcion": self.descripcion,
+            "abreviatura": self.abreviatura,
         }
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.descripcion}
 
 
 class TipoComprobante(db.Model):
@@ -79,7 +101,10 @@ class TipoComprobante(db.Model):
 
     Además, se puede configurar si el comprobante es una factura o no, para determinar si se debe generar un CAE.
     """
-    __tablename__ = 'tipo_comprobante'
+
+    __tablename__ = "tipo_comprobante"
+    __pluralname__ = "tipo_comprobante"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_afip = Column(Integer, nullable=True)  # Código de AFIP, se obtiene del ID
     nombre = Column(String(20), nullable=False)
@@ -88,26 +113,37 @@ class TipoComprobante(db.Model):
     abreviatura = Column(String(5), nullable=True)
     descontar_stock = Column(Boolean, default=True)
     requiere_comprobante_asociado = Column(Boolean, default=False)
-    es_anulable = Column(Boolean, default=False) # Indica si el comprobante puede ser anulado con Nota de Crédito
+    es_anulable = Column(
+        Boolean, default=False
+    )  # Indica si el comprobante puede ser anulado con Nota de Crédito
 
     # Relación muchos a muchos con TipoResponsable
-    responsables = relationship('TipoResponsable', secondary='responsable_comprobante',
-                                back_populates='comprobantes')
-    tributos = relationship('Tributo', secondary='tributo_tipo_comprobante', back_populates='tipo_comprobantes')
+    responsables = relationship(
+        "TipoResponsable",
+        secondary="responsable_comprobante",
+        back_populates="comprobantes",
+    )
+    tributos = relationship(
+        "Tributo",
+        secondary="tributo_tipo_comprobante",
+        back_populates="tipo_comprobantes",
+    )
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'codigo_afip': self.codigo_afip,
-            'nombre': self.nombre,
-            'descripcion': self.descripcion,
-            'letra': self.letra,
-            'abreviatura': self.abreviatura,
-            'descontar_stock': self.descontar_stock,
-            'requiere_comprobante_asociado': self.requiere_comprobante_asociado,
-            'es_anulable': self.es_anulable
+            "id": self.id,
+            "codigo_afip": self.codigo_afip,
+            "nombre": self.nombre,
+            "descripcion": self.descripcion,
+            "letra": self.letra,
+            "abreviatura": self.abreviatura,
+            "descontar_stock": self.descontar_stock,
+            "requiere_comprobante_asociado": self.requiere_comprobante_asociado,
+            "es_anulable": self.es_anulable,
         }
-    
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.nombre}
 
 
 class TipoConcepto(db.Model):
@@ -118,10 +154,23 @@ class TipoConcepto(db.Model):
     Esta tabla se llena con datos importados desde el webservice de factura electrónica de AFIP.
     Cada registro representa un tipo de concepto específico según la clasificación de AFIP.
     """
-    __tablename__ = 'tipo_concepto'
+
+    __tablename__ = "tipo_concepto"
+    __pluralname__ = "tipo_concepto"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_afip = Column(Integer, nullable=True)
     descripcion = Column(String, nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "codigo_afip": self.codigo_afip,
+            "descripcion": self.descripcion,
+        }
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.descripcion}
 
 
 class TipoTributo(db.Model):
@@ -131,21 +180,29 @@ class TipoTributo(db.Model):
     Esta tabla se llena con datos importados desde el webservice de factura electrónica de AFIP.
     Cada registro representa un tipo de tributo específico según la clasificación de AFIP.
     """
-    __tablename__ = 'tipo_tributo'
+
+    __tablename__ = "tipo_tributo"
+    __pluralname__ = "tipo_tributo"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_afip = Column(Integer, nullable=True)
     descripcion = Column(String, nullable=False)
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'codigo_afip': self.codigo_afip,
-            'descripcion': self.descripcion
+            "id": self.id,
+            "codigo_afip": self.codigo_afip,
+            "descripcion": self.descripcion,
         }
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.descripcion}
 
 
 class TipoPago(db.Model):
-    __tablename__ = 'tipo_pago'
+    __tablename__ = "tipo_pago"
+    __pluralname__ = "tipo_pago"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False, unique=True)
     interes = Column(Numeric(precision=5, scale=2), default=0)
@@ -153,71 +210,90 @@ class TipoPago(db.Model):
     dias_acreditacion = Column(Integer, default=0)
     retencion = Column(Numeric(precision=5, scale=2), default=0)
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'nombre': self.nombre,
-            'interes': float(self.interes),
-            'cuotas': self.cuotas,
-            'dias_acreditacion': self.dias_acreditacion,
-            'retencion': float(self.retencion)
+            "id": self.id,
+            "nombre": self.nombre,
+            "interes": float(self.interes),
+            "cuotas": self.cuotas,
+            "dias_acreditacion": self.dias_acreditacion,
+            "retencion": float(self.retencion),
         }
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.nombre}
 
 
 class Moneda(db.Model):
-    __tablename__ = 'moneda'
+    __tablename__ = "moneda"
+    __pluralname__ = "moneda"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False)
     simbolo = Column(String(5), nullable=False)
     codigo_iso = Column(String(3), nullable=False)
     codigo_afip = Column(String(3), nullable=False)
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'nombre': self.nombre,
-            'simbolo': self.simbolo,
-            'codigo_iso': self.codigo_iso,
-            'codigo_afip': self.codigo_afip
+            "id": self.id,
+            "nombre": self.nombre,
+            "simbolo": self.simbolo,
+            "codigo_iso": self.codigo_iso,
+            "codigo_afip": self.codigo_afip,
         }
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.nombre}
 
 
 class AlicuotaIVA(db.Model):
-    __tablename__ = 'alicuota_iva'
+    __tablename__ = "alicuota_iva"
+    __pluralname__ = "alicuota_iva"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo_afip = Column(Integer, nullable=True, unique=True)
-    descripcion = Column(String, nullable=False, unique=True)  # Nombre de la alícuota ("21%", "10.5%", etc)
+    descripcion = Column(
+        String, nullable=False, unique=True
+    )  # Nombre de la alícuota ("21%", "10.5%", etc)
     porcentaje = Column(Numeric(precision=5, scale=2), nullable=False, unique=True)
-    def to_json(self):
+
+    def to_dict(self) -> dict:
         return {
-            'id': self.id,
-            'codigo_afip': self.codigo_afip,
-            'descripcion': self.descripcion,
-            'porcentaje': self.porcentaje
+            "id": self.id,
+            "codigo_afip": self.codigo_afip,
+            "descripcion": self.descripcion,
+            "porcentaje": self.porcentaje,
         }
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.descripcion}
 
 
 class TipoArticulo(db.Model):
-    __tablename__ = 'tipo_articulo'
+    __tablename__ = "tipo_articulo"
+    __pluralname__ = "tipo_articulo"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False, unique=True)
 
-    def to_json(self):
-        return {
-            'id': self.id,
-            'nombre': self.nombre
-        }
+    def to_dict(self) -> dict:
+        return {"id": self.id, "nombre": self.nombre}
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.nombre}
 
 
 class TipoUnidad(db.Model):
-    __tablename__ = 'tipo_unidad'
+    __tablename__ = "tipo_unidad"
+    __pluralname__ = "tipo_unidad"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False, unique=True)
     abreviatura = Column(String, nullable=False, unique=True)
 
-    def to_json(self):
-        return {
-            'id': self.id,
-            'nombre': self.nombre,
-            'abreviatura': self.abreviatura
-        }
+    def to_dict(self) -> dict:
+        return {"id": self.id, "nombre": self.nombre, "abreviatura": self.abreviatura}
+
+    def to_select_dict(self) -> dict:
+        return {"value": self.id, "label": self.nombre}
