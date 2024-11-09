@@ -9,20 +9,6 @@ from marshmallow import ValidationError
 usuario_bp = Blueprint("usuario_bp", __name__)
 
 
-def get_select_options(models: list = []) -> dict:
-    """
-    Obtiene los datos necesarios para los campos select de los formularios de usuarios.
-    """
-    select_options = {}
-
-    for model in models:
-        model_name = model.__pluralname__
-        records = model.query.all()
-        select_options[model_name] = list(map(lambda x: x.to_select_dict(), records))
-
-    return select_options
-
-
 def get_datagrid_options(models: list = []) -> dict:
     """
     Obtiene los datos necesarios para las columnas de los datagrid en los formularios de usuarios.
@@ -41,9 +27,9 @@ def get_datagrid_options(models: list = []) -> dict:
 @jwt_required()
 @permission_required("usuario.view_all")
 def index():
-    users = Usuario.query.all()
-    users_dict: list = list(map(lambda x: x.to_dict(), users))
-    return jsonify({"usuarios": users_dict}), 200
+    usuarios = Usuario.query.all()
+    usuarios_dict: list = list(map(lambda x: x.to_dict(), usuarios))
+    return jsonify({"usuarios": usuarios_dict}), 200
 
 
 @usuario_bp.route("/usuarios/create", methods=["GET", "POST"])
