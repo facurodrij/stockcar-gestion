@@ -50,10 +50,6 @@ class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
     )
     alicuota_iva = relationship("AlicuotaIVA", backref="articulo")
 
-    tributos = relationship(
-        "Tributo", secondary="tributo_articulo", back_populates="articulos"
-    )
-
     def to_json_min(self):
         """
         Devuelve un diccionario con los datos mínimos del artículo.
@@ -75,9 +71,6 @@ class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
         """
         Convierte los datos del artículo a formato JSON.
         """
-        tributos = []
-        for tributo in self.tributos:
-            tributos.append(tributo.to_json())
 
         return {
             "id": self.id,
@@ -95,6 +88,5 @@ class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
             "tipo_articulo": self.tipo_articulo.to_json(),
             "tipo_unidad": self.tipo_unidad.to_json(),
             "alicuota_iva": self.alicuota_iva.to_json(),
-            "tributos": tributos,
             **self.get_audit_fields(),
         }
