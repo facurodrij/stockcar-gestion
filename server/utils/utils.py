@@ -129,3 +129,17 @@ class QueryWithSoftDelete(Query):
         if not self._with_deleted:
             self = self.filter_by(deleted=False)
         return super(QueryWithSoftDelete, self).all()
+
+
+def get_select_options(models: list = []) -> dict:
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de usuarios.
+    """
+    select_options = {}
+
+    for model in models:
+        model_name = model.__pluralname__
+        records = model.query.all()
+        select_options[model_name] = list(map(lambda x: x.to_select_dict(), records))
+
+    return select_options
