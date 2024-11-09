@@ -3,25 +3,12 @@ from flask_jwt_extended import jwt_required, current_user
 
 from server.config import db
 from server.core.models import Proveedor, TipoDocumento, TipoResponsable, Provincia
-from server.auth.models import Usuario
 from server.auth.decorators import permission_required
 from server.core.services import AfipService
+from server.utils.utils import get_select_options
+from server.core.schemas import proveedor_schema
 
 proveedor_bp = Blueprint("proveedor_bp", __name__)
-
-
-def get_select_options():
-    """
-    Obtiene los datos necesarios para los campos select de los formularios de proveedores.
-    """
-    tipo_documento = TipoDocumento.query.all()
-    tipo_responsable = TipoResponsable.query.all()
-    provincia = Provincia.query.all()
-    return {
-        "tipo_documento": list(map(lambda x: x.to_json(), tipo_documento)),
-        "tipo_responsable": list(map(lambda x: x.to_json(), tipo_responsable)),
-        "provincia": list(map(lambda x: x.to_json(), provincia)),
-    }
 
 
 def proveedor_json_to_model(proveedor_json: dict) -> dict:
@@ -42,8 +29,8 @@ def index():
     Devuelve la lista de proveedores.
     """
     proveedores = Proveedor.query.all()
-    proveedores_json = list(map(lambda x: x.to_json(), proveedores))
-    return jsonify({"proveedores": proveedores_json}), 200
+    proveedores_dict = proveedor_schema.dump(proveedores, many=True)
+    return jsonify({"proveedores": proveedores_dict}), 200
 
 
 @proveedor_bp.route("/proveedores/create", methods=["GET", "POST"])
@@ -54,17 +41,19 @@ def create():
     Crea un nuevo proveedor.
     """
     if request.method == "GET":
-        return jsonify({"select_options": get_select_options()}), 200
+        return (
+            jsonify(get_select_options([TipoDocumento, TipoResponsable, Provincia])),
+            200,
+        )
     if request.method == "POST":
         data = request.json
-        proveedor_json = proveedor_json_to_model(data["proveedor"])
         try:
-            proveedor = Proveedor(
-                **proveedor_json, created_by=current_user.id, updated_by=current_user.id
-            )
-            db.session.add(proveedor)
+            data["created_by"] = current_user.id
+            data["updated_by"] = current_user.id
+            new_proveedor = proveedor_schema.load(data, session=db.session)
+            db.session.add(new_proveedor)
             db.session.commit()
-            return jsonify({"proveedor_id": proveedor.id}), 201
+            return jsonify({"proveedor_id": new_proveedor.id}), 201
         except Exception as e:
             db.session.rollback()
             print(e)
@@ -77,26 +66,27 @@ def create():
 @jwt_required()
 @permission_required("proveedor.update")
 def update(pk):
-    proveedor = Proveedor.query.get_or_404(pk, "Proveedor no encontrado")
+    proveedor: Proveedor = Proveedor.query.get_or_404(pk, "Proveedor no encontrado")
     if request.method == "GET":
         return (
             jsonify(
                 {
-                    "select_options": get_select_options(),
-                    "proveedor": proveedor.to_json(),
+                    **get_select_options([TipoDocumento, TipoResponsable, Provincia]),
+                    "proveedor": proveedor.to_dict(),
                 }
             ),
             200,
         )
     if request.method == "PUT":
         data = request.json
-        proveedor_json = proveedor_json_to_model(data["proveedor"])
         try:
-            proveedor.updated_by = current_user.id
-            for key, value in proveedor_json.items():
-                setattr(proveedor, key, value)
+            data["created_by"] = proveedor.created_by
+            data["updated_by"] = current_user.id
+            updated_proveedor = proveedor_schema.load(
+                data, instance=proveedor, session=db.session
+            )
             db.session.commit()
-            return jsonify({"proveedor_id": proveedor.id}), 201
+            return jsonify({"proveedor_id": updated_proveedor.id}), 201
         except Exception as e:
             db.session.rollback()
             print(e)
@@ -109,8 +99,8 @@ def update(pk):
 @jwt_required()
 @permission_required("proveedor.view")
 def detail(pk):
-    proveedor = Proveedor.query.get_or_404(pk, "Proveedor no encontrado")
-    return jsonify({"proveedor": proveedor.to_json()}), 200
+    proveedor: Proveedor = Proveedor.query.get_or_404(pk, "Proveedor no encontrado")
+    return jsonify({"proveedor": proveedor.to_dict()}), 200
 
 
 @proveedor_bp.route("/proveedores/<int:pk>/delete", methods=["DELETE"])

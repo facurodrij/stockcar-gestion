@@ -21,6 +21,7 @@ class Proveedor(AuditMixin, SoftDeleteMixin, db.Model):
     """
 
     __tablename__ = "proveedor"
+    __pluralname__ = "proveedores"
 
     query_class = QueryWithSoftDelete
 
@@ -52,7 +53,13 @@ class Proveedor(AuditMixin, SoftDeleteMixin, db.Model):
     email = Column(String, nullable=True)
     observacion = Column(String, nullable=True)
 
-    def to_json(self):
+    def __repr__(self):
+        return f"<Proveedor {self.razon_social}>"
+
+    def __str__(self):
+        return self.razon_social
+
+    def to_dict(self) -> dict:
         """
         Devuelve un diccionario con los datos del proveedor.
         """
@@ -63,13 +70,13 @@ class Proveedor(AuditMixin, SoftDeleteMixin, db.Model):
             "direccion": self.direccion,
             "localidad": self.localidad,
             "codigo_postal": self.codigo_postal,
-            "tipo_documento": self.tipo_documento.to_json(),
-            "tipo_responsable": self.tipo_responsable.to_json(),
-            "provincia": self.provincia.to_json(),
+            "tipo_documento": self.tipo_documento.to_dict(),
+            "tipo_responsable": self.tipo_responsable.to_dict(),
+            "provincia": self.provincia.to_dict(),
             "descuento": float(self.descuento),
             "recargo": float(self.recargo),
-            "tipo_pago": self.tipo_pago.to_json(),
-            "moneda": self.moneda.to_json(),
+            "tipo_pago": self.tipo_pago.to_dict(),
+            "moneda": self.moneda.to_dict(),
             "telefono": self.telefono,
             "email": self.email,
             "observacion": self.observacion,
