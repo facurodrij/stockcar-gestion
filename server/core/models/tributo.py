@@ -65,7 +65,7 @@ class Tributo(db.Model):
             "alicuota": float(self.alicuota),
             "minimo_imponible": self.minimo_imponible,
             "base_calculo": self.base_calculo.value,
-            "tipo_tributo": self.tipo_tributo.to_json(),
+            "tipo_tributo": self.tipo_tributo.to_dict(),
         }
 
     def to_dict(self) -> dict:
@@ -79,6 +79,16 @@ class Tributo(db.Model):
             "minimo_imponible": self.minimo_imponible,
             "base_calculo": self.base_calculo.value,
             "tipo_tributo": self.tipo_tributo.to_dict(),
+        }
+
+    def to_datagrid_dict(self) -> dict:
+        """
+        Convierte los datos del tributo a un diccionario para ser utilizado en un datagrid.
+        """
+        return {
+            "id": self.id,
+            "descripcion": self.descripcion,
+            "alicuota": float(self.alicuota),
         }
 
     def __repr__(self):
