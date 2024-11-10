@@ -65,7 +65,6 @@ def create():
         )
     if request.method == "POST":
         data = request.json
-        print(data)
         try:
             data["created_by"] = current_user.id
             data["updated_by"] = current_user.id
