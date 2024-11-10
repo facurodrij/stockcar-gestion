@@ -21,6 +21,7 @@ class Cliente(AuditMixin, db.Model):
     """
 
     __tablename__ = "cliente"
+    __pluralname__ = "clientes"
 
     # Datos principales
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -76,37 +77,43 @@ class Cliente(AuditMixin, db.Model):
             "codigo_postal": self.codigo_postal,
         }
 
-    def to_json(self):
+    def __repr__(self):
+        return f"<Cliente {self.razon_social} ({self.nro_documento})>"
+
+    def __str__(self):
+        return f"{self.razon_social} ({self.nro_documento})"
+
+    def to_dict(self) -> dict:
         """
-        Convierte los datos del cliente a formato JSON.
+        Convierte los datos del cliente a formato de diccionario.
         """
         tributos = []
         for tributo in self.tributos:
-            tributos.append(tributo.to_json())
+            tributos.append(tributo.to_dict())
 
         return {
             "id": self.id,
-            "tipo_documento": self.tipo_documento.to_json(),
+            "tipo_documento": self.tipo_documento.to_dict(),
             "nro_documento": self.nro_documento,
-            "tipo_responsable": self.tipo_responsable.to_json(),
+            "tipo_responsable": self.tipo_responsable.to_dict(),
             "razon_social": self.razon_social,
             "direccion": self.direccion,
             "localidad": self.localidad,
-            "provincia": self.provincia.to_json(),
+            "provincia": self.provincia.to_dict(),
             "codigo_postal": self.codigo_postal,
             "telefono": self.telefono,
             "email": self.email,
             "fecha_nacimiento": (
                 self.fecha_nacimiento.isoformat() if self.fecha_nacimiento else None
             ),
-            "genero": self.genero.to_json() if self.genero else None,
+            "genero": self.genero.to_dict() if self.genero else None,
             "descuento": self.descuento,
             "recargo": self.recargo,
             "limite_credito": self.limite_credito,
             "duplicado_factura": self.duplicado_factura,
             "exento_iva": self.exento_iva,
-            "tipo_pago": self.tipo_pago.to_json(),
-            "moneda": self.moneda.to_json(),
+            "tipo_pago": self.tipo_pago.to_dict(),
+            "moneda": self.moneda.to_dict(),
             "tributos": tributos,
             "observacion": self.observacion,
             **self.get_audit_fields(),

@@ -13,77 +13,66 @@ from server.core.models import (
     Moneda,
     Tributo,
 )
-from server.auth.models import Usuario
 from server.auth.decorators import permission_required
 from server.core.services import AfipService
+from server.utils.utils import get_select_options, get_datagrid_options
+from server.core.schemas import cliente_schema
 
 cliente_bp = Blueprint("cliente_bp", __name__)
-
-
-def get_select_options():
-    """
-    Obtiene los datos necesarios para los campos select de los formularios de clientes.
-    """
-    tipo_documento = TipoDocumento.query.all()
-    tipo_responsable = TipoResponsable.query.all()
-    provincia = Provincia.query.all()
-    genero = Genero.query.all()
-    tipo_pago = TipoPago.query.all()
-    moneda = Moneda.query.all()
-    tributo = Tributo.query.all()
-    return {
-        "tipo_documento": list(map(lambda x: x.to_json(), tipo_documento)),
-        "tipo_responsable": list(map(lambda x: x.to_json(), tipo_responsable)),
-        "provincia": list(map(lambda x: x.to_json(), provincia)),
-        "genero": list(map(lambda x: x.to_json(), genero)),
-        "tipo_pago": list(map(lambda x: x.to_json(), tipo_pago)),
-        "moneda": list(map(lambda x: x.to_json(), moneda)),
-        "tributo": list(map(lambda x: x.to_json(), tributo)),
-    }
-
-
-def cliente_json_to_model(cliente_json: dict) -> dict:
-    for key, value in cliente_json.items():
-        if value == "":
-            cliente_json[key] = None
-    if (
-        "fecha_nacimiento" in cliente_json
-        and cliente_json["fecha_nacimiento"] is not None
-    ):
-        cliente_json["fecha_nacimiento"] = datetime.fromisoformat(
-            cliente_json["fecha_nacimiento"]
-        )
-    return cliente_json
 
 
 @cliente_bp.route("/clientes", methods=["GET"])
 @jwt_required()
 @permission_required(["cliente.view_all"])
 def index():
+    """
+    Devuelve la lista de clientes.
+    """
     clientes = Cliente.query.all()
-    clientes_json = list(map(lambda x: x.to_json(), clientes))
-    return jsonify({"clientes": clientes_json}), 200
+    clientes_dict = cliente_schema.dump(clientes, many=True)
+    return jsonify({"clientes": clientes_dict}), 200
 
 
 @cliente_bp.route("/clientes/create", methods=["GET", "POST"])
 @jwt_required()
 @permission_required(["cliente.create"])
 def create():
+    """
+    Crea un nuevo cliente.
+
+    Methods:
+    GET: Obtiene las opciones de los select.
+    POST: Crea un nuevo cliente.
+    """
     if request.method == "GET":
-        return jsonify({"select_options": get_select_options()}), 200
+        return (
+            jsonify(
+                {
+                    **get_select_options(
+                        [
+                            TipoDocumento,
+                            TipoResponsable,
+                            Genero,
+                            Provincia,
+                            TipoPago,
+                            Moneda,
+                        ]
+                    ),
+                    **get_datagrid_options([Tributo]),
+                }
+            ),
+            200,
+        )
     if request.method == "POST":
         data = request.json
-        cliente_json = cliente_json_to_model(data["cliente"])
+        print(data)
         try:
-            cliente = Cliente(
-                **cliente_json, created_by=current_user.id, updated_by=current_user.id
-            )
-            db.session.add(cliente)
-            for tributo_id in data["tributos"]:
-                tributo = Tributo.query.get_or_404(tributo_id)
-                cliente.tributos.append(tributo)
+            data["created_by"] = current_user.id
+            data["updated_by"] = current_user.id
+            new_cliente = cliente_schema.load(data, session=db.session)
+            db.session.add(new_cliente)
             db.session.commit()
-            return jsonify({"cliente_id": cliente.id}), 201
+            return jsonify({"cliente_id": new_cliente.id}), 201
         except Exception as e:
             db.session.rollback()
             print(e)
@@ -96,29 +85,44 @@ def create():
 @jwt_required()
 @permission_required(["cliente.update"])
 def update(pk):
-    cliente = Cliente.query.get_or_404(pk, "Cliente no encontrado")
+    """
+    Actualiza los datos de un cliente.
+
+    Methods:
+    GET: Obtiene los datos del cliente y las opciones de los select.
+    PUT: Actualiza los datos del cliente.
+    """
+    cliente: Cliente = Cliente.query.get_or_404(pk, "Cliente no encontrado")
     if request.method == "GET":
         return (
             jsonify(
-                {"select_options": get_select_options(), "cliente": cliente.to_json()}
+                {
+                    **get_select_options(
+                        [
+                            TipoDocumento,
+                            TipoResponsable,
+                            Genero,
+                            Provincia,
+                            TipoPago,
+                            Moneda,
+                        ]
+                    ),
+                    **get_datagrid_options([Tributo]),
+                    "cliente": cliente_schema.dump(cliente),
+                }
             ),
             200,
         )
     if request.method == "PUT":
         data = request.json
-        cliente_json = cliente_json_to_model(data["cliente"])
         try:
-            cliente.updated_by = current_user.id
-            for key, value in cliente_json.items():
-                setattr(cliente, key, value)
-            cliente.tributos = []
-            nuevos_tributos = Tributo.query.filter(
-                Tributo.id.in_(data["tributos"])
-            ).all()
-            for tributo in nuevos_tributos:
-                cliente.tributos.append(tributo)
+            data["created_by"] = cliente.created_by
+            data["updated_by"] = current_user.id
+            updated_cliente = cliente_schema.load(
+                data, instance=cliente, session=db.session
+            )
             db.session.commit()
-            return jsonify({"cliente_id": cliente.id}), 201
+            return jsonify({"cliente_id": updated_cliente.id}), 201
         except Exception as e:
             db.session.rollback()
             print(e)
@@ -131,8 +135,8 @@ def update(pk):
 @jwt_required()
 @permission_required(["cliente.view"])
 def detail(pk):
-    cliente = Cliente.query.get_or_404(pk, "Cliente no encontrado")
-    return jsonify({"cliente": cliente.to_json()}), 200
+    cliente: Cliente = Cliente.query.get_or_404(pk, "Cliente no encontrado")
+    return jsonify({"cliente": cliente_schema.dump(cliente)}), 200
 
 
 @cliente_bp.route("/clientes/afip", methods=["GET"])

@@ -46,8 +46,7 @@ export default function ClienteForm({ pk }) {
         provincia: [],
         genero: [],
         tipo_pago: [],
-        moneda: [],
-        tributo: []
+        moneda: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -57,6 +56,7 @@ export default function ClienteForm({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [tributos, setTributos] = useState([]);
     const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [allowSearch, setAllowSearch] = useState(false);
@@ -87,16 +87,15 @@ export default function ClienteForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    tipo_documento: selectOptions.tipo_documento,
-                    tipo_responsable: selectOptions.tipo_responsable,
-                    provincia: selectOptions.provincia,
-                    genero: selectOptions.genero,
-                    tipo_pago: selectOptions.tipo_pago,
-                    moneda: selectOptions.moneda,
-                    tributo: selectOptions.tributo
+                    tipo_documento: data.tipo_documento,
+                    tipo_responsable: data.tipo_responsable,
+                    provincia: data.provincia,
+                    genero: data.genero,
+                    tipo_pago: data.tipo_pago,
+                    moneda: data.moneda
                 });
+                setTributos(data.tributos);
                 if (Boolean(pk)) {
                     const cliente = data['cliente'];
                     const tributos = cliente['tributos'];
@@ -122,7 +121,7 @@ export default function ClienteForm({ pk }) {
                     if (cliente.observacion) setValue('observacion', cliente.observacion);
                     setSelectedTributo([])
                     tributos.forEach(t => {
-                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
+                        setSelectedTributo(selectedTributo => [...selectedTributo, t]);
                     });
                 }
             }
@@ -185,9 +184,8 @@ export default function ClienteForm({ pk }) {
         const url = Boolean(pk) ? `${API}/clientes/${pk}/update` : `${API}/clientes/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            const res = await fetchWithAuth(url, method, {
-                cliente: data, tributos: selectedTributo
-            });
+            data['tributos'] = selectedTributo;
+            const res = await fetchWithAuth(url, method, data);
             const resJson = await res.json();
             if (!res.ok) {
                 throw new Error(resJson['error']);
@@ -266,7 +264,7 @@ export default function ClienteForm({ pk }) {
                                             }
                                         >
                                             {selectOptions.tipo_documento.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -328,7 +326,7 @@ export default function ClienteForm({ pk }) {
                                             label="Tipo de Responsable IVA"
                                         >
                                             {selectOptions.tipo_responsable.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -399,7 +397,7 @@ export default function ClienteForm({ pk }) {
                                             label="Género"
                                         >
                                             {selectOptions.genero.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -487,7 +485,7 @@ export default function ClienteForm({ pk }) {
                                             label="Provincia"
                                         >
                                             {selectOptions.provincia.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -600,7 +598,7 @@ export default function ClienteForm({ pk }) {
                                             label="Tipo de Pago"
                                         >
                                             {selectOptions.tipo_pago.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -621,7 +619,7 @@ export default function ClienteForm({ pk }) {
                                             label="Moneda"
                                         >
                                             {selectOptions.moneda.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -681,7 +679,7 @@ export default function ClienteForm({ pk }) {
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <TributoDataGrid
-                                tributos={selectOptions.tributo}
+                                tributos={tributos}
                                 selectedTributo={selectedTributo}
                                 setSelectedTributo={setSelectedTributo}
                             />
