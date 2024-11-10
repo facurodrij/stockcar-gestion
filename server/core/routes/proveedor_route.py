@@ -29,6 +29,10 @@ def index():
 def create():
     """
     Crea un nuevo proveedor.
+
+    Methods:
+    GET: Obtiene las opciones de los select.
+    POST: Crea un nuevo proveedor.
     """
     if request.method == "GET":
         return (
@@ -69,7 +73,7 @@ def update(pk):
             jsonify(
                 {
                     **get_select_options([TipoDocumento, TipoResponsable, Provincia]),
-                    "proveedor": proveedor.to_dict(),
+                    "proveedor": proveedor_schema.dump(proveedor),
                 }
             ),
             200,
@@ -97,7 +101,7 @@ def update(pk):
 @permission_required("proveedor.view")
 def detail(pk):
     proveedor: Proveedor = Proveedor.query.get_or_404(pk, "Proveedor no encontrado")
-    return jsonify({"proveedor": proveedor.to_dict()}), 200
+    return jsonify({"proveedor": proveedor_schema.dump(proveedor)}), 200
 
 
 @proveedor_bp.route("/proveedores/<int:pk>/delete", methods=["DELETE"])
