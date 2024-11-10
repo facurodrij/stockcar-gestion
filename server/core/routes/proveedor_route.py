@@ -11,16 +11,6 @@ from server.core.schemas import proveedor_schema
 proveedor_bp = Blueprint("proveedor_bp", __name__)
 
 
-def proveedor_json_to_model(proveedor_json: dict) -> dict:
-    """
-    Convierte los datos obtenidos del formulario a un diccionario
-    """
-    for key, value in proveedor_json.items():
-        if value == "":
-            proveedor_json[key] = None
-    return proveedor_json
-
-
 @proveedor_bp.route("/proveedores", methods=["GET"])
 @jwt_required()
 @permission_required("proveedor.view_all")
@@ -66,6 +56,13 @@ def create():
 @jwt_required()
 @permission_required("proveedor.update")
 def update(pk):
+    """
+    Actualiza los datos de un proveedor.
+
+    Methods:
+    GET: Obtiene las opciones de los select.
+    PUT: Actualiza los datos del proveedor.
+    """
     proveedor: Proveedor = Proveedor.query.get_or_404(pk, "Proveedor no encontrado")
     if request.method == "GET":
         return (
