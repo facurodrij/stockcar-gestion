@@ -93,28 +93,28 @@ class Cliente(AuditMixin, db.Model):
 
         return {
             "id": self.id,
-            "tipo_documento": self.tipo_documento.to_dict(),
             "nro_documento": self.nro_documento,
-            "tipo_responsable": self.tipo_responsable.to_dict(),
             "razon_social": self.razon_social,
             "direccion": self.direccion,
             "localidad": self.localidad,
-            "provincia": self.provincia.to_dict(),
             "codigo_postal": self.codigo_postal,
             "telefono": self.telefono,
             "email": self.email,
             "fecha_nacimiento": (
                 self.fecha_nacimiento.isoformat() if self.fecha_nacimiento else None
             ),
-            "genero": self.genero.to_dict() if self.genero else None,
             "descuento": self.descuento,
             "recargo": self.recargo,
             "limite_credito": self.limite_credito,
             "duplicado_factura": self.duplicado_factura,
             "exento_iva": self.exento_iva,
+            "observacion": self.observacion,
+            "tipo_documento": self.tipo_documento.to_dict(),
+            "tipo_responsable": self.tipo_responsable.to_dict(),
+            "provincia": self.provincia.to_dict(),
+            "genero": self.genero.to_dict() if self.genero else None,
             "tipo_pago": self.tipo_pago.to_dict(),
             "moneda": self.moneda.to_dict(),
             "tributos": tributos,
-            "observacion": self.observacion,
             **self.get_audit_fields(),
         }
