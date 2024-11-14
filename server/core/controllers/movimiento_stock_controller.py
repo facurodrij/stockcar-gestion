@@ -146,7 +146,7 @@ class MovimientoStockController:
             raise e
 
     @staticmethod
-    def create_movimiento_from_articulo(articulo: Articulo, cantidad: int):
+    def create_movimiento_from_articulo(articulo: Articulo, cantidad: float):
         """
         Crea un nuevo movimiento de stock en la base de datos a partir de un artículo
         y actualiza el stock del artículo involucrado.
@@ -165,17 +165,12 @@ class MovimientoStockController:
                 updated_by=articulo.updated_by,
             )
             db.session.add(movimiento)
-            db.session.flush()
 
-            # Verifica si el artículo es nuevo
-            if articulo.id is None:
-                stock_posterior = float(articulo.stock_actual)
-            else:
-                stock_posterior = float(articulo.stock_actual) + float(cantidad)
+            stock_posterior = float(articulo.stock_actual)
 
             movimiento_item = MovimientoStockItem(
                 articulo=articulo,
-                movimiento_stock_id=movimiento.id,
+                movimiento_stock=movimiento,
                 codigo_principal=articulo.codigo_principal,
                 cantidad=cantidad,
                 stock_posterior=stock_posterior,

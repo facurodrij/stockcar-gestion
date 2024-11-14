@@ -1,12 +1,5 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, fields, auto_field
-from server.core.models.parametros import (
-    TipoDocumento,
-    TipoResponsable,
-    Provincia,
-    Genero,
-    TipoPago,
-    Moneda,
-)
+from server.core.models.parametros import *
 
 
 class TipoDocumentoSchema(SQLAlchemyAutoSchema):
@@ -42,4 +35,34 @@ class TipoPagoSchema(SQLAlchemyAutoSchema):
 class MonedaSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Moneda
+        load_instance = True
+
+
+class TipoComprobanteSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = TipoComprobante
+        load_instance = True
+
+
+class TipoConceptoSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = TipoConcepto
+        load_instance = True
+
+
+class TipoArticuloSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = TipoArticulo
+        load_instance = True
+
+
+class AlicuotaIvaSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = AlicuotaIVA
+        load_instance = True
+
+
+class TipoUnidadSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = TipoUnidad
         load_instance = True

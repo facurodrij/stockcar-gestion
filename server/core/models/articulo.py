@@ -21,6 +21,7 @@ class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
     """
 
     __tablename__ = "articulo"
+    __pluralname__ = "articulos"
     query_class = QueryWithSoftDelete
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -90,3 +91,49 @@ class Articulo(AuditMixin, SoftDeleteMixin, db.Model):
             "alicuota_iva": self.alicuota_iva.to_json(),
             **self.get_audit_fields(),
         }
+
+    def to_dict(self) -> dict:
+        """
+        Convierte los datos del artículo a formato de diccionario.
+        """
+        return {
+            "id": self.id,
+            "codigo_principal": self.codigo_principal,
+            "codigo_secundario": self.codigo_secundario,
+            "codigo_terciario": self.codigo_terciario,
+            "codigo_cuaternario": self.codigo_cuaternario,
+            "codigo_adicional": self.codigo_adicional,
+            "descripcion": self.descripcion,
+            "linea_factura": self.linea_factura,
+            "stock_actual": self.stock_actual,
+            "stock_minimo": self.stock_minimo if self.stock_minimo else 0,
+            "stock_maximo": self.stock_maximo if self.stock_maximo else 0,
+            "observacion": self.observacion,
+            "tipo_articulo": self.tipo_articulo.to_dict(),
+            "tipo_unidad": self.tipo_unidad.to_dict(),
+            "alicuota_iva": self.alicuota_iva.to_dict(),
+            **self.get_audit_fields(),
+        }
+
+    def to_datagrid_dict(self) -> dict:
+        """
+        Convierte los datos del artículo a formato de diccionario para datagrid.
+        """
+        return {
+            "id": self.id,
+            "codigo_principal": self.codigo_principal,
+            "codigo_secundario": self.codigo_secundario,
+            "codigo_terciario": self.codigo_terciario,
+            "codigo_cuaternario": self.codigo_cuaternario,
+            "codigo_adicional": self.codigo_adicional,
+            "descripcion": self.descripcion,
+            "linea_factura": self.linea_factura,
+            "stock_actual": float(self.stock_actual),
+            "alicuota_iva": self.alicuota_iva.to_dict(),
+        }
+
+    def __repr__(self):
+        return f"<Articulo {self.id} - {self.descripcion}>"
+
+    def __str__(self):
+        return f"{self.descripcion}"

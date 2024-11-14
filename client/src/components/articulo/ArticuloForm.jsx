@@ -18,7 +18,6 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import { API } from "../../App";
-import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
@@ -35,8 +34,7 @@ export default function ArticuloForm({ pk }) {
     const [selectOptions, setSelectOptions] = useState({
         tipo_articulo: [],
         tipo_unidad: [],
-        alicuota_iva: [],
-        tributo: []
+        alicuota_iva: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -46,7 +44,6 @@ export default function ArticuloForm({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { withLoading } = useLoading();
     const confirm = useConfirm();
@@ -76,16 +73,13 @@ export default function ArticuloForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    tipo_articulo: selectOptions.tipo_articulo,
-                    tipo_unidad: selectOptions.tipo_unidad,
-                    alicuota_iva: selectOptions.alicuota_iva,
-                    tributo: selectOptions.tributo
+                    tipo_articulo: data.tipo_articulo,
+                    tipo_unidad: data.tipo_unidad,
+                    alicuota_iva: data.alicuota_iva
                 });
                 if (Boolean(pk)) {
                     const articulo = data['articulo'];
-                    const tributos = articulo['tributos'];
                     setValue('codigo_principal', articulo.codigo_principal);
                     if (articulo.codigo_secundario) setValue('codigo_secundario', articulo.codigo_secundario);
                     if (articulo.codigo_terciario) setValue('codigo_terciario', articulo.codigo_terciario);
@@ -103,12 +97,6 @@ export default function ArticuloForm({ pk }) {
                     if (articulo.stock_minimo) setValue('stock_minimo', articulo.stock_minimo);
                     if (articulo.stock_maximo) setValue('stock_maximo', articulo.stock_maximo);
                     if (articulo.observacion) setValue('observacion', articulo.observacion);
-
-                    // Cargar los tributos seleccionados
-                    setSelectedTributo([])
-                    tributos.forEach((t) => {
-                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
-                    });
                 }
             }
             catch (e) {
@@ -133,13 +121,11 @@ export default function ArticuloForm({ pk }) {
             if (data['codigo_adicional']) {
                 data['codigo_adicional'] = data['codigo_adicional'].split(',').map((c) => c.trim());
             }
-            let res = await fetchWithAuth(url, method, {
-                articulo: data, tributos: selectedTributo
-            });
+            let res = await fetchWithAuth(url, method, data);
             let resJson = await res.json();
-            if (res.status === 409 && resJson['warning']) {
-                const existingArticlesLinks = resJson.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
-                const description = `${resJson.warning}. Son los siguientes: ${existingArticlesLinks}.`;
+            if (res.status === 409 && resJson['codigo_principal']) {
+                const existingArticlesLinks = resJson.codigo_principal.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
+                const description = `${resJson.codigo_principal.warning}. Son los siguientes: ${existingArticlesLinks}.`;
                 confirm({
                     title: 'Advertencia',
                     description: <span dangerouslySetInnerHTML={{ __html: description }} />,
@@ -147,9 +133,8 @@ export default function ArticuloForm({ pk }) {
                     cancellationText: 'Cancelar'
                 })
                     .then(async () => {
-                        res = await fetchWithAuth(url, method, {
-                            articulo: data, tributos: selectedTributo, force: true
-                        });
+                        data['force'] = true;
+                        res = await fetchWithAuth(url, method, data);
                         resJson = await res.json();
                         if (!res.ok) {
                             throw new Error(resJson['error']);
@@ -474,7 +459,7 @@ export default function ArticuloForm({ pk }) {
                                             label="Tipo de artículo"
                                         >
                                             {selectOptions.tipo_articulo.map((option) => (
-                                                <MenuItem key={option.id} value={option.id}>{option.nombre}</MenuItem>
+                                                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                             ))}
                                         </Select>
                                     )}
@@ -498,7 +483,7 @@ export default function ArticuloForm({ pk }) {
                                             label="Tipo de unidad"
                                         >
                                             {selectOptions.tipo_unidad.map((option) => (
-                                                <MenuItem key={option.id} value={option.id}>{option.nombre}</MenuItem>
+                                                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                             ))}
                                         </Select>
                                     )}
@@ -522,24 +507,13 @@ export default function ArticuloForm({ pk }) {
                                             labelId="alicuota_iva_label"
                                         >
                                             {selectOptions.alicuota_iva.map((option) => (
-                                                <MenuItem key={option.id}
-                                                    value={option.id}>{option.descripcion}</MenuItem>
+                                                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                             ))}
                                         </Select>
                                     )}
                                 />
                                 <FormHelperText>{errors.alicuota_iva && errors.alicuota_iva.message}</FormHelperText>
                             </FormControl>
-                        </Grid>
-                    </Grid>
-                    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Tributos adicionales</Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TributoDataGrid
-                                tributos={selectOptions.tributo}
-                                selectedTributo={selectedTributo}
-                                setSelectedTributo={setSelectedTributo}
-                            />
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>
