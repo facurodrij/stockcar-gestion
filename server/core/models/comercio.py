@@ -90,3 +90,15 @@ class PuntoVenta(db.Model):
             "domicilio": self.domicilio,
             "descripcion": "{:04d} - {}".format(self.numero, self.nombre_fantasia),
         }
+
+    def to_dict(self) -> dict:
+        """
+        Devuelve el objeto en formato dict.
+        """
+        return {
+            "id": self.id,
+            "numero": self.numero,
+            "nombre_fantasia": self.nombre_fantasia,
+            "domicilio": self.domicilio,
+            "descripcion": "{:04d} - {}".format(self.numero, self.nombre_fantasia),
+        }

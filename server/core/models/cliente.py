@@ -68,12 +68,12 @@ class Cliente(AuditMixin, db.Model):
         return {
             "id": self.id,
             "razon_social": self.razon_social,
-            "tipo_documento": self.tipo_documento.to_json(),
+            "tipo_documento": self.tipo_documento.to_dict(),
             "nro_documento": self.nro_documento,
-            "tipo_responsable": self.tipo_responsable.to_json(),
+            "tipo_responsable": self.tipo_responsable.to_dict(),
             "direccion": self.direccion,
             "localidad": self.localidad,
-            "provincia": self.provincia.to_json(),
+            "provincia": self.provincia.to_dict(),
             "codigo_postal": self.codigo_postal,
         }
 

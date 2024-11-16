@@ -39,12 +39,12 @@ def get_select_options():
     # TODO: Punto Venta, cargar los puntos de ventas de los comercios asociados al usuario actual
     return {
         "cliente": list(map(lambda x: x.to_json_min(), cliente)),
-        "tipo_comprobante": list(map(lambda x: x.to_json(), tipo_comprobante)),
-        "tipo_pago": list(map(lambda x: x.to_json(), tipo_pago)),
-        "moneda": list(map(lambda x: x.to_json(), moneda)),
-        "tributo": list(map(lambda x: x.to_json(), tributo)),
-        "punto_venta": list(map(lambda x: x.to_json(), punto_venta)),
-        "alicuota_iva": list(map(lambda x: x.to_json(), alicuota_iva)),
+        "tipo_comprobante": list(map(lambda x: x.to_dict(), tipo_comprobante)),
+        "tipo_pago": list(map(lambda x: x.to_dict(), tipo_pago)),
+        "moneda": list(map(lambda x: x.to_dict(), moneda)),
+        "tributo": list(map(lambda x: x.to_dict(), tributo)),
+        "punto_venta": list(map(lambda x: x.to_dict(), punto_venta)),
+        "alicuota_iva": list(map(lambda x: x.to_dict(), alicuota_iva)),
     }
 
 
