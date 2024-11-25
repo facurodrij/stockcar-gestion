@@ -13,12 +13,60 @@ from server.core.models import (
 from server.core.models.tributo import BaseCalculo
 from server.core.models.association_table import tributo_venta
 from server.core.services import AfipService
+from server.core.schemas import VentaFormSchema
 from .movimiento_stock_controller import MovimientoStockController
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
+venta_form_schema = VentaFormSchema()
 
 
 class VentaController:
+
+    @staticmethod
+    def create(data) -> int:
+        """
+        Crea una nueva venta en la base de datos, realiza la facturacion si el comprobante lo requeire
+        y registra los movimientos de stock correspondientes.
+        """
+
+        new_venta = venta_form_schema.load(data, session=db.session)
+        db.session.add(new_venta)
+        db.session.flush()  # para obtener el id de la venta creada
+
+        # Calcular tributos
+        for tributo in new_venta.tributos:
+            base_calculo = tributo.base_calculo
+            alicuota = float(tributo.alicuota / 100)
+            if base_calculo == BaseCalculo.neto:
+                importe = new_venta.gravado * alicuota
+            elif base_calculo == BaseCalculo.bruto:
+                # TODO revisar si es correcto
+                importe = new_venta.total * alicuota
+            new_venta.total_tributos += importe
+            db.session.execute(
+                tributo_venta.insert().values(
+                    tributo_id=tributo.id, venta_id=new_venta.id, importe=importe
+                )
+            )
+        new_venta.total += new_venta.total_tributos
+
+        # Facturar venta si corresponde
+        if not new_venta.tipo_comprobante.codigo_afip is None:
+            afip = AfipService()
+            res = afip.obtener_cae(new_venta)
+            new_venta.numero = res["numero"]
+            new_venta.cae = res["cae"]
+            new_venta.vencimiento_cae = datetime.fromisoformat(res["vencimiento_cae"])
+            new_venta.estado = "facturado"
+        else:
+            new_venta.estado = "ticket"
+
+        # Registrar movimiento de stock
+        if new_venta.tipo_comprobante.descontar_stock:
+            MovimientoStockController.create_movimiento_from_venta(new_venta)
+
+        db.session.commit()
+        return new_venta.id
 
     @staticmethod
     def venta_json_to_model(venta_json: dict) -> dict:
@@ -190,7 +238,7 @@ class VentaController:
                     venta.estado = "facturado"
                 else:
                     venta.estado = "ticket"
-                
+
                 if venta.tipo_comprobante.descontar_stock:
                     MovimientoStockController.create_movimiento_from_venta(venta)
 
@@ -230,8 +278,8 @@ class VentaController:
                     moneda_id=venta.moneda_id,
                     moneda_cotizacion=venta.moneda_cotizacion,
                     venta_asociada_id=venta.id,
-                    created_by=venta.updated_by, # Es creado por el usuario que anula la venta
-                    updated_by=venta.updated_by
+                    created_by=venta.updated_by,  # Es creado por el usuario que anula la venta
+                    updated_by=venta.updated_by,
                 )
                 nota_credito.numero = nota_credito.get_last_number() + 1
                 db.session.add(nota_credito)

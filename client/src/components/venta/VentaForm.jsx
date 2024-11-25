@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
 import {
     Autocomplete,
     Box,
@@ -17,18 +21,15 @@ import {
     TextField,
     Typography
 } from "@mui/material";
-import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DataGrid, GridToolbarContainer } from '@mui/x-data-grid';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
-import 'dayjs/locale/es';
-import SaveIcon from '@mui/icons-material/Save';
-import { API } from "../../App";
-import SimpleTabPanel from "../shared/SimpleTabPanel";
-import AddIcon from "@mui/icons-material/Add";
-import SnackbarAlert from "../shared/SnackbarAlert";
-import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import { esES } from "@mui/x-data-grid/locales";
+import SaveIcon from '@mui/icons-material/Save';
+import AddIcon from "@mui/icons-material/Add";
+
+import { API } from "../../App";
+import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
+import SimpleTabPanel from "../shared/SimpleTabPanel";
+import SnackbarAlert from "../shared/SnackbarAlert";
 import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useLoading } from '../../utils/loadingContext';
@@ -115,18 +116,16 @@ export default function VentaForm({ pk }) {
                     punto_venta: selectOptions.punto_venta,
                     alicuota_iva: selectOptions.alicuota_iva
                 });
-                setValue('cliente_id', selectOptions.cliente[0].id); // Seleccionar el primer cliente por defecto
+                setValue('cliente', selectOptions.cliente[0].id); // Seleccionar el primer cliente por defecto
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     const tributos = venta['tributos'];
-                    setValue('cliente_id', venta.cliente.id);
-                    setValue('tipo_comprobante_id', venta.tipo_comprobante.id);
-                    setValue('punto_venta_id', venta.punto_venta.id);
+                    setValue('cliente', venta.cliente.id);
+                    setValue('tipo_comprobante', venta.tipo_comprobante.id);
+                    setValue('punto_venta', venta.punto_venta.id);
+                    setValue('tipo_pago', venta.tipo_pago.id);
+                    setValue('moneda', venta.moneda.id);
                     setValue('fecha_hora', dayjs(venta.fecha_hora));
-                    setValue('descuento', venta.descuento);
-                    setValue('recargo', venta.recargo);
-                    setValue('tipo_pago_id', venta.tipo_pago.id);
-                    setValue('moneda_id', venta.moneda.id);
                     setValue('moneda_cotizacion', venta.moneda_cotizacion);
                     if (venta.cae) setValue('cae', venta.cae);
                     if (venta.vencimiento_cae) setValue('vencimiento_cae', dayjs(venta.vencimiento_cae));
@@ -179,9 +178,9 @@ export default function VentaForm({ pk }) {
             if (ventaRenglones.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
-            const res = await fetchWithAuth(url, method, {
-                venta: data, renglones: ventaRenglones, tributos: selectedTributo
-            });
+            data['items'] = ventaRenglones;
+            data['tributos'] = selectedTributo;
+            const res = await fetchWithAuth(url, method, data);
             const resJson = await res.json();
             if (!res.ok) {
                 throw new Error(resJson['error']);
@@ -207,11 +206,11 @@ export default function VentaForm({ pk }) {
     }
 
     const onError = (errors) => {
-        if (errors['cliente_id'] || errors['tipo_comprobante_id'] || errors['fecha_hora']) {
+        if (errors['cliente'] || errors['tipo_comprobante'] || errors['fecha_hora']) {
             setTabValue(0);
             return;
         }
-        if (errors['descuento'] || errors['recargo'] || errors['tipo_pago_id'] || errors['moneda_id']) {
+        if (errors['descuento'] || errors['recargo'] || errors['tipo_pago'] || errors['moneda']) {
             setTabValue(1);
         }
     }
@@ -252,7 +251,7 @@ export default function VentaForm({ pk }) {
                         <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <Controller
-                                    name="cliente_id"
+                                    name="cliente"
                                     control={control}
                                     defaultValue=""
                                     rules={{ required: "Este campo es requerido" }}
@@ -265,8 +264,8 @@ export default function VentaForm({ pk }) {
                                                     required
                                                     label="Seleccionar Cliente"
                                                     variant="outlined"
-                                                    error={Boolean(errors.cliente_id)}
-                                                    helperText={errors.cliente_id && errors.cliente_id.message}
+                                                    error={Boolean(errors.cliente)}
+                                                    helperText={errors.cliente && errors.cliente.message}
                                                 />
                                             )}
                                             options={selectOptions.cliente}
@@ -285,10 +284,10 @@ export default function VentaForm({ pk }) {
                             </FormControl>
                         </Grid>
                         <Grid item xs={6}>
-                            <FormControl fullWidth required error={Boolean(errors.punto_venta_id)}>
+                            <FormControl fullWidth required error={Boolean(errors.punto_venta)}>
                                 <InputLabel id="punto_venta_label">Punto de Venta</InputLabel>
                                 <Controller
-                                    name="punto_venta_id"
+                                    name="punto_venta"
                                     control={control}
                                     defaultValue="1"
                                     rules={{ required: "Este campo es requerido" }}
@@ -304,17 +303,17 @@ export default function VentaForm({ pk }) {
                                         </Select>
                                     )}
                                 />
-                                <FormHelperText>{errors.punto_venta_id && errors.punto_venta_id.message}</FormHelperText>
+                                <FormHelperText>{errors.punto_venta && errors.punto_venta.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                     </Grid>
                     <br />
                     <Grid container spacing={2}>
                         <Grid item xs={6}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_comprobante_id)}>
+                            <FormControl fullWidth required error={Boolean(errors.tipo_comprobante)}>
                                 <InputLabel id="tipo_comprobante_label">Tipo de Comprobante</InputLabel>
                                 <Controller
-                                    name="tipo_comprobante_id"
+                                    name="tipo_comprobante"
                                     control={control}
                                     defaultValue=""
                                     rules={{ required: "Este campo es requerido" }}
@@ -330,7 +329,7 @@ export default function VentaForm({ pk }) {
                                         </Select>
                                     )}
                                 />
-                                <FormHelperText>{errors.tipo_comprobante_id && errors.tipo_comprobante_id.message}</FormHelperText>
+                                <FormHelperText>{errors.tipo_comprobante && errors.tipo_comprobante.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                         <Grid item xs={6}>
@@ -480,60 +479,11 @@ export default function VentaForm({ pk }) {
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
                     <Grid container spacing={2}>
-                        {/* TODO Agrega la funcionalidad de Descuento y Recargo, revisar sobre que monto debe realizarse
-                            el descuento y recargo, y como eso influye en el calculo del IVA y demas impuestos
-                        */}
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="descuento"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            disabled // TODO Implementar descuento
-                                            label="Descuento"
-                                            variant="outlined"
-                                            type='number'
-                                            InputProps={{
-                                                endAdornment: <InputAdornment position="end">%</InputAdornment>
-                                            }}
-                                            error={Boolean(errors.descuento)}
-                                            helperText={errors.descuento && errors.descuento.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControl fullWidth>
-                                <Controller
-                                    name="recargo"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            disabled // TODO Implementar recargo
-                                            label="Recargo"
-                                            variant="outlined"
-                                            type='number'
-                                            InputProps={{
-                                                endAdornment: <InputAdornment position="end">%</InputAdornment>
-                                            }}
-                                            error={Boolean(errors.recargo)}
-                                            helperText={errors.recargo && errors.recargo.message}
-                                        />
-                                    )}
-                                />
-                            </FormControl>
-                        </Grid>
                         <Grid item xs={6}>
                             <FormControl fullWidth>
                                 <InputLabel id="moneda_label">Moneda</InputLabel>
                                 <Controller
-                                    name="moneda_id"
+                                    name="moneda"
                                     control={control}
                                     defaultValue="1"
                                     render={({ field }) => (
@@ -579,7 +529,7 @@ export default function VentaForm({ pk }) {
                             <FormControl fullWidth>
                                 <InputLabel id="tipo_pago_label">Tipo de Pago</InputLabel>
                                 <Controller
-                                    name="tipo_pago_id"
+                                    name="tipo_pago"
                                     control={control}
                                     defaultValue="1"
                                     render={({ field }) => (

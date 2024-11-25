@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request, send_file, abort
 from flask_jwt_extended import jwt_required, current_user
 from flask_sqlalchemy.query import Query
+from marshmallow import ValidationError
 
 from server.core.models import (
     Venta,
@@ -16,7 +17,6 @@ from server.core.models import (
     PuntoVenta,
     AlicuotaIVA,
 )
-from server.auth.models import Usuario
 from server.config import db
 from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.auth.decorators import permission_required
@@ -99,16 +99,29 @@ def create():
         return jsonify({"select_options": get_select_options()}), 200
     if request.method == "POST":
         data = request.json
-        data["created_by"] = current_user.id
-        data["updated_by"] = current_user.id
-        return VentaController.create_venta(data)
+        try:
+            data["created_by"] = current_user.id
+            data["updated_by"] = current_user.id
+            venta_id: int = VentaController.create(data)
+            return jsonify({"venta_id": venta_id}), 201
+        except ValidationError as e:
+            return jsonify({"error": e.messages}), 400
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({"error": str(e)}), 400
+        finally:
+            db.session.close()
 
 
 @venta_bp.route("/ventas/<int:pk>/update", methods=["GET", "PUT"])
 @jwt_required()
 @permission_required("venta.update")
 def update(pk):
-    venta = Venta.query.get_or_404(pk, "Venta no encontrada")
+    try:
+        venta = Venta.query.get_or_404(pk, "Venta no encontrada")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
     venta_items = VentaItem.query.filter_by(venta_id=pk).all()
     if request.method == "GET":
         return (

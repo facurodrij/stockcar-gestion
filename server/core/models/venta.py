@@ -89,7 +89,7 @@ class Venta(AuditMixin, SoftDeleteMixin, db.Model):
         """
         return f"{self.punto_venta.numero:04d}-{self.numero:08d}"
 
-    def get_last_number(self):
+    def get_last_number(self) -> int:
         """
         Devuelve el último número de venta, según el comprobante y punto de venta.
         """
@@ -102,7 +102,7 @@ class Venta(AuditMixin, SoftDeleteMixin, db.Model):
             .scalar()
         )
         if last_number:
-            return last_number
+            return int(last_number)
         else:
             return 0
 
