@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request, send_file, abort
 from flask_jwt_extended import jwt_required, current_user
 from flask_sqlalchemy.query import Query
-from marshmallow import ValidationError
 
 from server.core.models import (
     Venta,
@@ -18,34 +17,14 @@ from server.core.models import (
     AlicuotaIVA,
 )
 from server.config import db
+from server.utils.utils import get_select_options, get_datagrid_options
 from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.auth.decorators import permission_required
 from server.core.controllers import VentaController
+from server.core.schemas import VentaFormSchema
 
 venta_bp = Blueprint("venta_bp", __name__)
-
-
-def get_select_options():
-    """
-    Obtiene los datos necesarios para los campos select de los formularios de ventas.
-    """
-    cliente = Cliente.query.all()
-    tipo_comprobante = TipoComprobante.query.all()
-    tipo_pago = TipoPago.query.all()
-    moneda = Moneda.query.all()
-    tributo = Tributo.query.all()
-    punto_venta = PuntoVenta.query.all()
-    alicuota_iva = AlicuotaIVA.query.all()
-    # TODO: Punto Venta, cargar los puntos de ventas de los comercios asociados al usuario actual
-    return {
-        "cliente": list(map(lambda x: x.to_json_min(), cliente)),
-        "tipo_comprobante": list(map(lambda x: x.to_dict(), tipo_comprobante)),
-        "tipo_pago": list(map(lambda x: x.to_dict(), tipo_pago)),
-        "moneda": list(map(lambda x: x.to_dict(), moneda)),
-        "tributo": list(map(lambda x: x.to_dict(), tributo)),
-        "punto_venta": list(map(lambda x: x.to_dict(), punto_venta)),
-        "alicuota_iva": list(map(lambda x: x.to_dict(), alicuota_iva)),
-    }
+venta_form_schema = VentaFormSchema()
 
 
 @venta_bp.route("/ventas", methods=["GET"])
@@ -96,7 +75,24 @@ def index():
 @permission_required("venta.create")
 def create():
     if request.method == "GET":
-        return jsonify({"select_options": get_select_options()}), 200
+        return (
+            jsonify(
+                {
+                    **get_select_options(
+                        [
+                            Cliente,
+                            Moneda,
+                            PuntoVenta,
+                            TipoComprobante,
+                            TipoPago,
+                            AlicuotaIVA,
+                        ]
+                    ),
+                    **get_datagrid_options([Tributo]),
+                }
+            ),
+            200,
+        )
     if request.method == "POST":
         data = request.json
         try:
@@ -104,8 +100,6 @@ def create():
             data["updated_by"] = current_user.id
             venta_id: int = VentaController.create(data)
             return jsonify({"venta_id": venta_id}), 201
-        except ValidationError as e:
-            return jsonify({"error": e.messages}), 400
         except Exception as e:
             db.session.rollback()
             print(e)
@@ -122,22 +116,39 @@ def update(pk):
         venta = Venta.query.get_or_404(pk, "Venta no encontrada")
     except Exception as e:
         return jsonify({"error": str(e)}), 404
-    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
     if request.method == "GET":
         return (
             jsonify(
                 {
-                    "select_options": get_select_options(),
-                    "venta": venta.to_json(),
-                    "renglones": list(map(lambda x: x.to_json(), venta_items)),
+                    **get_select_options(
+                        [
+                            Cliente,
+                            Moneda,
+                            PuntoVenta,
+                            TipoComprobante,
+                            TipoPago,
+                            AlicuotaIVA,
+                        ]
+                    ),
+                    **get_datagrid_options([Tributo]),
+                    "venta": venta_form_schema.dump(venta),
                 }
             ),
             200,
         )
     if request.method == "PUT":
         data = request.json
-        venta.updated_by = current_user.id
-        return VentaController.update_venta(data, venta, venta_items)
+        try:
+            data["created_by"] = venta.created_by
+            data["updated_by"] = current_user.id
+            venta_id: int = VentaController.update(data, venta)
+            return jsonify({"venta_id": venta_id}), 200
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            return jsonify({"error": str(e)}), 400
+        finally:
+            db.session.close()
 
 
 @venta_bp.route("/ventas/<int:pk>", methods=["GET", "POST", "DELETE"])

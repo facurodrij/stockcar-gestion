@@ -61,10 +61,10 @@ export default function VentaForm({ pk }) {
         tipo_comprobante: [],
         tipo_pago: [],
         moneda: [],
-        tributo: [],
         punto_venta: [],
         alicuota_iva: []
     });
+    const [tributos, setTributos] = useState([]);
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
         message: '',
@@ -106,25 +106,24 @@ export default function VentaForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    cliente: selectOptions.cliente,
-                    tipo_comprobante: selectOptions.tipo_comprobante,
-                    tipo_pago: selectOptions.tipo_pago,
-                    moneda: selectOptions.moneda,
-                    tributo: selectOptions.tributo,
-                    punto_venta: selectOptions.punto_venta,
-                    alicuota_iva: selectOptions.alicuota_iva
+                    cliente: data.clientes,
+                    tipo_comprobante: data.tipo_comprobante,
+                    tipo_pago: data.tipo_pago,
+                    moneda: data.moneda,
+                    punto_venta: data.punto_venta,
+                    alicuota_iva: data.alicuota_iva
                 });
-                setValue('cliente', selectOptions.cliente[0].id); // Seleccionar el primer cliente por defecto
+                setTributos(data.tributos);
+                setValue('cliente', data.clientes[0].value); // Seleccionar el primer cliente por defecto
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     const tributos = venta['tributos'];
-                    setValue('cliente', venta.cliente.id);
-                    setValue('tipo_comprobante', venta.tipo_comprobante.id);
-                    setValue('punto_venta', venta.punto_venta.id);
-                    setValue('tipo_pago', venta.tipo_pago.id);
-                    setValue('moneda', venta.moneda.id);
+                    setValue('cliente', venta.cliente);
+                    setValue('tipo_comprobante', venta.tipo_comprobante);
+                    setValue('punto_venta', venta.punto_venta);
+                    setValue('tipo_pago', venta.tipo_pago);
+                    setValue('moneda', venta.moneda);
                     setValue('fecha_hora', dayjs(venta.fecha_hora));
                     setValue('moneda_cotizacion', venta.moneda_cotizacion);
                     if (venta.cae) setValue('cae', venta.cae);
@@ -133,7 +132,7 @@ export default function VentaForm({ pk }) {
                     setEstadoVenta(venta.estado);
 
                     // Cargar renglones de venta
-                    const renglonesArray = data['renglones'].map((r) => {
+                    const renglonesArray = venta['items'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
                             descripcion: r.descripcion,
@@ -152,7 +151,7 @@ export default function VentaForm({ pk }) {
                     // Cargar tributos seleccionados
                     setSelectedTributo([])
                     tributos.forEach((t) => {
-                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
+                        setSelectedTributo(selectedTributo => [...selectedTributo, t]);
                     });
                 }
             } catch (e) {
@@ -216,9 +215,8 @@ export default function VentaForm({ pk }) {
     }
 
     const calculateTotalTributos = () => {
-        const tributos = selectOptions.tributo.filter((t) => selectedTributo.includes(t.id));
         let totalTributos = 0
-        tributos.forEach((t) => {
+        tributos.filter((t) => selectedTributo.includes(t.id)).forEach((t) => {
             if (t.base_calculo === 'Neto')
                 totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0) * t.alicuota / 100;
             else
@@ -269,14 +267,14 @@ export default function VentaForm({ pk }) {
                                                 />
                                             )}
                                             options={selectOptions.cliente}
-                                            getOptionLabel={(option) => option.razon_social ? option.razon_social : ''}
-                                            getOptionKey={(option) => option.id}
-                                            value={selectOptions.cliente.find((c) => c.id === field.value) || ""}
+                                            getOptionLabel={(option) => option.label ? option.label : ''}
+                                            getOptionKey={(option) => option.value}
+                                            value={selectOptions.cliente.find((c) => c.value === field.value) || ""}
                                             isOptionEqualToValue={(option, value) =>
-                                                value === undefined || value === "" || option.id === value.id
+                                                value === undefined || value === "" || option.value === value.value
                                             }
                                             onChange={(event, value) => {
-                                                field.onChange(value ? value.id : "");
+                                                field.onChange(value ? value.value : "");
                                             }}
                                         />
                                     )}
@@ -299,7 +297,7 @@ export default function VentaForm({ pk }) {
                                             label="Punto de Venta"
                                         >
                                             {selectOptions.punto_venta.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -325,7 +323,7 @@ export default function VentaForm({ pk }) {
                                             label="Tipo de Comprobante"
                                         >
                                             {selectOptions.tipo_comprobante.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -402,7 +400,7 @@ export default function VentaForm({ pk }) {
                                     type: 'singleSelect',
                                     editable: true,
                                     valueOptions: selectOptions.alicuota_iva.map((item) => (
-                                        { value: item.porcentaje, label: `${item.porcentaje}%` }
+                                        { value: item.value, label: `${item.label}%` }
                                     )),
                                     valueFormatter: (value) => {
                                         return new Intl.NumberFormat('es-AR').format(value);
@@ -494,7 +492,7 @@ export default function VentaForm({ pk }) {
                                             label="Moneda"
                                         >
                                             {selectOptions.moneda.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -540,7 +538,7 @@ export default function VentaForm({ pk }) {
                                             label="Tipo de Pago"
                                         >
                                             {selectOptions.tipo_pago.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -552,7 +550,7 @@ export default function VentaForm({ pk }) {
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <TributoDataGrid
-                                tributos={selectOptions.tributo}
+                                tributos={tributos}
                                 selectedTributo={selectedTributo}
                                 setSelectedTributo={setSelectedTributo}
                             />
@@ -642,7 +640,7 @@ export default function VentaForm({ pk }) {
                     </Box>
                     <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
                         <Box sx={{ display: 'flex', justifyContent: 'right', mt: 2 }}>
-                            {estadoVenta === 'Orden' ? (
+                            {estadoVenta === 'orden' ? (
                                 <Button
                                     variant="contained"
                                     startIcon={<SaveIcon />}

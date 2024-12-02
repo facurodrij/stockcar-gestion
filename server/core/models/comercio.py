@@ -69,6 +69,7 @@ class PuntoVenta(db.Model):
     """
 
     __tablename__ = "punto_venta"
+    __pluralname__ = "punto_venta"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     numero = Column(Integer, nullable=False)  # El número debe ser obtenido de la AFIP
@@ -89,6 +90,15 @@ class PuntoVenta(db.Model):
             "nombre_fantasia": self.nombre_fantasia,
             "domicilio": self.domicilio,
             "descripcion": "{:04d} - {}".format(self.numero, self.nombre_fantasia),
+        }
+
+    def to_select_dict(self) -> dict:
+        """
+        Devuelve el objeto en formato dict.
+        """
+        return {
+            "value": self.id,
+            "label": "{:04d} - {}".format(self.numero, self.nombre_fantasia),
         }
 
     def to_dict(self) -> dict:

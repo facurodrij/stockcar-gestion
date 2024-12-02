@@ -48,7 +48,7 @@ class VentaController:
                     tributo_id=tributo.id, venta_id=new_venta.id, importe=importe
                 )
             )
-        new_venta.total += new_venta.total_tributos
+        new_venta.total += float(new_venta.total_tributos)
 
         # Facturar venta si corresponde
         if not new_venta.tipo_comprobante.codigo_afip is None:
@@ -67,6 +67,73 @@ class VentaController:
 
         db.session.commit()
         return new_venta.id
+
+    @staticmethod
+    def update(data, venta: Venta) -> int:
+        """
+        Actualiza una venta en la base de datos.
+        """
+        # Obtener los articulo_ids de data["items"]
+        articulo_ids = {i["articulo_id"] for i in data["items"]}
+
+        # Borrar los items de venta que posean un articulo_id que no esté en la lista de items a actualizar.
+        # Actualizar la lista de items data["items"] con los ids de los items de venta que se van a actualizar.
+        for item in venta.items:
+            if item.articulo_id not in articulo_ids:
+                db.session.delete(item)
+            else:
+                for i in data["items"]:
+                    if i["articulo_id"] == item.articulo_id:
+                        i["id"] = item.id
+                        break
+        db.session.commit()
+
+        venta_form_schema.load(data, instance=venta, session=db.session)
+
+        # db.session.flush()
+
+        print(
+            db.session.execute(
+                tributo_venta.select().where(tributo_venta.c.venta_id == venta.id)
+            ).fetchall()
+        )
+
+        # Calcular tributos
+        venta.total_tributos = 0
+        for tributo in venta.tributos:
+            base_calculo = tributo.base_calculo
+            alicuota = tributo.alicuota / 100
+            if base_calculo == BaseCalculo.neto:
+                importe = venta.gravado * alicuota
+            elif base_calculo == BaseCalculo.bruto:
+                # TODO revisar si es correcto
+                importe = venta.total * alicuota
+            venta.total_tributos += importe
+            db.session.execute(
+                tributo_venta.update()
+                .where(tributo_venta.c.venta_id == venta.id)
+                .values(importe=importe)
+            )
+        venta.total += venta.total_tributos
+
+        # Facturar venta si corresponde
+        if venta.estado.value == "Orden":
+            if not venta.tipo_comprobante.codigo_afip is None:
+                afip = AfipService()
+                res = afip.obtener_cae(venta)
+                venta.numero = res["numero"]
+                venta.cae = res["cae"]
+                venta.vencimiento_cae = datetime.fromisoformat(res["vencimiento_cae"])
+                venta.estado = "facturado"
+            else:
+                venta.estado = "ticket"
+
+            # Registrar movimiento de stock
+            if venta.tipo_comprobante.descontar_stock:
+                MovimientoStockController.create_movimiento_from_venta(venta)
+
+        db.session.commit()
+        return venta.id
 
     @staticmethod
     def venta_json_to_model(venta_json: dict) -> dict:

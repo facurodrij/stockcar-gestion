@@ -89,6 +89,8 @@ class Tributo(db.Model):
             "id": self.id,
             "descripcion": self.descripcion,
             "alicuota": float(self.alicuota),
+            "minimo_imponible": self.minimo_imponible,
+            "base_calculo": self.base_calculo.value,
         }
 
     def __repr__(self):

@@ -1,9 +1,9 @@
 import pytz
+from decimal import Decimal
 from datetime import datetime
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field, fields
-from marshmallow import pre_load, validates_schema, ValidationError, post_load
+from marshmallow import pre_load, post_load
 from server.core.models import Venta, VentaItem, Cliente
-from server.auth.schemas import UsuarioSchema
 from server.config import db
 from sqlalchemy.sql import func
 
@@ -30,7 +30,7 @@ class VentaFormSchema(SQLAlchemyAutoSchema):
     created_by = auto_field(load_only=True)
     updated_by = auto_field(load_only=True)
 
-    items = fields.Nested(VentaItemSchema, many=True)
+    items = fields.Nested(VentaItemSchema, many=True, required=True)
 
     @pre_load
     def convert_empty_strings_to_none(self, data, **kwargs):
@@ -63,7 +63,7 @@ class VentaFormSchema(SQLAlchemyAutoSchema):
 
     @pre_load
     def set_nombre_cliente(self, data, **kwargs):
-        cliente = Cliente.query.get(data.get("cliente"))
+        cliente = db.session.get(Cliente, data.get("cliente"))
         if cliente:
             data["nombre_cliente"] = cliente.razon_social
         return data
@@ -93,7 +93,7 @@ class VentaFormSchema(SQLAlchemyAutoSchema):
             total_iva += float(item.subtotal_iva)
             gravado += float(item.subtotal_gravado)
             total += float(item.subtotal)
-        data.total_iva = total_iva
-        data.gravado = gravado
-        data.total = total
+        data.total_iva = Decimal(total_iva)
+        data.gravado = Decimal(gravado)
+        data.total = Decimal(total)
         return data

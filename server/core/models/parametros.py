@@ -143,7 +143,7 @@ class TipoComprobante(db.Model):
         }
 
     def to_select_dict(self) -> dict:
-        return {"value": self.id, "label": self.nombre}
+        return {"value": self.id, "label": f"{self.descripcion} ({self.letra})"}
 
 
 class TipoConcepto(db.Model):
@@ -267,7 +267,7 @@ class AlicuotaIVA(db.Model):
         }
 
     def to_select_dict(self) -> dict:
-        return {"value": self.id, "label": self.descripcion}
+        return {"value": self.porcentaje, "label": self.porcentaje}
 
 
 class TipoArticulo(db.Model):

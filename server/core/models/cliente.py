@@ -61,6 +61,12 @@ class Cliente(AuditMixin, db.Model):
     genero = relationship("Genero", backref="clientes")
     observacion = Column(String, nullable=True)
 
+    def __repr__(self):
+        return f"<Cliente {self.razon_social} ({self.nro_documento})>"
+
+    def __str__(self):
+        return f"{self.razon_social} ({self.nro_documento})"
+
     def to_json_min(self):
         """
         Convierte los datos mínimos del cliente a formato JSON.
@@ -77,11 +83,14 @@ class Cliente(AuditMixin, db.Model):
             "codigo_postal": self.codigo_postal,
         }
 
-    def __repr__(self):
-        return f"<Cliente {self.razon_social} ({self.nro_documento})>"
-
-    def __str__(self):
-        return f"{self.razon_social} ({self.nro_documento})"
+    def to_select_dict(self) -> dict:
+        """
+        Convierte los datos del cliente a formato de diccionario para un select.
+        """
+        return {
+            "value": self.id,
+            "label": f"{self.razon_social} ({self.nro_documento})",
+        }
 
     def to_dict(self) -> dict:
         """
