@@ -7,9 +7,17 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from server import app
 
+convention = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
 
 class Base(DeclarativeBase):
-    pass
+    metadata = MetaData(naming_convention=convention)
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,16 +42,6 @@ CORS(
     },
 )
 
-convention = {
-    "ix": "ix_%(column_0_label)s",
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(column_0_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s",
-}
-
-metadata = MetaData(naming_convention=convention)
-
 # Config for Development
 
 database_path = os.path.join(BASE_DIR, "instance", "datos.db")
@@ -57,7 +55,7 @@ app.config["SQLALCHEMY_ECHO"] = False
 app.config["JWT_SECRET_KEY"] = "my-secret-key"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 
-db = SQLAlchemy(model_class=Base, metadata=metadata)
+db = SQLAlchemy(model_class=Base)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
