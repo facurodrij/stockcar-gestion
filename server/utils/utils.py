@@ -2,6 +2,7 @@ import pytz
 from sqlalchemy import Column, func, DateTime, Boolean, Integer, ForeignKey
 from sqlalchemy.orm import relationship, Query
 from sqlalchemy.ext.declarative import declared_attr
+from server.auth.models import Usuario
 
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
@@ -30,11 +31,11 @@ class AuditMixin:
 
     @declared_attr
     def created_by_user(cls):
-        return relationship("Usuario", foreign_keys=[cls.created_by])
+        return relationship(Usuario, foreign_keys=[cls.created_by])
 
     @declared_attr
     def updated_by_user(cls):
-        return relationship("Usuario", foreign_keys=[cls.updated_by])
+        return relationship(Usuario, foreign_keys=[cls.updated_by])
 
     def __init__(self, *args, **kwargs):
         super(AuditMixin, self).__init__(*args, **kwargs)
