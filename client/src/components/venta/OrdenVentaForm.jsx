@@ -89,19 +89,18 @@ export default function OrdenVentaForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    cliente: selectOptions.cliente,
-                    alicuota_iva: selectOptions.alicuota_iva
+                    cliente: data.clientes,
+                    alicuota_iva: data.alicuota_iva
                 });
-                setValue('cliente_id', selectOptions.cliente[0].id);
+                setValue('cliente', data.clientes[0].value);
                 if (Boolean(pk)) {
                     const venta = data['venta'];
-                    setValue('cliente_id', venta.cliente.id);
+                    setValue('cliente', venta.cliente);
                     if (venta.observacion) setValue('observacion', venta.observacion);
 
                     // Cargar renglones de venta
-                    const renglonesArray = data['renglones'].map((r) => {
+                    const renglonesArray = venta['items'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
                             descripcion: r.descripcion,
@@ -122,6 +121,7 @@ export default function OrdenVentaForm({ pk }) {
                 setSnackbar({
                     message: e.message,
                     severity: 'error',
+                    autoHideDuration: null,
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
@@ -139,9 +139,8 @@ export default function OrdenVentaForm({ pk }) {
             if (ventaRenglones.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
-            const res = await fetchWithAuth(url, method, {
-                venta: data, renglones: ventaRenglones
-            });
+            data['items'] = ventaRenglones;
+            const res = await fetchWithAuth(url, method, data);
             const resJson = await res.json();
             if (!res.ok) {
                 throw new Error(`${resJson['error']}`);
@@ -167,7 +166,7 @@ export default function OrdenVentaForm({ pk }) {
     }
 
     const onError = (errors) => {
-        if (errors['cliente_id']) {
+        if (errors['cliente']) {
             setTabValue(0);
             return;
         }
@@ -195,7 +194,7 @@ export default function OrdenVentaForm({ pk }) {
                         <Grid item xs={12}>
                             <FormControl fullWidth>
                                 <Controller
-                                    name="cliente_id"
+                                    name="cliente"
                                     control={control}
                                     defaultValue=""
                                     rules={{ required: "Este campo es requerido" }}
@@ -208,19 +207,19 @@ export default function OrdenVentaForm({ pk }) {
                                                     required
                                                     label="Seleccionar Cliente"
                                                     variant="outlined"
-                                                    error={Boolean(errors.cliente_id)}
-                                                    helperText={errors.cliente_id && errors.cliente_id.message}
+                                                    error={Boolean(errors.cliente)}
+                                                    helperText={errors.cliente && errors.cliente.message}
                                                 />
                                             )}
                                             options={selectOptions.cliente}
-                                            getOptionLabel={(option) => option.razon_social ? option.razon_social : ''}
-                                            getOptionKey={(option) => option.id}
-                                            value={selectOptions.cliente.find((c) => c.id === field.value) || ""}
+                                            getOptionLabel={(option) => option.label ? option.label : ''}
+                                            getOptionKey={(option) => option.value}
+                                            value={selectOptions.cliente.find((c) => c.value === field.value) || ""}
                                             isOptionEqualToValue={(option, value) =>
-                                                value === undefined || value === "" || option.id === value.id
+                                                value === undefined || value === "" || option.value === value.value
                                             }
                                             onChange={(event, value) => {
-                                                field.onChange(value ? value.id : "");
+                                                field.onChange(value ? value.value : "");
                                             }}
                                         />
                                     )}

@@ -23,53 +23,55 @@ venta_form_schema = VentaFormSchema()
 class VentaController:
 
     @staticmethod
-    def create(data) -> int:
+    def create(data, orden: bool = False) -> int:
         """
         Crea una nueva venta en la base de datos, realiza la facturacion si el comprobante lo requeire
         y registra los movimientos de stock correspondientes.
         """
 
-        new_venta = venta_form_schema.load(data, session=db.session)
-        db.session.add(new_venta)
+        venta = venta_form_schema.load(data, session=db.session)
+        db.session.add(venta)
         db.session.flush()  # para obtener el id de la venta creada
 
         # Calcular tributos
-        for tributo in new_venta.tributos:
+        venta.total_tributos = 0
+        for tributo in venta.tributos:
             base_calculo = tributo.base_calculo
-            alicuota = float(tributo.alicuota / 100)
+            alicuota = tributo.alicuota / 100
             if base_calculo == BaseCalculo.neto:
-                importe = new_venta.gravado * alicuota
+                importe = venta.gravado * alicuota
             elif base_calculo == BaseCalculo.bruto:
                 # TODO revisar si es correcto
-                importe = new_venta.total * alicuota
-            new_venta.total_tributos += importe
+                importe = venta.total * alicuota
+            venta.total_tributos += importe
             db.session.execute(
                 tributo_venta.insert().values(
-                    tributo_id=tributo.id, venta_id=new_venta.id, importe=importe
+                    tributo_id=tributo.id, venta_id=venta.id, importe=importe
                 )
             )
-        new_venta.total += float(new_venta.total_tributos)
+        venta.total += venta.total_tributos
 
         # Facturar venta si corresponde
-        if not new_venta.tipo_comprobante.codigo_afip is None:
-            afip = AfipService()
-            res = afip.obtener_cae(new_venta)
-            new_venta.numero = res["numero"]
-            new_venta.cae = res["cae"]
-            new_venta.vencimiento_cae = datetime.fromisoformat(res["vencimiento_cae"])
-            new_venta.estado = "facturado"
-        else:
-            new_venta.estado = "ticket"
+        if not orden:
+            if not venta.tipo_comprobante.codigo_afip is None:
+                afip = AfipService()
+                res = afip.obtener_cae(venta)
+                venta.numero = res["numero"]
+                venta.cae = res["cae"]
+                venta.vencimiento_cae = datetime.fromisoformat(res["vencimiento_cae"])
+                venta.estado = "facturado"
+            else:
+                venta.estado = "ticket"
 
-        # Registrar movimiento de stock
-        if new_venta.tipo_comprobante.descontar_stock:
-            MovimientoStockController.create_movimiento_from_venta(new_venta)
+            # Registrar movimiento de stock
+            if venta.tipo_comprobante.descontar_stock:
+                MovimientoStockController.create_movimiento_from_venta(venta)
 
         db.session.commit()
-        return new_venta.id
+        return venta.id
 
     @staticmethod
-    def update(data, venta: Venta) -> int:
+    def update(data, venta: Venta, orden: bool = False) -> int:
         """
         Actualiza una venta en la base de datos.
         """
@@ -117,20 +119,23 @@ class VentaController:
         venta.total += venta.total_tributos
 
         # Facturar venta si corresponde
-        if venta.estado.value == "Orden":
-            if not venta.tipo_comprobante.codigo_afip is None:
-                afip = AfipService()
-                res = afip.obtener_cae(venta)
-                venta.numero = res["numero"]
-                venta.cae = res["cae"]
-                venta.vencimiento_cae = datetime.fromisoformat(res["vencimiento_cae"])
-                venta.estado = "facturado"
-            else:
-                venta.estado = "ticket"
+        if not orden:
+            if venta.estado.value == "Orden":
+                if not venta.tipo_comprobante.codigo_afip is None:
+                    afip = AfipService()
+                    res = afip.obtener_cae(venta)
+                    venta.numero = res["numero"]
+                    venta.cae = res["cae"]
+                    venta.vencimiento_cae = datetime.fromisoformat(
+                        res["vencimiento_cae"]
+                    )
+                    venta.estado = "facturado"
+                else:
+                    venta.estado = "ticket"
 
-            # Registrar movimiento de stock
-            if venta.tipo_comprobante.descontar_stock:
-                MovimientoStockController.create_movimiento_from_venta(venta)
+                # Registrar movimiento de stock
+                if venta.tipo_comprobante.descontar_stock:
+                    MovimientoStockController.create_movimiento_from_venta(venta)
 
         db.session.commit()
         return venta.id
