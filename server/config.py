@@ -59,11 +59,4 @@ db = SQLAlchemy(model_class=Base)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
-
-# Config for Production
-# app.config['SQLALCHEMY_DATABASE_URI'] = ('mssql+pyodbc://sa:Admin-181020@localhost:1433/Datos?driver=ODBC+Driver+18+for'
-#                                          '+SQL+Server&TrustServerCertificate=yes')
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# app.config['SQLALCHEMY_ECHO'] = False
-# app.config['SQLALCHEMY_TRUSTED_CONNECTION'] = True
 db.init_app(app)
