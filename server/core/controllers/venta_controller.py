@@ -45,9 +45,9 @@ class VentaController:
                 importe = venta.total * alicuota
             venta.total_tributos += importe
             db.session.execute(
-                tributo_venta.insert().values(
-                    tributo_id=tributo.id, venta_id=venta.id, importe=importe
-                )
+                tributo_venta.update()
+                .where(tributo_venta.c.venta_id == venta.id)
+                .values(importe=importe)
             )
         venta.total += venta.total_tributos
 
@@ -75,11 +75,9 @@ class VentaController:
         """
         Actualiza una venta en la base de datos.
         """
-        # Obtener los articulo_ids de data["items"]
         articulo_ids = {i["articulo_id"] for i in data["items"]}
 
-        # Borrar los items de venta que posean un articulo_id que no esté en la lista de items a actualizar.
-        # Actualizar la lista de items data["items"] con los ids de los items de venta que se van a actualizar.
+        # Eliminar los items de venta que no están en la lista de articulo_ids y actualizar los ids de los items que se van a actualizar.
         for item in venta.items:
             if item.articulo_id not in articulo_ids:
                 db.session.delete(item)
@@ -91,14 +89,7 @@ class VentaController:
         db.session.commit()
 
         venta_form_schema.load(data, instance=venta, session=db.session)
-
-        # db.session.flush()
-
-        print(
-            db.session.execute(
-                tributo_venta.select().where(tributo_venta.c.venta_id == venta.id)
-            ).fetchall()
-        )
+        db.session.flush()
 
         # Calcular tributos
         venta.total_tributos = 0
