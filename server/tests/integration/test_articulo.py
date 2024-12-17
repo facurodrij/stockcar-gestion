@@ -1,6 +1,6 @@
 import pytest
 from server.core.models import Articulo
-from ..test_conftest import test_app, session
+from ..conftest import test_app, session
 
 
 @pytest.fixture(scope="module")

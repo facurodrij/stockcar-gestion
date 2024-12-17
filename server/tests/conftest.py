@@ -2,8 +2,6 @@ import pytest
 from flask import Flask
 from server.config import db
 
-from server.core.models import Articulo
-
 
 @pytest.fixture(scope="module")
 def test_app():
