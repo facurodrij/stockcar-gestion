@@ -63,9 +63,10 @@ class VentaFormSchema(SQLAlchemyAutoSchema):
 
     @pre_load
     def set_nombre_cliente(self, data, **kwargs):
-        cliente = db.session.get(Cliente, data.get("cliente"))
-        if cliente:
-            data["nombre_cliente"] = cliente.razon_social
+        if data.get("cliente"):
+            cliente = db.session.get(Cliente, data.get("cliente"))
+            if cliente:
+                data["nombre_cliente"] = cliente.razon_social
         return data
 
     @pre_load

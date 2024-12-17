@@ -1,13 +1,49 @@
 import pytest
-from server.core.models import Cliente, TipoComprobante, PuntoVenta, Venta
+from server.core.models import AlicuotaIVA, Cliente, TipoComprobante, Moneda, TipoDocumento, PuntoVenta, Venta
 from server.core.controllers import VentaController
 from ..conftest import test_app, session
 
 @pytest.fixture
+def new_alicuota_iva(session):
+    alicuota_iva = AlicuotaIVA(
+        descripcion="21%",
+        porcentaje=21,
+        codigo_afip=5,
+    )
+    session.add(alicuota_iva)
+    session.commit()
+    return alicuota_iva
+
+
+@pytest.fixture
+def new_moneda(session):
+    moneda = Moneda(
+        nombre="Peso Argentino",
+        simbolo="$",
+        codigo_iso="ARS",
+        codigo_afip="PES"
+    )
+    session.add(moneda)
+    session.commit()
+    return moneda
+
+
+@pytest.fixture
+def new_tipo_documento(session):
+    tipo_documento = TipoDocumento(
+        descripcion="Documento Nacional de Identidad",
+        codigo_afip=96,
+    )
+    session.add(tipo_documento)
+    session.commit()
+    return tipo_documento
+
+
+@pytest.fixture
 def new_cliente(session):
     cliente = Cliente(
-        nro_documento="12345678",
-        razon_social="Test Cliente",
+        nro_documento="1",
+        razon_social="Consumidor Final",
         direccion="Test Direccion",
         localidad="Test Localidad",
         codigo_postal="1234",
@@ -25,10 +61,11 @@ def new_cliente(session):
 @pytest.fixture
 def new_tipo_comprobante(session):
     tipo_comprobante = TipoComprobante(
-        nombre="Factura A",
-        descripcion="Factura A",
-        letra="A",
-        codigo_afip=1,
+        nombre="Remito",
+        descripcion="Remito",
+        letra="R",
+        codigo_afip=6,
+        descontar_stock=False,
     )
     session.add(tipo_comprobante)
     session.commit()
@@ -48,6 +85,7 @@ def new_punto_venta(session):
     return punto_venta
 
 
+@pytest.mark.usefixtures("new_alicuota_iva", "new_moneda", "new_tipo_documento", "new_cliente", "new_tipo_comprobante", "new_punto_venta")
 @pytest.mark.parametrize("data", [
     {
         "numero": 1,
@@ -99,8 +137,11 @@ def new_punto_venta(session):
 ])
 
 
-def test_create_venta(test_app, session, new_cliente, new_tipo_comprobante, new_punto_venta, data):
-    venta_id = VentaController.create(data)
-    venta = session.query(Venta).get(venta_id)
+def test_create_venta(test_app, session, data):
+    venta_id = VentaController.create(data, session)
+    venta = session.get(Venta, venta_id)
+    print(venta.estado)
+
     assert venta is not None
     assert venta.id == venta_id
+    assert venta.cae is not None

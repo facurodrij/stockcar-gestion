@@ -23,15 +23,14 @@ venta_form_schema = VentaFormSchema()
 class VentaController:
 
     @staticmethod
-    def create(data, orden: bool = False) -> int:
+    def create(data, session, orden: bool = False) -> int:
         """
         Crea una nueva venta en la base de datos, realiza la facturacion si el comprobante lo requeire
         y registra los movimientos de stock correspondientes.
         """
-
-        venta = venta_form_schema.load(data, session=db.session)
-        db.session.add(venta)
-        db.session.flush()  # para obtener el id de la venta creada
+        venta = venta_form_schema.load(data, session=session)
+        session.add(venta)
+        session.flush()  # para obtener el id de la venta creada
 
         # Calcular tributos
         venta.total_tributos = 0
@@ -44,7 +43,7 @@ class VentaController:
                 # TODO revisar si es correcto
                 importe = venta.total * alicuota
             venta.total_tributos += importe
-            db.session.execute(
+            session.execute(
                 tributo_venta.update()
                 .where(tributo_venta.c.venta_id == venta.id)
                 .values(importe=importe)
@@ -67,7 +66,7 @@ class VentaController:
             if venta.tipo_comprobante.descontar_stock:
                 MovimientoStockController.create_movimiento_from_venta(venta)
 
-        db.session.commit()
+        session.commit()
         return venta.id
 
     @staticmethod
