@@ -20,19 +20,20 @@ def test_app():
 
 
 @pytest.fixture(scope="function", autouse=True)
-def session():
-    connection = db.engine.connect()
-    transaction = connection.begin()
-    options = dict(bind=connection, binds={})
-    session = db._make_scoped_session(options=options)
+def session(test_app):
+    with test_app.app_context():
+        connection = db.engine.connect()
+        transaction = connection.begin()
+        options = dict(bind=connection, binds={})
+        session = db._make_scoped_session(options=options)
 
-    db.session = session
+        db.session = session
 
-    yield session
+        yield session
 
-    transaction.rollback()
-    connection.close()
-    session.remove()
+        transaction.rollback()
+        connection.close()
+        session.remove()
 
 
 @pytest.fixture(scope="module")
