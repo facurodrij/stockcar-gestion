@@ -93,7 +93,7 @@ def create():
         data = request.json
         data["created_by"] = current_user.id
         data["updated_by"] = current_user.id
-        venta_id = VentaController.create(data)
+        venta_id = VentaController.create(data, db.session)
         return jsonify({"venta_id": venta_id}), 201
 
 
@@ -127,7 +127,7 @@ def update(pk):
         data = request.json
         data["created_by"] = venta.created_by
         data["updated_by"] = current_user.id
-        venta_id = VentaController.update(data, venta)
+        venta_id = VentaController.update(data, db.session, venta)
         return jsonify({"venta_id": venta_id}), 200
 
 
@@ -231,7 +231,7 @@ def create_orden():
         data["punto_venta"] = 1
         data["created_by"] = current_user.id
         data["updated_by"] = current_user.id
-        venta_id = VentaController.create(data, orden=True)
+        venta_id = VentaController.create(data, db.session, orden=True)
         return jsonify({"venta_id": venta_id}), 201
 
 
@@ -259,7 +259,7 @@ def update_orden(pk):
         data["punto_venta"] = 1
         data["created_by"] = venta.created_by
         data["updated_by"] = current_user.id
-        venta_id = VentaController.update(data, venta, orden=True)
+        venta_id = VentaController.update(data, db.session, venta, orden=True)
         return jsonify({"venta_id": venta_id}), 200
 
 
