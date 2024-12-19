@@ -2,9 +2,13 @@ import pytz
 from decimal import Decimal
 from datetime import datetime
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field, fields
-from marshmallow import pre_load, post_load
+from marshmallow import (
+    pre_load,
+    post_load,
+    validates_schema,
+    ValidationError,
+)
 from server.core.models import Venta, VentaItem, Cliente
-from server.config import db
 from sqlalchemy.sql import func
 
 
@@ -19,6 +23,38 @@ class VentaItemSchema(SQLAlchemyAutoSchema):
 
     codigo_principal = fields.fields.String()
     articulo_id = auto_field()
+
+    @validates_schema
+    def validate_subtotal(self, data, **kwargs):
+        subtotal = data["cantidad"] * data["precio_unidad"]
+        if round(subtotal, 2) != data["subtotal"]:
+            raise ValidationError(
+                "El subtotal no coincide con la cantidad por el precio unitario",
+                data["descripcion"],
+            )
+        return data
+
+    @validates_schema
+    def validate_subtotal_iva(self, data, **kwargs):
+        subtotal_iva = (
+            data["subtotal"] * data["alicuota_iva"] / (100 + data["alicuota_iva"])
+        )
+        if round(subtotal_iva, 2) != data["subtotal_iva"]:
+            raise ValidationError(
+                "El subtotal de IVA no coincide con el subtotal por la alícuota de IVA",
+                data["descripcion"],
+            )
+        return data
+
+    @validates_schema
+    def validate_subtotal_gravado(self, data, **kwargs):
+        subtotal_gravado = data["subtotal"] - data["subtotal_iva"]
+        if round(subtotal_gravado, 2) != data["subtotal_gravado"]:
+            raise ValidationError(
+                "El subtotal gravado no coincide con el subtotal menos el IVA",
+                data["descripcion"],
+            )
+        return data
 
 
 class VentaFormSchema(SQLAlchemyAutoSchema):
@@ -64,7 +100,7 @@ class VentaFormSchema(SQLAlchemyAutoSchema):
     @pre_load
     def set_nombre_cliente(self, data, **kwargs):
         if data.get("cliente"):
-            cliente = db.session.get(Cliente, data.get("cliente"))
+            cliente = self.session.get(Cliente, data.get("cliente"))
             if cliente:
                 data["nombre_cliente"] = cliente.razon_social
         return data
@@ -72,7 +108,7 @@ class VentaFormSchema(SQLAlchemyAutoSchema):
     @pre_load
     def set_numero(self, data, **kwargs):
         last_number = (
-            db.session.query(func.max(Venta.numero))
+            self.session.query(func.max(Venta.numero))
             .filter(
                 Venta.tipo_comprobante_id == data.get("tipo_comprobante"),
                 Venta.punto_venta_id == data.get("punto_venta"),
