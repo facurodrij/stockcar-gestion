@@ -1,16 +1,6 @@
 import pytest
 from decimal import Decimal
-from server.core.models import (
-    AlicuotaIVA,
-    Cliente,
-    TipoComprobante,
-    Moneda,
-    TipoDocumento,
-    PuntoVenta,
-    Venta,
-    Tributo,
-    TipoTributo,
-)
+from server.core.models import Venta
 from server.core.controllers import VentaController
 from server.tests.conftest import test_app, session
 from ..base_fixtures import *
@@ -61,14 +51,24 @@ from ..base_fixtures import *
             "items": [
                 {
                     "articulo_id": 1,
-                    "descripcion": "PRODUCTO B",
-                    "cantidad": 2.00,
+                    "descripcion": "PRODUCTO A",
+                    "cantidad": 1.00,
                     "precio_unidad": 200.00,
                     "alicuota_iva": 21,
-                    "subtotal_iva": 34.72,
-                    "subtotal_gravado": 165.28,
+                    "subtotal_iva": 34.71,
+                    "subtotal_gravado": 165.29,
                     "subtotal": 200,
-                }
+                },
+                {
+                    "articulo_id": 2,
+                    "descripcion": "PRODUCTO B",
+                    "cantidad": 5.00,
+                    "precio_unidad": 200.00,
+                    "alicuota_iva": 21,
+                    "subtotal_iva": 173.55,
+                    "subtotal_gravado": 826.45,
+                    "subtotal": 1000,
+                },
             ],
             "tributos": [1],
         },
@@ -103,3 +103,9 @@ def test_create(test_app, session, data):
     total = sum([item.subtotal for item in venta.items])
     # Se debe redondear debido a que el total se redondea al agregarse a la base de datos.
     assert venta.total == round(total + total_tributos, 2)
+    if venta.tipo_comprobante.codigo_afip is not None:
+        assert venta.cae is not None
+        assert venta.vencimiento_cae is not None
+    else:
+        assert venta.cae is None
+        assert venta.vencimiento_cae is None
