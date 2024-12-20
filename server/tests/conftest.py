@@ -1,15 +1,11 @@
 import pytest
-from flask import Flask
+from server import create_app
 from server.config import db
 
 
 @pytest.fixture(scope="module")
 def test_app():
-    app = Flask(__name__)
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_ECHO"] = False
+    app = create_app(testing=True)
 
     db.init_app(app)
 
