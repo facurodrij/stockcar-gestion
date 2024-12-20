@@ -5,7 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from server import app
+from server import create_app
+
+app = create_app()
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -20,9 +22,8 @@ class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=convention)
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+db = SQLAlchemy(model_class=Base)
+db.init_app(app)
 
 
 # CORS Configuration (Local & Codespaces)
@@ -42,21 +43,5 @@ CORS(
     },
 )
 
-# Config for Development
-
-database_path = os.path.join(BASE_DIR, "instance", "datos.db")
-if not os.path.exists(os.path.join(BASE_DIR, "instance")):
-    os.makedirs(os.path.join(BASE_DIR, "instance"))
-
-app.config["CORS_HEADERS"] = "Content-Type"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + database_path
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ECHO"] = False
-app.config["JWT_SECRET_KEY"] = "my-secret-key"
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
-
-db = SQLAlchemy(model_class=Base)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
-
-db.init_app(app)

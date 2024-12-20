@@ -32,13 +32,7 @@ app.register_blueprint(proveedor_bp)
 def index():
     return jsonify({"message": "Hello, World!"})
 
-
 mode = "prod"
-
-
-def create_app():
-    return app
-
 
 if __name__ == "__main__":
     if mode == "dev":
