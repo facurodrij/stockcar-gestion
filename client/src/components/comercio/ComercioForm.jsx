@@ -22,8 +22,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import { API } from "../../App";
 import SnackbarAlert from "../shared/SnackbarAlert";
-import PuntoVentaDataGrid from "./PuntoVentaDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
+import { useLoading } from '../../utils/loadingContext';
 
 
 export default function ComercioForm({ pk }) {
@@ -34,7 +34,6 @@ export default function ComercioForm({ pk }) {
         setValue
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
-        cuit: [],
         tipo_responsable: [],
         provincia: []
     });
@@ -46,8 +45,8 @@ export default function ComercioForm({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [puntoVenta, setPuntoVenta] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { withLoading } = useLoading();
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -64,23 +63,23 @@ export default function ComercioForm({ pk }) {
         const fetchData = async () => {
             const url = Boolean(pk) ? `${API}/comercios/${pk}/update` : `${API}/comercios/create`;
             const res = await fetchWithAuth(url);
+            const data = await res.json();
             if (!res.ok) {
-                const message = Boolean(pk) ? 'Error al obtener los datos del comercio' : 'Error al obtener los datos';
+                const message = `Error al obtener datos: ${data['error']}`
                 throw new Error(message);
             }
-            return await res.json();
+            return data;
         }
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    tipo_responsable: selectOptions.tipo_responsable,
-                    provincia: selectOptions.provincia
+                    tipo_responsable: data.tipo_responsable,
+                    provincia: data.provincia
                 });
                 if (Boolean(pk)) {
                     const comercio = data['comercio'];
-                    setValue('tipo_responsable_id', comercio.tipo_responsable.id);
+                    setValue('tipo_responsable_id', comercio.tipo_responsable_id);
                     setValue('razon_social', comercio.razon_social);
                     setValue('cuit', comercio.cuit);
                     setValue('ingresos_brutos', comercio.ingresos_brutos);
@@ -89,49 +88,37 @@ export default function ComercioForm({ pk }) {
                     setValue('direccion', comercio.direccion);
                     setValue('localidad', comercio.localidad);
                     setValue('codigo_postal', comercio.codigo_postal);
-                    setValue('provincia_id', comercio.provincia.id);
+                    setValue('provincia_id', comercio.provincia_id);
                     if (comercio.telefono) setValue('telefono', comercio.telefono);
                     if (comercio.email) setValue('email', comercio.email);
                     if (comercio.observacion) setValue('observacion', comercio.observacion);
-                    // Cargar puntos de venta
-                    const puntoVentaArray = data['puntos_venta'].map((r) => {
-                        return {
-                            id: r.id,
-                            numero: r.numero,
-                            nombre_fantasia: r.nombre_fantasia,
-                            domicilio: r.domicilio
-                        };
-                    });
-                    setPuntoVenta(puntoVentaArray);
                 }
             }
             catch (e) {
                 console.error('Error en la carga de datos:', e);
                 setSnackbar({
-                    message: 'Error al cargar los datos',
+                    message: e.message,
                     severity: 'error',
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
             }
         }
-        loadData();
-    }, [pk, setValue]);
+        withLoading(loadData);
+    }, [pk, setValue, withLoading]);
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
         const url = Boolean(pk) ? `${API}/comercios/${pk}/update` : `${API}/comercios/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            const response = await fetchWithAuth(url, method, {
-                comercio: data, puntos_venta: puntoVenta
-            });
-            const responseJson = await response.json();
-            if (!response.ok) {
-                throw new Error(`${responseJson['error']}`);
+            const res = await fetchWithAuth(url, method, data);
+            const resJson = await res.json();
+            if (!res.ok) {
+                throw new Error(resJson['error']);
             }
             setSnackbar({
-                message: 'Datos guardados correctamente',
+                message: 'Comercio guardado correctamente',
                 severity: 'success',
                 autoHideDuration: 4000,
                 onClose: () => handleCloseSnackbar(true)
@@ -172,7 +159,6 @@ export default function ComercioForm({ pk }) {
                         aria-label="scrollable force tabs"
                     >
                         <Tab label="Principal" />
-                        <Tab label="Puntos de Venta" />
                         <Tab label="Observaciones" />
                     </Tabs>
                 </Box>
@@ -194,7 +180,7 @@ export default function ComercioForm({ pk }) {
                                             label="Tipo de Responsable IVA"
                                         >
                                             {selectOptions.tipo_responsable.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -399,7 +385,7 @@ export default function ComercioForm({ pk }) {
                                             label="Provincia"
                                         >
                                             {selectOptions.provincia.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -454,16 +440,6 @@ export default function ComercioForm({ pk }) {
                     </Grid>
                 </SimpleTabPanel>
                 <SimpleTabPanel value={tabValue} index={1}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <PuntoVentaDataGrid
-                                rows={puntoVenta}
-                                setRows={setPuntoVenta}
-                            />
-                        </Grid>
-                    </Grid>
-                </SimpleTabPanel>
-                <SimpleTabPanel value={tabValue} index={2}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormControl fullWidth>

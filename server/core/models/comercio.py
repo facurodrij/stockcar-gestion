@@ -40,9 +40,9 @@ class Comercio(AuditMixin, db.Model):
     provincia_id = Column(Integer, ForeignKey("provincia.id"), nullable=False)
     provincia = relationship("Provincia", backref="comercios")
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         """
-        Devuelve el objeto en formato JSON.
+        Devuelve el objeto en formato dict.
         """
         return {
             "id": self.id,
@@ -57,11 +57,10 @@ class Comercio(AuditMixin, db.Model):
             "telefono": self.telefono,
             "email": self.email,
             "observacion": self.observacion,
-            "tipo_responsable": self.tipo_responsable.to_json(),
-            "provincia": self.provincia.to_json(),
+            "tipo_responsable": self.tipo_responsable.to_dict(),
+            "provincia": self.provincia.to_dict(),
             **self.get_audit_fields(),
         }
-
 
 class PuntoVenta(db.Model):
     """
@@ -80,9 +79,9 @@ class PuntoVenta(db.Model):
     comercio_id = Column(Integer, ForeignKey("comercio.id"), nullable=False)
     comercio = relationship("Comercio", backref="puntos_venta")
 
-    def to_json(self):
+    def to_dict(self) -> dict:
         """
-        Devuelve el objeto en formato JSON.
+        Devuelve el objeto en formato dict.
         """
         return {
             "id": self.id,
@@ -99,16 +98,4 @@ class PuntoVenta(db.Model):
         return {
             "value": self.id,
             "label": "{:04d} - {}".format(self.numero, self.nombre_fantasia),
-        }
-
-    def to_dict(self) -> dict:
-        """
-        Devuelve el objeto en formato dict.
-        """
-        return {
-            "id": self.id,
-            "numero": self.numero,
-            "nombre_fantasia": self.nombre_fantasia,
-            "domicilio": self.domicilio,
-            "descripcion": "{:04d} - {}".format(self.numero, self.nombre_fantasia),
         }
