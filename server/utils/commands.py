@@ -110,8 +110,6 @@ def create_roles():
 @app.cli.command("create_permissions")
 def create_permissions():
     """Create the default permissions in the database."""
-    from server.core.models import Permiso
-
     # Get all models from the models package
     models = importlib.import_module("server.core.models")
     # Add CRUD permissions for each model
