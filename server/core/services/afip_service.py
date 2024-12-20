@@ -1,9 +1,9 @@
 import re
 import os
 
+from server import BASE_DIR
 from server.core.models import Venta
 from server.afipws import WSFEv1, WSSrPadronA13
-from server.config import BASE_DIR
 
 
 class AfipServiceError(Exception):
