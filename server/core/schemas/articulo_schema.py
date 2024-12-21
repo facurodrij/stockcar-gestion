@@ -1,4 +1,4 @@
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field, fields
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, fields
 from marshmallow import pre_load, validates_schema, ValidationError
 from server.core.models import Articulo
 from server.core.schemas.parametros_schema import (
@@ -9,23 +9,26 @@ from server.core.schemas.parametros_schema import (
 from server.auth.schemas import UsuarioSchema
 
 
-class ArticuloSchema(SQLAlchemyAutoSchema):
+class ArticuloReadSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Articulo
-        include_relationships = True
         load_instance = True
-
-    tipo_articulo_id = auto_field(load_only=True)
-    tipo_unidad_id = auto_field(load_only=True)
-    alicuota_iva_id = auto_field(load_only=True)
-    created_by = auto_field(load_only=True)
-    updated_by = auto_field(load_only=True)
 
     tipo_articulo = fields.Nested(TipoArticuloSchema, only=("id", "nombre"))
     tipo_unidad = fields.Nested(TipoUnidadSchema, only=("id", "nombre"))
     alicuota_iva = fields.Nested(AlicuotaIvaSchema, only=("id", "descripcion"))
     created_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
     updated_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
+
+
+class ArticuloFormSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Articulo
+        include_fk = True
+        load_instance = True
+    
+    # codigo_adicional es MutableList.as_mutable(PickleType)
+    codigo_adicional = fields.fields.List(fields.fields.String(), missing=[], allow_none=True)
 
     force = fields.fields.Boolean(load_only=True)
 
@@ -61,6 +64,3 @@ class ArticuloSchema(SQLAlchemyAutoSchema):
                     },
                     field_name="codigo_principal",
                 )
-
-
-articulo_schema = ArticuloSchema()

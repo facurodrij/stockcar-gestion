@@ -33,8 +33,7 @@ export default function ArticuloForm({ pk }) {
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
         tipo_articulo: [],
-        tipo_unidad: [],
-        alicuota_iva: []
+        tipo_unidad: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -75,8 +74,7 @@ export default function ArticuloForm({ pk }) {
                 const data = await fetchData();
                 setSelectOptions({
                     tipo_articulo: data.tipo_articulo,
-                    tipo_unidad: data.tipo_unidad,
-                    alicuota_iva: data.alicuota_iva
+                    tipo_unidad: data.tipo_unidad
                 });
                 if (Boolean(pk)) {
                     const articulo = data['articulo'];
@@ -90,9 +88,8 @@ export default function ArticuloForm({ pk }) {
                     setLineaFactura(articulo.linea_factura);
                     setValue('descripcion', articulo.descripcion);
                     setValue('linea_factura', articulo.linea_factura);
-                    setValue('tipo_articulo_id', articulo.tipo_articulo.id);
-                    setValue('tipo_unidad_id', articulo.tipo_unidad.id);
-                    setValue('alicuota_iva_id', articulo.alicuota_iva.id);
+                    setValue('tipo_articulo_id', articulo.tipo_articulo_id);
+                    setValue('tipo_unidad_id', articulo.tipo_unidad_id);
                     setValue('stock_actual', articulo.stock_actual);
                     if (articulo.stock_minimo) setValue('stock_minimo', articulo.stock_minimo);
                     if (articulo.stock_maximo) setValue('stock_maximo', articulo.stock_maximo);
@@ -123,9 +120,10 @@ export default function ArticuloForm({ pk }) {
             }
             let res = await fetchWithAuth(url, method, data);
             let resJson = await res.json();
-            if (res.status === 409 && resJson['codigo_principal']) {
-                const existingArticlesLinks = resJson.codigo_principal.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
-                const description = `${resJson.codigo_principal.warning}. Son los siguientes: ${existingArticlesLinks}.`;
+            console.log(resJson);
+            if (resJson['error'] && resJson['error']['codigo_principal'] && resJson['error']['codigo_principal']['warning']) {
+                const existingArticlesLinks = resJson['error'].codigo_principal.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
+                const description = `${resJson['error'].codigo_principal.warning}. Son los siguientes: ${existingArticlesLinks}.`;
                 confirm({
                     title: 'Advertencia',
                     description: <span dangerouslySetInnerHTML={{ __html: description }} />,
@@ -180,7 +178,7 @@ export default function ArticuloForm({ pk }) {
             setTabValue(0);
             return;
         }
-        if (errors['tipo_articulo_id'] || errors['tipo_unidad_id'] || errors['alicuota_iva_id']) {
+        if (errors['tipo_articulo_id'] || errors['tipo_unidad_id']) {
             setTabValue(2);
         }
     }
@@ -444,7 +442,7 @@ export default function ArticuloForm({ pk }) {
                 <SimpleTabPanel value={tabValue} index={2}>
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_articulo)}>
+                            <FormControl fullWidth required error={Boolean(errors.tipo_articulo_id)}>
                                 <InputLabel id="tipo_articulo_label">Tipo de artículo</InputLabel>
                                 <Controller
                                     name="tipo_articulo_id"
@@ -454,7 +452,7 @@ export default function ArticuloForm({ pk }) {
                                     render={({ field }) => (
                                         <Select
                                             {...field}
-                                            id="tipo_articulo"
+                                            id="tipo_articulo_id"
                                             labelId="tipo_articulo_label"
                                             label="Tipo de artículo"
                                         >
@@ -464,11 +462,11 @@ export default function ArticuloForm({ pk }) {
                                         </Select>
                                     )}
                                 />
-                                <FormHelperText>{errors.tipo_articulo && errors.tipo_articulo.message}</FormHelperText>
+                                <FormHelperText>{errors.tipo_articulo_id && errors.tipo_articulo_id.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_unidad)}>
+                            <FormControl fullWidth required error={Boolean(errors.tipo_unidad_id)}>
                                 <InputLabel id="tipo_unidad_label">Tipo de unidad</InputLabel>
                                 <Controller
                                     name="tipo_unidad_id"
@@ -478,7 +476,7 @@ export default function ArticuloForm({ pk }) {
                                     render={({ field }) => (
                                         <Select
                                             {...field}
-                                            id="tipo_unidad"
+                                            id="tipo_unidad_id"
                                             labelId="tipo_unidad_label"
                                             label="Tipo de unidad"
                                         >
@@ -488,31 +486,7 @@ export default function ArticuloForm({ pk }) {
                                         </Select>
                                     )}
                                 />
-                                <FormHelperText>{errors.tipo_unidad && errors.tipo_unidad.message}</FormHelperText>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth required error={Boolean(errors.alicuota_iva)}>
-                                <InputLabel id="alicuota_iva_label">Alícuota de IVA</InputLabel>
-                                <Controller
-                                    name="alicuota_iva_id"
-                                    control={control}
-                                    defaultValue="1"
-                                    rules={{ required: "Este campo es requerido" }}
-                                    render={({ field }) => (
-                                        <Select
-                                            {...field}
-                                            id="alicuota_iva"
-                                            label="Alícuota de IVA"
-                                            labelId="alicuota_iva_label"
-                                        >
-                                            {selectOptions.alicuota_iva.map((option) => (
-                                                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    )}
-                                />
-                                <FormHelperText>{errors.alicuota_iva && errors.alicuota_iva.message}</FormHelperText>
+                                <FormHelperText>{errors.tipo_unidad_id && errors.tipo_unidad_id.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                     </Grid>

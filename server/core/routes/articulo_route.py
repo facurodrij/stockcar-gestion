@@ -14,74 +14,72 @@ from server.core.models import (
 from server.auth.decorators import permission_required
 from server.core.controllers import ArticuloController
 from server.utils.utils import get_select_options
-from server.core.schemas.articulo_schema import articulo_schema
+from server.core.schemas import ArticuloReadSchema, ArticuloFormSchema
+from server.core.decorators import error_handler
 
 articulo_bp = Blueprint("articulo_bp", __name__)
+articulo_schema = ArticuloReadSchema()
+articulo_form_schema = ArticuloFormSchema()
 
 
 @articulo_bp.route("/articulos", methods=["GET"])
 @jwt_required()
 @permission_required(["articulo.view_all"])
+@error_handler()
 def index():
     articulos = Articulo.query.all()
     articulos_dict = list(map(lambda x: x.to_datagrid_dict(), articulos))
-
     return jsonify({"articulos": articulos_dict}), 200
 
 
 @articulo_bp.route("/articulos/create", methods=["GET", "POST"])
 @jwt_required()
 @permission_required(["articulo.create"])
+@error_handler(session_rollback=True)
 def create():
     if request.method == "GET":
-        return jsonify(get_select_options([TipoArticulo, TipoUnidad, AlicuotaIVA])), 200
+        return jsonify(get_select_options([TipoArticulo, TipoUnidad])), 200
     if request.method == "POST":
         data = request.json
-        try:
-            data["created_by"] = current_user.id
-            data["updated_by"] = current_user.id
-            articulo_id: int = ArticuloController.create(data)
-            return jsonify("articulo_id", articulo_id), 201
-        except ValidationError as err:
-            return jsonify(err.messages), 409
-        except Exception as e:
-            db.session.rollback()
-            print(e)
-            return jsonify({"error": str(e)}), 400
-        finally:
-            db.session.close()
+        data["created_by"] = current_user.id
+        data["updated_by"] = current_user.id
+        articulo_id: int = ArticuloController.create(data, db.session)
+        return jsonify("articulo_id", articulo_id), 201        
 
 
 @articulo_bp.route("/articulos/<int:pk>/update", methods=["GET", "PUT"])
 @jwt_required()
 @permission_required(["articulo.update"])
 def update(pk):
-    articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
-    if request.method == "GET":
-        return (
-            jsonify(
-                {
-                    **get_select_options([TipoArticulo, TipoUnidad, AlicuotaIVA]),
-                    "articulo": articulo_schema.dump(articulo),
-                }
-            ),
-            200,
+    try:
+        articulo: Articulo = db.session.query(Articulo).get_or_404(
+            pk, "Artículo no encontrado"
         )
-    if request.method == "PUT":
-        data = request.json
-        try:
+        if request.method == "GET":
+            return (
+                jsonify(
+                    {
+                        **get_select_options([TipoArticulo, TipoUnidad]),
+                        "articulo": articulo_form_schema.dump(articulo),
+                    }
+                ),
+                200,
+            )
+        if request.method == "PUT":
+            data = request.json
             data["created_by"] = articulo.created_by
             data["updated_by"] = current_user.id
-            articulo_id: int = ArticuloController.update(data, articulo)
+            articulo_id: int = ArticuloController.update(data, db.session, articulo)
             return jsonify("articulo_id", articulo_id), 200
-        except ValidationError as err:
-            return jsonify(err.messages), 409
-        except Exception as e:
-            db.session.rollback()
-            print(e)
-            return jsonify({"error": str(e)}), 400
-        finally:
-            db.session.close()
+    except ValidationError as err:
+        print(err)
+        return jsonify(err.messages), 409
+    except Exception as e:
+        db.session.rollback()
+        print(e)
+        return jsonify({"error": str(e)}), 400
+    finally:
+        db.session.close()
 
 
 @articulo_bp.route("/articulos/<int:pk>", methods=["GET"])
@@ -110,21 +108,13 @@ def detail(pk):
 @articulo_bp.route("/articulos/<int:pk>/delete", methods=["DELETE"])
 @jwt_required()
 @permission_required(["articulo.delete"])
+@error_handler(session_rollback=True)
 def delete(pk):
-    try:
-        articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
-        if articulo.is_deleted():
-            abort(404, "Artículo no encontrado")
-    except Exception as e:
-        print(e)
-        return jsonify({"error": str(e)}), 400
-    try:
-        articulo.delete()
-        db.session.commit()
-        return jsonify({"message": "Artículo eliminado correctamente"}), 200
-    except Exception as e:
-        db.session.rollback()
-        print(e)
-        return jsonify({"error": str(e)}), 400
-    finally:
-        db.session.close()
+    articulo: Articulo = db.session.query(Articulo).get_or_404(
+        pk, "Artículo no encontrado"
+    )
+    if articulo.is_deleted():
+        abort(404, "Artículo no encontrado")
+    articulo.delete()
+    db.session.commit()
+    return jsonify({"message": "Artículo eliminado correctamente"}), 200

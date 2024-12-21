@@ -1,19 +1,19 @@
-from server.config import db
 from server.core.models import Articulo
 from server.core.controllers import MovimientoStockController
-from server.core.schemas.articulo_schema import articulo_schema
+from server.core.schemas import ArticuloFormSchema
 
+articulo_form_schema = ArticuloFormSchema()
 
 class ArticuloController:
     @staticmethod
-    def create(data) -> int:
+    def create(data, session) -> int:
         """
         Crea un nuevo artículo en la base de datos y registra un movimiento de stock
         si el stock actual del artículo es distinto de cero.
         """
 
-        new_articulo = articulo_schema.load(data, session=db.session)
-        db.session.add(new_articulo)
+        new_articulo = articulo_form_schema.load(data, session=session)
+        session.add(new_articulo)
 
         if new_articulo.stock_actual != 0:
             cantidad = float(new_articulo.stock_actual)
@@ -21,22 +21,22 @@ class ArticuloController:
                 articulo=new_articulo, cantidad=cantidad
             )
 
-        db.session.commit()
+        session.commit()
         return new_articulo.id
 
     @staticmethod
-    def update(data, instance: Articulo) -> int:
+    def update(data, session, instance: Articulo) -> int:
         """
         Actualiza un artículo en la base de datos y registra un movimiento de stock
         si el stock actual del artículo es distinto al stock anterior.
         """
 
-        articulo_schema.context["instance"] = instance
+        articulo_form_schema.context["instance"] = instance
 
         stock_anterior = float(instance.stock_actual)
 
-        updated_articulo = articulo_schema.load(
-            data, instance=instance, session=db.session
+        updated_articulo = articulo_form_schema.load(
+            data, instance=instance, session=session
         )
 
         stock_actual = float(updated_articulo.stock_actual)
@@ -47,5 +47,5 @@ class ArticuloController:
                 articulo=instance, cantidad=cantidad
             )
 
-        db.session.commit()
+        session.commit()
         return updated_articulo.id
