@@ -4,7 +4,9 @@ from server.core.schemas import ArticuloFormSchema
 
 articulo_form_schema = ArticuloFormSchema()
 
+
 class ArticuloController:
+
     @staticmethod
     def create(data, session) -> int:
         """

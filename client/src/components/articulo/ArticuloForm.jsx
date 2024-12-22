@@ -120,10 +120,9 @@ export default function ArticuloForm({ pk }) {
             }
             let res = await fetchWithAuth(url, method, data);
             let resJson = await res.json();
-            console.log(resJson);
-            if (resJson['error'] && resJson['error']['codigo_principal'] && resJson['error']['codigo_principal']['warning']) {
-                const existingArticlesLinks = resJson['error'].codigo_principal.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
-                const description = `${resJson['error'].codigo_principal.warning}. Son los siguientes: ${existingArticlesLinks}.`;
+            if (res.status === 409 && resJson['codigo_principal']['warning']) {
+                const existingArticlesLinks = resJson['codigo_principal']['ids'].map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
+                const description = `${resJson['codigo_principal']['warning']}. Son los siguientes: ${existingArticlesLinks}.`;
                 confirm({
                     title: 'Advertencia',
                     description: <span dangerouslySetInnerHTML={{ __html: description }} />,

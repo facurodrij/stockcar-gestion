@@ -1,10 +1,8 @@
 from flask import Blueprint, jsonify, request, abort
 from flask_jwt_extended import jwt_required, current_user
-from marshmallow import ValidationError
 
 from server.config import db
 from server.core.models import (
-    AlicuotaIVA,
     Articulo,
     TipoArticulo,
     TipoUnidad,
@@ -44,65 +42,57 @@ def create():
         data["created_by"] = current_user.id
         data["updated_by"] = current_user.id
         articulo_id: int = ArticuloController.create(data, db.session)
-        return jsonify("articulo_id", articulo_id), 201        
+        return jsonify("articulo_id", articulo_id), 201
 
 
 @articulo_bp.route("/articulos/<int:pk>/update", methods=["GET", "PUT"])
 @jwt_required()
 @permission_required(["articulo.update"])
+@error_handler(session_rollback=True)
 def update(pk):
-    try:
-        articulo: Articulo = db.session.query(Articulo).get_or_404(
-            pk, "Artículo no encontrado"
+    articulo: Articulo = db.session.query(Articulo).get_or_404(
+        pk, "Artículo no encontrado"
+    )
+    if request.method == "GET":
+        return (
+            jsonify(
+                {
+                    **get_select_options([TipoArticulo, TipoUnidad]),
+                    "articulo": articulo_form_schema.dump(articulo),
+                }
+            ),
+            200,
         )
-        if request.method == "GET":
-            return (
-                jsonify(
-                    {
-                        **get_select_options([TipoArticulo, TipoUnidad]),
-                        "articulo": articulo_form_schema.dump(articulo),
-                    }
-                ),
-                200,
-            )
-        if request.method == "PUT":
-            data = request.json
-            data["created_by"] = articulo.created_by
-            data["updated_by"] = current_user.id
-            articulo_id: int = ArticuloController.update(data, db.session, articulo)
-            return jsonify("articulo_id", articulo_id), 200
-    except ValidationError as err:
-        print(err)
-        return jsonify(err.messages), 409
-    except Exception as e:
-        db.session.rollback()
-        print(e)
-        return jsonify({"error": str(e)}), 400
-    finally:
-        db.session.close()
+    if request.method == "PUT":
+        data = request.json
+        data["created_by"] = articulo.created_by
+        data["updated_by"] = current_user.id
+        articulo_id: int = ArticuloController.update(data, db.session, articulo)
+        return jsonify("articulo_id", articulo_id), 200
 
 
 @articulo_bp.route("/articulos/<int:pk>", methods=["GET"])
 @jwt_required()
 @permission_required(["articulo.view"])
+@error_handler()
 def detail(pk):
-    try:
-        articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
-        movimientos = (
-            MovimientoStock.query.join(MovimientoStockItem)
-            .filter(MovimientoStockItem.articulo_id == pk)
-            .order_by(MovimientoStock.fecha_hora.desc())
-            .limit(20)
-            .all()
-        )
-        movimientos_json = list(map(lambda x: x.to_json(), movimientos))
-        return (
-            jsonify({"articulo": articulo.to_dict(), "movimientos": movimientos_json}),
-            200,
-        )
-    except Exception as e:
-        print(e)
-        return jsonify({"error": str(e)}), 400
+    articulo: Articulo = db.session.query(Articulo).get_or_404(
+        pk, "Artículo no encontrado"
+    )
+    movimientos = (
+        db.session.query(MovimientoStockItem)
+        .join(MovimientoStock)
+        .filter(MovimientoStockItem.articulo_id == pk)
+        .order_by(MovimientoStock.fecha_hora.desc())
+        .limit(20)
+        .all()
+    )
+
+    movimientos_json = list(map(lambda x: x.to_json(), movimientos))
+    return (
+        jsonify({"articulo": articulo.to_dict(), "movimientos": movimientos_json}),
+        200,
+    )
 
 
 @articulo_bp.route("/articulos/<int:pk>/delete", methods=["DELETE"])
