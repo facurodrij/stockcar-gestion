@@ -6,7 +6,6 @@ from flask_sqlalchemy.query import Query
 
 from server.core.models import (
     Venta,
-    VentaItem,
     Moneda,
     Cliente,
     TipoComprobante,
@@ -21,11 +20,13 @@ from server.utils.utils import get_select_options, get_datagrid_options
 from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.auth.decorators import permission_required
 from server.core.controllers import VentaController
-from server.core.schemas import VentaFormSchema
+from server.core.schemas import VentaIndexSchema, VentaFormSchema, VentaDetailSchema
 from server.core.decorators import error_handler
 
 venta_bp = Blueprint("venta_bp", __name__)
+venta_index_schema = VentaIndexSchema() # TODO: Usarlo en lugar de venta_json
 venta_form_schema = VentaFormSchema()
+venta_detail_schema = VentaDetailSchema()
 
 
 @venta_bp.route("/ventas", methods=["GET"])
@@ -137,13 +138,11 @@ def update(pk):
 @error_handler()
 def detail(pk):
     venta: Venta = db.session.query(Venta).get_or_404(pk, "Venta no encontrada")
-    venta_items = VentaItem.query.filter_by(venta_id=pk).all()
     if request.method == "GET":
         return (
             jsonify(
                 {
-                    "venta": venta.to_json(),
-                    "renglones": list(map(lambda x: x.to_json(), venta_items)),
+                    "venta": venta_detail_schema.dump(venta),
                 }
             ),
             200,
