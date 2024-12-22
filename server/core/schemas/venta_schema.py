@@ -5,6 +5,8 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field, fields
 from marshmallow import (
     pre_load,
     post_load,
+    pre_dump,
+    post_dump,
     validates_schema,
     ValidationError,
 )
@@ -16,6 +18,14 @@ local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
 
 class VentaItemSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = VentaItem
+        load_instance = True
+
+    codigo_principal = fields.fields.String(attribute="articulo.codigo_principal")
+
+
+class VentaItemFormSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = VentaItem
         include_relationships = True
@@ -57,7 +67,38 @@ class VentaItemSchema(SQLAlchemyAutoSchema):
         return data
 
 
-class VentaFormSchema(SQLAlchemyAutoSchema):
+class VentaSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Venta
+        load_instance = True
+
+
+class VentaIndexSchema(VentaSchema):
+    class Meta:
+        model = Venta
+        include_relationships = True
+        load_instance = True
+        exclude = ("items",)
+
+    nro_comprobante = fields.fields.Function(
+        lambda obj: f"{obj.punto_venta.numero:04d}-{obj.numero:08d}"
+    )
+
+
+class VentaDetailSchema(VentaSchema):
+    class Meta:
+        model = Venta
+        include_relationships = True
+        load_instance = True
+
+    items = fields.Nested(VentaItemSchema, many=True)
+    # TODO: cliente = fields.fields.Nested(ClienteSchema)
+    nro_comprobante = fields.fields.Function(
+        lambda obj: f"{obj.punto_venta.numero:04d}-{obj.numero:08d}"
+    )
+
+
+class VentaFormSchema(VentaSchema):
     class Meta:
         model = Venta
         include_relationships = True
@@ -66,7 +107,7 @@ class VentaFormSchema(SQLAlchemyAutoSchema):
     created_by = auto_field(load_only=True)
     updated_by = auto_field(load_only=True)
 
-    items = fields.Nested(VentaItemSchema, many=True, required=True)
+    items = fields.Nested(VentaItemFormSchema, many=True, required=True)
 
     @pre_load
     def convert_empty_strings_to_none(self, data, **kwargs):
