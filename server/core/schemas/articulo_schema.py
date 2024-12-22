@@ -25,7 +25,7 @@ class ArticuloIndexSchema(SQLAlchemyAutoSchema):
             "updated_at",
         )
 
-    alicuota_iva = fields.Nested(AlicuotaIvaSchema, only=("id", "descripcion"))
+    alicuota_iva = fields.Nested(AlicuotaIvaSchema, only=("id", "descripcion", "porcentaje"))
 
 
 class ArticuloDetailSchema(SQLAlchemyAutoSchema):
