@@ -9,16 +9,43 @@ from server.core.schemas.parametros_schema import (
 from server.auth.schemas import UsuarioSchema
 
 
-class ArticuloReadSchema(SQLAlchemyAutoSchema):
+class ArticuloIndexSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Articulo
         load_instance = True
+        exclude = (
+            "stock_minimo",
+            "stock_maximo",
+            "observacion",
+            "deleted",
+            "deleted_at",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+        )
 
+    alicuota_iva = fields.Nested(AlicuotaIvaSchema, only=("id", "descripcion"))
+
+
+class ArticuloDetailSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Articulo
+        include_relationships = True
+        load_instance = True
+
+    codigo_adicional = fields.fields.List(
+        fields.fields.String(), missing=[], allow_none=True
+    )
     tipo_articulo = fields.Nested(TipoArticuloSchema, only=("id", "nombre"))
     tipo_unidad = fields.Nested(TipoUnidadSchema, only=("id", "nombre"))
     alicuota_iva = fields.Nested(AlicuotaIvaSchema, only=("id", "descripcion"))
     created_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
     updated_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
+    # TODO: Agregar
+    # Movimientos de stock
+    # Ventas
+    # Compras
 
 
 class ArticuloFormSchema(SQLAlchemyAutoSchema):
@@ -26,9 +53,10 @@ class ArticuloFormSchema(SQLAlchemyAutoSchema):
         model = Articulo
         include_fk = True
         load_instance = True
-    
-    # codigo_adicional es MutableList.as_mutable(PickleType)
-    codigo_adicional = fields.fields.List(fields.fields.String(), missing=[], allow_none=True)
+
+    codigo_adicional = fields.fields.List(
+        fields.fields.String(), missing=[], allow_none=True
+    )
 
     force = fields.fields.Boolean(load_only=True)
 

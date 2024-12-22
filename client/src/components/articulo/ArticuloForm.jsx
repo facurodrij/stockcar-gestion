@@ -149,6 +149,9 @@ export default function ArticuloForm({ pk }) {
                         return;
                     });
             } else if (!res.ok) {
+                if (res.status === 409) {
+                    throw new Error(JSON.stringify(resJson));
+                }
                 throw new Error(resJson['error']);
             } else {
                 setSnackbar({

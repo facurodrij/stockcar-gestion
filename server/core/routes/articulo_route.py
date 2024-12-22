@@ -12,12 +12,17 @@ from server.core.models import (
 from server.auth.decorators import permission_required
 from server.core.controllers import ArticuloController
 from server.utils.utils import get_select_options
-from server.core.schemas import ArticuloReadSchema, ArticuloFormSchema
+from server.core.schemas import (
+    ArticuloIndexSchema,
+    ArticuloFormSchema,
+    ArticuloDetailSchema,
+)
 from server.core.decorators import error_handler
 
 articulo_bp = Blueprint("articulo_bp", __name__)
-articulo_schema = ArticuloReadSchema()
+articulo_index_schema = ArticuloIndexSchema(many=True)
 articulo_form_schema = ArticuloFormSchema()
+articulo_detail_schema = ArticuloDetailSchema()
 
 
 @articulo_bp.route("/articulos", methods=["GET"])
@@ -26,8 +31,7 @@ articulo_form_schema = ArticuloFormSchema()
 @error_handler()
 def index():
     articulos = Articulo.query.all()
-    articulos_dict = list(map(lambda x: x.to_datagrid_dict(), articulos))
-    return jsonify({"articulos": articulos_dict}), 200
+    return jsonify({"articulos": articulo_index_schema.dump(articulos)}), 200
 
 
 @articulo_bp.route("/articulos/create", methods=["GET", "POST"])
@@ -90,7 +94,12 @@ def detail(pk):
 
     movimientos_json = list(map(lambda x: x.to_json(), movimientos))
     return (
-        jsonify({"articulo": articulo.to_dict(), "movimientos": movimientos_json}),
+        jsonify(
+            {
+                "articulo": articulo_detail_schema.dump(articulo),
+                "movimientos": movimientos_json,
+            }
+        ),
         200,
     )
 
