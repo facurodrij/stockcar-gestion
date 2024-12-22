@@ -75,7 +75,7 @@ export default function VentaForm({ pk }) {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
     const [selectedArticulo, setSelectedArticulo] = useState([]);
-    const [ventaRenglones, setVentaRenglones] = useState([]);
+    const [ventaItems, setVentaItems] = useState([]);
     const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [estadoVenta, setEstadoVenta] = useState('');
@@ -131,8 +131,8 @@ export default function VentaForm({ pk }) {
                     if (venta.observacion) setValue('observacion', venta.observacion);
                     setEstadoVenta(venta.estado);
 
-                    // Cargar renglones de venta
-                    const renglonesArray = venta['items'].map((r) => {
+                    // Cargar items de venta
+                    const itemsArray = venta['items'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
                             descripcion: r.descripcion,
@@ -144,8 +144,8 @@ export default function VentaForm({ pk }) {
                             subtotal: r.subtotal,
                         };
                     });
-                    const articuloArray = renglonesArray.map((r) => r.articulo_id);
-                    setVentaRenglones(renglonesArray);
+                    const articuloArray = itemsArray.map((r) => r.articulo_id);
+                    setVentaItems(itemsArray);
                     setSelectedArticulo(articuloArray);
 
                     // Cargar tributos seleccionados
@@ -174,14 +174,17 @@ export default function VentaForm({ pk }) {
         const url = Boolean(pk) ? `${API}/ventas/${pk}/update` : `${API}/ventas/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            if (ventaRenglones.length === 0) {
+            if (ventaItems.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
-            data['items'] = ventaRenglones;
+            data['items'] = ventaItems;
             data['tributos'] = selectedTributo;
             const res = await fetchWithAuth(url, method, data);
             const resJson = await res.json();
             if (!res.ok) {
+                if (res.status === 409) {
+                    throw new Error(JSON.stringify(resJson));
+                }
                 throw new Error(resJson['error']);
             }
             setSnackbar({
@@ -218,9 +221,9 @@ export default function VentaForm({ pk }) {
         let totalTributos = 0
         tributos.filter((t) => selectedTributo.includes(t.id)).forEach((t) => {
             if (t.base_calculo === 'Neto')
-                totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0) * t.alicuota / 100;
+                totalTributos += ventaItems.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0) * t.alicuota / 100;
             else
-                totalTributos += ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0) * t.alicuota / 100;
+                totalTributos += ventaItems.reduce((acc, row) => acc + Number(row.subtotal), 0) * t.alicuota / 100;
         });
         return totalTributos
     }
@@ -351,7 +354,7 @@ export default function VentaForm({ pk }) {
                             </FormControl>
                         </Grid>
                     </Grid>
-                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Renglones de Venta</Typography>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Items de Venta</Typography>
                     <Box sx={{
                         height: 500,
                         width: '100%',
@@ -451,14 +454,14 @@ export default function VentaForm({ pk }) {
                                     }
                                 },
                             ]}
-                            rows={ventaRenglones}
+                            rows={ventaItems}
                             getRowId={(row) => row.articulo_id}
                             disableRowSelectionOnClick
                             slots={{
                                 toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog} />,
                             }}
                             processRowUpdate={(newRow, oldRow) => {
-                                const updatedRows = ventaRenglones.map((row) => {
+                                const updatedRows = ventaItems.map((row) => {
                                     if (row.articulo_id === oldRow.articulo_id) {
                                         const iva = parseFloat(newRow.alicuota_iva);
                                         newRow.subtotal = newRow.cantidad * newRow.precio_unidad;
@@ -468,7 +471,7 @@ export default function VentaForm({ pk }) {
                                     }
                                     return row;
                                 });
-                                setVentaRenglones(updatedRows);
+                                setVentaItems(updatedRows);
                                 return newRow;
                             }}
                             localeText={esES.components.MuiDataGrid.defaultProps.localeText}
@@ -625,13 +628,13 @@ export default function VentaForm({ pk }) {
                         <Typography variant="h6" gutterBottom>Totales</Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={6}>
-                                <Typography>Artículos: {ventaRenglones.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
-                                <Typography>Importe de IVA: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_iva), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography>Importe Gravado: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography>Artículos: {ventaItems.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
+                                <Typography>Importe de IVA: {ventaItems.reduce((acc, row) => acc + Number(row.subtotal_iva), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography>Importe Gravado: {ventaItems.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                                 <Typography>Descuento:</Typography>
                                 <Typography>Recargo:</Typography>
                                 <Typography>Importe Otros Tributos: {calculateTotalTributos().toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography fontWeight={700}>Importe Total: {(ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0) + calculateTotalTributos()).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography fontWeight={700}>Importe Total: {(ventaItems.reduce((acc, row) => acc + Number(row.subtotal), 0) + calculateTotalTributos()).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                             </Grid>
                             <Grid item xs={6}>
                                 {/* Espacio reservado para futuras expansiones o información adicional */}
@@ -670,8 +673,8 @@ export default function VentaForm({ pk }) {
                 onClose={() => setOpenArticuloDialog(false)}
                 selectedArticulo={selectedArticulo}
                 setSelectedArticulo={setSelectedArticulo}
-                renglones={ventaRenglones}
-                setRenglones={setVentaRenglones}
+                items={ventaItems}
+                setItems={setVentaItems}
             />
             <SnackbarAlert
                 open={openSnackbar}

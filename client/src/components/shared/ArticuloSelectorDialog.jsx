@@ -55,7 +55,7 @@ const SelectorToolbar = ({ showSelected, setShowSelected }) => {
 }
 
 
-const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones }) => {
+const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, items, setItems }) => {
     const [listArticulo, setListArticulo] = useState([]);
     const [showSelected, setShowSelected] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -140,15 +140,15 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                         disableRowSelectionOnClick
                         onRowSelectionModelChange={(newSelection) => {
                             if (listArticulo.length === 0) {
-                                // Importante condicion para que no resetee los renglones
+                                // Importante condicion para que no resetee los items
                                 // mientras se carga la lista de articulos
                                 return;
                             }
                             const rowSelectionArticulo = newSelection.map((row) => {
                                 return listArticulo.find((item) => item.id === row);
                             });
-                            const newRenglones = rowSelectionArticulo.map((row) => {
-                                const exist = renglones.find((r) => r.articulo_id === row.id);
+                            const newItems = rowSelectionArticulo.map((row) => {
+                                const exist = items.find((r) => r.articulo_id === row.id);
                                 return exist || {
                                     articulo_id: row.id,
                                     descripcion: row.linea_factura,
@@ -161,7 +161,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                                     subtotal: 0,
                                 };
                             });
-                            setRenglones(newRenglones);
+                            setItems(newItems);
                             setSelectedArticulo(newSelection);
                         }}
                         rowSelectionModel={selectedArticulo}

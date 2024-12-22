@@ -71,7 +71,7 @@ const PaperSizeButton = ({ handlePrint }) => {
 
 export default function VentaDetail({ pk }) {
     const [venta, setVenta] = useState({});
-    const [renglones, setRenglones] = useState([]);
+    const [items, setItems] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
         message: '',
@@ -103,7 +103,7 @@ export default function VentaDetail({ pk }) {
             try {
                 const data = await fetchData();
                 setVenta(data['venta']);
-                setRenglones(data['renglones']);
+                setItems(data['venta']['items']);
             }
             catch (error) {
                 setSnackbar({
@@ -320,17 +320,17 @@ export default function VentaDetail({ pk }) {
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
-                                                    {renglones.map((renglon, index) => (
+                                                    {items.map((item, index) => (
                                                         <TableRow key={index}>
-                                                            <TableCell>{renglon.codigo_principal}</TableCell>
-                                                            <TableCell>{renglon.descripcion}</TableCell>
-                                                            <TableCell align='right'>{renglon.cantidad}</TableCell>
-                                                            <TableCell align='right'>{renglon.precio_unidad
-                                                                ? Number(renglon.precio_unidad).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                            <TableCell>{item.codigo_principal}</TableCell>
+                                                            <TableCell>{item.descripcion}</TableCell>
+                                                            <TableCell align='right'>{item.cantidad}</TableCell>
+                                                            <TableCell align='right'>{item.precio_unidad
+                                                                ? Number(item.precio_unidad).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
                                                                 : 'N/A'}
                                                             </TableCell>
-                                                            <TableCell align='right'>{renglon.subtotal
-                                                                ? Number(renglon.subtotal).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                            <TableCell align='right'>{item.subtotal
+                                                                ? Number(item.subtotal).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
                                                                 : 'N/A'}
                                                             </TableCell>
                                                         </TableRow>
