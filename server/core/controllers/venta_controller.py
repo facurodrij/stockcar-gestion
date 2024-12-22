@@ -70,14 +70,14 @@ class VentaController:
         return venta.id
 
     @staticmethod
-    def update(data, session, venta: Venta, orden: bool = False) -> int:
+    def update(data, session, instance: Venta, orden: bool = False) -> int:
         """
         Actualiza una venta en la base de datos.
         """
         articulo_ids = {i["articulo_id"] for i in data["items"]}
 
         # Eliminar los items de venta que no están en la lista de articulo_ids y actualizar los ids de los items que se van a actualizar.
-        for item in venta.items:
+        for item in instance.items:
             if item.articulo_id not in articulo_ids:
                 session.delete(item)
             else:
@@ -87,48 +87,48 @@ class VentaController:
                         break
         session.commit()
 
-        venta_form_schema.load(data, instance=venta, session=session)
+        venta_form_schema.load(data, instance=instance, session=session)
         session.flush()
 
         # Calcular tributos
-        venta.total_tributos = 0
-        for tributo in venta.tributos:
+        instance.total_tributos = 0
+        for tributo in instance.tributos:
             base_calculo = tributo.base_calculo
             alicuota = tributo.alicuota / 100
             if base_calculo == BaseCalculo.neto:
-                importe = venta.gravado * alicuota
+                importe = instance.gravado * alicuota
             elif base_calculo == BaseCalculo.bruto:
                 # TODO revisar si es correcto
-                importe = venta.total * alicuota
-            venta.total_tributos += importe
+                importe = instance.total * alicuota
+            instance.total_tributos += importe
             session.execute(
                 tributo_venta.update()
-                .where(tributo_venta.c.venta_id == venta.id)
+                .where(tributo_venta.c.venta_id == instance.id)
                 .values(importe=importe)
             )
-        venta.total += venta.total_tributos
+        instance.total += instance.total_tributos
 
         # Facturar venta si corresponde
         if not orden:
-            if venta.estado.value == "Orden":
-                if not venta.tipo_comprobante.codigo_afip is None:
+            if instance.estado.value == "Orden":
+                if not instance.tipo_comprobante.codigo_afip is None:
                     afip = AfipService()
-                    res = afip.obtener_cae(venta)
-                    venta.numero = res["numero"]
-                    venta.cae = res["cae"]
-                    venta.vencimiento_cae = datetime.fromisoformat(
+                    res = afip.obtener_cae(instance)
+                    instance.numero = res["numero"]
+                    instance.cae = res["cae"]
+                    instance.vencimiento_cae = datetime.fromisoformat(
                         res["vencimiento_cae"]
                     )
-                    venta.estado = "facturado"
+                    instance.estado = "facturado"
                 else:
-                    venta.estado = "ticket"
+                    instance.estado = "ticket"
 
                 # Registrar movimiento de stock
-                if venta.tipo_comprobante.descontar_stock:
-                    MovimientoStockController.create_movimiento_from_venta(venta)
+                if instance.tipo_comprobante.descontar_stock:
+                    MovimientoStockController.create_movimiento_from_venta(instance)
 
         session.commit()
-        return venta.id
+        return instance.id
 
     @staticmethod
     def anular(venta: Venta):
