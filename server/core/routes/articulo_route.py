@@ -20,7 +20,7 @@ from server.core.schemas import (
 from server.core.decorators import error_handler
 
 articulo_bp = Blueprint("articulo_bp", __name__)
-articulo_index_schema = ArticuloIndexSchema(many=True)
+articulo_index_schema = ArticuloIndexSchema()
 articulo_form_schema = ArticuloFormSchema()
 articulo_detail_schema = ArticuloDetailSchema()
 
@@ -31,7 +31,7 @@ articulo_detail_schema = ArticuloDetailSchema()
 @error_handler()
 def index():
     articulos = Articulo.query.all()
-    return jsonify({"articulos": articulo_index_schema.dump(articulos)}), 200
+    return jsonify({"articulos": articulo_index_schema.dump(articulos, many=True)}), 200
 
 
 @articulo_bp.route("/articulos/create", methods=["GET", "POST"])
