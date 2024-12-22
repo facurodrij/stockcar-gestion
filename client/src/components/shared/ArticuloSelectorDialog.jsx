@@ -16,9 +16,12 @@ import AddIcon from '@mui/icons-material/Add';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import fetchWithAuth from '../../utils/fetchWithAuth';
+import { checkPermissions } from '../../utils/checkAuth';
 
 
-const SelectorToolbar = ({ show_btn_add, txt_btn_add, url_btn_add, showSelected, setShowSelected }) => {
+const SelectorToolbar = ({ showSelected, setShowSelected }) => {
+    const allowCreate = checkPermissions(['articulo.create']);
+
     return (
         <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
             <GridToolbarQuickFilter size={'small'} />
@@ -34,17 +37,17 @@ const SelectorToolbar = ({ show_btn_add, txt_btn_add, url_btn_add, showSelected,
                 {showSelected ? 'Ver Todos' : 'Ver Seleccionados'}
             </Button>
             <Box sx={{ flexGrow: 1 }} />
-            {show_btn_add && (
+            {allowCreate && (
                 <Button
                     startIcon={<AddIcon />}
                     component={Link}
-                    to={url_btn_add}
+                    to="/articulos/form"
                     target='_blank'
                     size="small"
                     variant="contained"
                     color="success"
                 >
-                    {txt_btn_add}
+                    Nuevo Artículo
                 </Button>
             )}
         </GridToolbarContainer>
@@ -52,7 +55,7 @@ const SelectorToolbar = ({ show_btn_add, txt_btn_add, url_btn_add, showSelected,
 }
 
 
-const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones, allowCreate }) => {
+const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedArticulo, renglones, setRenglones }) => {
     const [listArticulo, setListArticulo] = useState([]);
     const [showSelected, setShowSelected] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -165,9 +168,6 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                         slots={{
                             toolbar: (props) => <SelectorToolbar
                                 {...props}
-                                show_btn_add={allowCreate}
-                                txt_btn_add="Nuevo Artículo"
-                                url_btn_add="/articulos/form"
                                 showSelected={showSelected}
                                 setShowSelected={setShowSelected}
                             />
