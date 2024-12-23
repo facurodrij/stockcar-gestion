@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Numeric, Boolean
+from sqlalchemy import Column, Integer, String, Numeric, Boolean, Enum
 from sqlalchemy.orm import relationship
+from server.core.models.enums import EstadoVenta
 
 from server.config import db
 
@@ -116,6 +117,8 @@ class TipoComprobante(db.Model):
     es_anulable = Column(
         Boolean, default=False
     )  # Indica si el comprobante puede ser anulado con Nota de Crédito
+    estado_venta = Column(Enum(EstadoVenta), nullable=True) # Estado de la venta por defecto
+
 
     # Relación muchos a muchos con TipoResponsable
     responsables = relationship(

@@ -8,7 +8,8 @@
         "letra": "A",
         "descontar_stock": true,
         "requiere_comprobante_asociado": false,
-        "es_anulable": true
+        "es_anulable": true,
+        "estado_venta": "facturado"
     },
     {
         "id": 3,
@@ -19,7 +20,8 @@
         "letra": "A",
         "descontar_stock": false,
         "requiere_comprobante_asociado": true,
-        "es_anulable": false
+        "es_anulable": false,
+        "estado_venta": "facturado"
     },
     {
         "id": 5,
@@ -30,7 +32,8 @@
         "letra": "B",
         "descontar_stock": true,
         "requiere_comprobante_asociado": false,
-        "es_anulable": true
+        "es_anulable": true,
+        "estado_venta": "facturado"
     },
     {
         "id": 7,
@@ -41,7 +44,8 @@
         "letra": "B",
         "descontar_stock": false,
         "requiere_comprobante_asociado": true,
-        "es_anulable": false
+        "es_anulable": false,
+        "estado_venta": "facturado"
     },
     {
         "id": 9,
@@ -52,7 +56,8 @@
         "letra": "X",
         "descontar_stock": true,
         "requiere_comprobante_asociado": false,
-        "es_anulable": true
+        "es_anulable": true,
+        "estado_venta": "ticket"
     },
     {
         "id": 10,
@@ -63,6 +68,19 @@
         "letra": "P",
         "descontar_stock": false,
         "requiere_comprobante_asociado": false,
-        "es_anulable": false
+        "es_anulable": false,
+        "estado_venta": "presupuesto"
+    },
+    {
+        "id": 10,
+        "codigo_afip": null,
+        "nombre": "REMITO",
+        "descripcion": "Remito Mecanico",
+        "abreviatura": "X",
+        "letra": "X",
+        "descontar_stock": false,
+        "requiere_comprobante_asociado": false,
+        "es_anulable": false,
+        "estado_venta": "ticket mecanico"
     }
 ]

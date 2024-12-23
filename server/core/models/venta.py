@@ -1,4 +1,3 @@
-import enum
 from decimal import Decimal
 from sqlalchemy import (
     Column,
@@ -15,18 +14,7 @@ from server.utils.utils import AuditMixin, SoftDeleteMixin, QueryWithSoftDelete
 from server.config import db
 from server.core.models.association_table import tributo_venta
 from server.core.models.parametros import AlicuotaIVA
-
-
-class EstadoVenta(enum.Enum):
-    """
-    Enumeración para los estados de una venta.
-    """
-
-    orden = "Orden"
-    # Cuando se emite un ticket o comprobante que no requiere facturación electrónica
-    ticket = "Ticket"
-    facturado = "Facturado"
-    anulado = "Anulado"
+from server.core.models.enums import EstadoVenta
 
 
 class Venta(AuditMixin, SoftDeleteMixin, db.Model):

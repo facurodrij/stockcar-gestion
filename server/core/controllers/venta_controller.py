@@ -58,9 +58,11 @@ class VentaController:
                 venta.numero = res["numero"]
                 venta.cae = res["cae"]
                 venta.vencimiento_cae = datetime.fromisoformat(res["vencimiento_cae"])
-                venta.estado = "facturado"
-            else:
+            if venta.tipo_comprobante.estado_venta is None:
+                # Si el tipo de comprobante no tiene un estado de venta asociado, se asume que es un ticket
                 venta.estado = "ticket"
+            else:
+                venta.estado = venta.tipo_comprobante.estado_venta
 
             # Registrar movimiento de stock
             if venta.tipo_comprobante.descontar_stock:
@@ -119,9 +121,11 @@ class VentaController:
                     instance.vencimiento_cae = datetime.fromisoformat(
                         res["vencimiento_cae"]
                     )
-                    instance.estado = "facturado"
-                else:
+                if instance.tipo_comprobante.estado_venta is None:
+                    # Si el tipo de comprobante no tiene un estado de venta asociado, se asume que es un ticket
                     instance.estado = "ticket"
+                else:
+                    instance.estado = instance.tipo_comprobante.estado_venta
 
                 # Registrar movimiento de stock
                 if instance.tipo_comprobante.descontar_stock:
