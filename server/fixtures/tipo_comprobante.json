@@ -72,7 +72,7 @@
         "estado_venta": "presupuesto"
     },
     {
-        "id": 10,
+        "id": 11,
         "codigo_afip": null,
         "nombre": "REMITO",
         "descripcion": "Remito Mecanico",
@@ -81,6 +81,6 @@
         "descontar_stock": false,
         "requiere_comprobante_asociado": false,
         "es_anulable": false,
-        "estado_venta": "ticket mecanico"
+        "estado_venta": "ticket_mecanico"
     }
 ]
