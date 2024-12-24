@@ -35,9 +35,9 @@ import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useLoading } from '../../utils/loadingContext';
 
 
-const CustomToolbar = ({ onOpen }) => {
+const CustomToolbar = ({ onOpen, onVentaNumberChange }) => {
     return (
-        <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
+        <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5, display: 'flex', justifyContent: 'space-between' }}>
             <Button
                 color='primary'
                 startIcon={<AddIcon />}
@@ -45,6 +45,12 @@ const CustomToolbar = ({ onOpen }) => {
             >
                 Seleccionar Artículos
             </Button>
+            <TextField
+                label="Número de Venta"
+                variant="outlined"
+                size="small"
+                onChange={(e) => onVentaNumberChange(e.target.value)}
+            />
         </GridToolbarContainer>
     );
 }
@@ -226,6 +232,39 @@ export default function VentaForm({ pk }) {
                 totalTributos += ventaItems.reduce((acc, row) => acc + Number(row.subtotal), 0) * t.alicuota / 100;
         });
         return totalTributos
+    }
+
+    const handleVentaNumberChange = async (ventaNumber) => {
+        const ventaNumberPattern = /^\d{4}-\d{8}$/;
+        if (!ventaNumber || !ventaNumberPattern.test(ventaNumber)) return;
+        try {
+            const res = await fetchWithAuth(`${API}/ventas/${ventaNumber}`);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error);
+            }
+            const itemsArray = data.items.map((r) => ({
+                articulo_id: r.articulo_id,
+                descripcion: r.descripcion,
+                cantidad: r.cantidad,
+                precio_unidad: r.precio_unidad,
+                alicuota_iva: r.alicuota_iva,
+                subtotal_iva: r.subtotal_iva,
+                subtotal_gravado: r.subtotal_gravado,
+                subtotal: r.subtotal,
+            }));
+            setVentaItems(itemsArray);
+            setSelectedArticulo(itemsArray.map((r) => r.articulo_id));
+        } catch (e) {
+            console.error('Error al obtener la venta:', e);
+            setSnackbar({
+                message: e.message,
+                severity: 'error',
+                autoHideDuration: null,
+                onClose: () => handleCloseSnackbar(false)
+            });
+            setOpenSnackbar(true);
+        }
     }
 
     return (
@@ -458,7 +497,7 @@ export default function VentaForm({ pk }) {
                             getRowId={(row) => row.articulo_id}
                             disableRowSelectionOnClick
                             slots={{
-                                toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog} />,
+                                toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog} onVentaNumberChange={handleVentaNumberChange} />,
                             }}
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaItems.map((row) => {
