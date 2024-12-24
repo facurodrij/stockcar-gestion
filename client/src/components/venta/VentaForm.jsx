@@ -11,6 +11,7 @@ import {
     FormControl,
     FormHelperText,
     Grid,
+    IconButton,
     InputAdornment,
     InputLabel,
     MenuItem,
@@ -25,7 +26,7 @@ import { DataGrid, GridToolbarContainer } from '@mui/x-data-grid';
 import { esES } from "@mui/x-data-grid/locales";
 import SaveIcon from '@mui/icons-material/Save';
 import AddIcon from "@mui/icons-material/Add";
-
+import SearchIcon from "@mui/icons-material/Search";
 import { API } from "../../App";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
@@ -36,6 +37,8 @@ import { useLoading } from '../../utils/loadingContext';
 
 
 const CustomToolbar = ({ onOpen, onVentaNumberChange }) => {
+    const [ventaNumber, setVentaNumber] = useState('');
+
     return (
         <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5, display: 'flex', justifyContent: 'space-between' }}>
             <Button
@@ -46,10 +49,25 @@ const CustomToolbar = ({ onOpen, onVentaNumberChange }) => {
                 Seleccionar Artículos
             </Button>
             <TextField
-                label="Número de Venta"
+                label="Cargar Items desde Venta"
                 variant="outlined"
                 size="small"
-                onChange={(e) => onVentaNumberChange(e.target.value)}
+                value={ventaNumber}
+                onChange={(e) => setVentaNumber(e.target.value)}
+                placeholder="Ej: 0001-00000001"
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton
+                                onClick={() => onVentaNumberChange(ventaNumber)}
+                                edge="end"
+                                color="primary"
+                            >
+                                <SearchIcon />
+                            </IconButton>
+                        </InputAdornment>
+                    )
+                }}
             />
         </GridToolbarContainer>
     );
@@ -236,9 +254,11 @@ export default function VentaForm({ pk }) {
 
     const handleVentaNumberChange = async (ventaNumber) => {
         const ventaNumberPattern = /^\d{4}-\d{8}$/;
-        if (!ventaNumber || !ventaNumberPattern.test(ventaNumber)) return;
         try {
-            const res = await fetchWithAuth(`${API}/ventas/${ventaNumber}`);
+            if (!ventaNumber || !ventaNumberPattern.test(ventaNumber)) {
+                throw new Error('El número de venta debe tener el formato 0000-00000000');
+            }
+            const res = await fetchWithAuth(`${API}/ventas/get-items-by-nro/${ventaNumber}`);
             const data = await res.json();
             if (!res.ok) {
                 throw new Error(data.error);
