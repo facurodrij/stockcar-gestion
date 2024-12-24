@@ -23,6 +23,7 @@ class VentaItemSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
     codigo_principal = fields.fields.String(attribute="articulo.codigo_principal")
+    articulo_id = auto_field()
 
 
 class VentaItemFormSchema(SQLAlchemyAutoSchema):
@@ -148,6 +149,7 @@ class VentaFormSchema(VentaSchema):
 
     @pre_load
     def set_numero(self, data, **kwargs):
+        # TODO: Revisar funcionamiento en update de venta
         last_number = (
             self.session.query(func.max(Venta.numero))
             .filter(
