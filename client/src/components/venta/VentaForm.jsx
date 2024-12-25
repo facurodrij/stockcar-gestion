@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import {
     Autocomplete,
     Box,
     Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     FormControl,
     FormHelperText,
     Grid,
@@ -26,7 +31,7 @@ import { DataGrid, GridToolbarContainer } from '@mui/x-data-grid';
 import { esES } from "@mui/x-data-grid/locales";
 import SaveIcon from '@mui/icons-material/Save';
 import AddIcon from "@mui/icons-material/Add";
-import SearchIcon from "@mui/icons-material/Search";
+import SearchIcon from '@mui/icons-material/Search';
 import { API } from "../../App";
 import ArticuloSelectorDialog from "../shared/ArticuloSelectorDialog";
 import SimpleTabPanel from "../shared/SimpleTabPanel";
@@ -35,8 +40,7 @@ import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useLoading } from '../../utils/loadingContext';
 
-
-const CustomToolbar = ({ onOpen, onVentaNumberChange }) => {
+const CustomToolbar = ({ onOpen, fetchVentaItems }) => {
     const [ventaNumber, setVentaNumber] = useState('');
 
     return (
@@ -54,12 +58,12 @@ const CustomToolbar = ({ onOpen, onVentaNumberChange }) => {
                 size="small"
                 value={ventaNumber}
                 onChange={(e) => setVentaNumber(e.target.value)}
-                placeholder="Ej: 0001-00000001"
+                placeholder="0001-00000001 o ID"
                 InputProps={{
                     endAdornment: (
                         <InputAdornment position="end">
                             <IconButton
-                                onClick={() => onVentaNumberChange(ventaNumber)}
+                                onClick={() => fetchVentaItems(ventaNumber)}
                                 edge="end"
                                 color="primary"
                             >
@@ -73,13 +77,21 @@ const CustomToolbar = ({ onOpen, onVentaNumberChange }) => {
     );
 }
 
-export default function VentaForm({ pk }) {
+export default function VentaForm({ pk, itemsByVentaId }) {
     const {
         handleSubmit,
         control,
         formState: { errors },
         setValue
     } = useForm();
+    const [estadoVenta, setEstadoVenta] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [newItems, setNewItems] = useState([]);
+    const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [selectedArticulo, setSelectedArticulo] = useState([]);
+    const [selectedTributo, setSelectedTributo] = useState([]);
     const [selectOptions, setSelectOptions] = useState({
         cliente: [],
         tipo_comprobante: [],
@@ -88,22 +100,17 @@ export default function VentaForm({ pk }) {
         punto_venta: [],
         alicuota_iva: []
     });
-    const [tributos, setTributos] = useState([]);
-    const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
         message: '',
         severity: 'success',
         autoHideDuration: 4000,
         onClose: () => handleCloseSnackbar(false)
     });
-    const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
-    const [selectedArticulo, setSelectedArticulo] = useState([]);
+    const [tabValue, setTabValue] = useState(0);
+    const [tributos, setTributos] = useState([]);
     const [ventaItems, setVentaItems] = useState([]);
-    const [selectedTributo, setSelectedTributo] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [estadoVenta, setEstadoVenta] = useState('');
     const { withLoading } = useLoading();
+    const hasFetchedItems = useRef(false);
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -113,6 +120,77 @@ export default function VentaForm({ pk }) {
         setOpenSnackbar(false);
         if (redirect) {
             window.location.href = url;
+        }
+    }
+
+    const handleConfirmDialogClose = (replace) => {
+        if (replace) {
+            setVentaItems((prevItems) => {
+                const updatedItems = [...prevItems];
+                newItems.forEach((newItem) => {
+                    const index = updatedItems.findIndex(item => item.articulo_id === newItem.articulo_id);
+                    if (index !== -1) {
+                        updatedItems[index] = newItem;
+                    } else {
+                        updatedItems.push(newItem);
+                    }
+                });
+                return updatedItems;
+            });
+            setSelectedArticulo((prevArticulos) => {
+                const newArticulos = newItems.map((r) => r.articulo_id);
+                return [...new Set([...prevArticulos, ...newArticulos])];
+            });
+        }
+        setOpenConfirmDialog(false);
+        setNewItems([]);
+    }
+
+    const fetchVentaItems = async (ventaNumber) => {
+        const ventaNumberPattern = /^\d{4}-\d{8}$/;
+        const ventaIdPattern = /^\d+$/;
+        try {
+            let url;
+            if (ventaNumberPattern.test(ventaNumber)) {
+                url = `${API}/ventas/get-items-by-nro/${ventaNumber}`;
+            } else if (ventaIdPattern.test(ventaNumber)) {
+                url = `${API}/ventas/get-items-by-id/${ventaNumber}`;
+            } else {
+                throw new Error('El número de venta debe tener el formato 0000-00000000 o ser un ID numérico');
+            }
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error);
+            }
+            const itemsArray = data.items.map((r) => ({
+                articulo_id: r.articulo_id,
+                descripcion: r.descripcion,
+                cantidad: r.cantidad,
+                precio_unidad: r.precio_unidad,
+                alicuota_iva: r.alicuota_iva,
+                subtotal_iva: r.subtotal_iva,
+                subtotal_gravado: r.subtotal_gravado,
+                subtotal: r.subtotal,
+            }));
+
+            const existingItems = itemsArray.filter(newItem => ventaItems.some(item => item.articulo_id === newItem.articulo_id));
+            if (existingItems.length > 0) {
+                setNewItems(itemsArray);
+                setOpenConfirmDialog(true);
+            } else {
+                setVentaItems((prevItems) => [...prevItems, ...itemsArray]);
+                setSelectedArticulo((prevArticulos) => [...prevArticulos, ...itemsArray.map((r) => r.articulo_id)]);
+            }
+        } catch (e) {
+            console.error('Error al obtener la venta:', e);
+            setSnackbar({
+                message: e.message,
+                severity: 'error',
+                autoHideDuration: null,
+                onClose: () => handleCloseSnackbar(false)
+            });
+            setOpenSnackbar(true);
         }
     }
 
@@ -178,6 +256,10 @@ export default function VentaForm({ pk }) {
                         setSelectedTributo(selectedTributo => [...selectedTributo, t]);
                     });
                 }
+                if (Boolean(itemsByVentaId) && !hasFetchedItems.current) {
+                    fetchVentaItems(itemsByVentaId);
+                    hasFetchedItems.current = true;
+                }
             } catch (e) {
                 console.error('Error en la carga de datos:', e);
                 setSnackbar({
@@ -191,7 +273,8 @@ export default function VentaForm({ pk }) {
         }
 
         withLoading(loadData);
-    }, [pk, setValue, withLoading]);
+    }, []);
+
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -250,41 +333,6 @@ export default function VentaForm({ pk }) {
                 totalTributos += ventaItems.reduce((acc, row) => acc + Number(row.subtotal), 0) * t.alicuota / 100;
         });
         return totalTributos
-    }
-
-    const handleVentaNumberChange = async (ventaNumber) => {
-        const ventaNumberPattern = /^\d{4}-\d{8}$/;
-        try {
-            if (!ventaNumber || !ventaNumberPattern.test(ventaNumber)) {
-                throw new Error('El número de venta debe tener el formato 0000-00000000');
-            }
-            const res = await fetchWithAuth(`${API}/ventas/get-items-by-nro/${ventaNumber}`);
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.error);
-            }
-            const itemsArray = data.items.map((r) => ({
-                articulo_id: r.articulo_id,
-                descripcion: r.descripcion,
-                cantidad: r.cantidad,
-                precio_unidad: r.precio_unidad,
-                alicuota_iva: r.alicuota_iva,
-                subtotal_iva: r.subtotal_iva,
-                subtotal_gravado: r.subtotal_gravado,
-                subtotal: r.subtotal,
-            }));
-            setVentaItems(itemsArray);
-            setSelectedArticulo(itemsArray.map((r) => r.articulo_id));
-        } catch (e) {
-            console.error('Error al obtener la venta:', e);
-            setSnackbar({
-                message: e.message,
-                severity: 'error',
-                autoHideDuration: null,
-                onClose: () => handleCloseSnackbar(false)
-            });
-            setOpenSnackbar(true);
-        }
     }
 
     return (
@@ -517,7 +565,7 @@ export default function VentaForm({ pk }) {
                             getRowId={(row) => row.articulo_id}
                             disableRowSelectionOnClick
                             slots={{
-                                toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog} onVentaNumberChange={handleVentaNumberChange} />,
+                                toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog} fetchVentaItems={fetchVentaItems} />
                             }}
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaItems.map((row) => {
@@ -742,6 +790,25 @@ export default function VentaForm({ pk }) {
                 severity={snackbar.severity}
                 message={snackbar.message}
             />
+            <Dialog
+                open={openConfirmDialog}
+                onClose={() => handleConfirmDialogClose(false)}
+            >
+                <DialogTitle>Confirmar Reemplazo</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Algunos artículos ya existen en la lista. ¿Desea reemplazarlos?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleConfirmDialogClose(false)} color="primary">
+                        Cancelar
+                    </Button>
+                    <Button onClick={() => handleConfirmDialogClose(true)} color="primary" autoFocus>
+                        Reemplazar
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }

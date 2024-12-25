@@ -14,18 +14,23 @@ from server.core.models import (
     EstadoVenta,
     PuntoVenta,
     AlicuotaIVA,
-    VentaItem
+    VentaItem,
 )
 from server.config import db
 from server.utils.utils import get_select_options, get_datagrid_options
 from server.core.services import A4PDFGenerator, TicketPDFGenerator
 from server.auth.decorators import permission_required
 from server.core.controllers import VentaController
-from server.core.schemas import VentaIndexSchema, VentaFormSchema, VentaDetailSchema, VentaItemSchema
+from server.core.schemas import (
+    VentaIndexSchema,
+    VentaFormSchema,
+    VentaDetailSchema,
+    VentaItemSchema,
+)
 from server.core.decorators import error_handler
 
 venta_bp = Blueprint("venta_bp", __name__)
-venta_index_schema = VentaIndexSchema() # TODO: Usarlo en lugar de venta_json
+venta_index_schema = VentaIndexSchema()  # TODO: Usarlo en lugar de venta_json
 venta_form_schema = VentaFormSchema()
 venta_detail_schema = VentaDetailSchema()
 venta_item_schema = VentaItemSchema()
@@ -282,20 +287,31 @@ def delete_orden(pk):
 @jwt_required()
 @permission_required("venta.view")
 @error_handler()
-def get_venta_by_numero(numero):
-    punto_venta, numero_venta = numero.split('-')
+def get_items_by_numero(numero):
+    punto_venta, numero_venta = numero.split("-")
+    # Obtener la ultima venta con el numero y punto de venta
     venta = (
         db.session.query(Venta)
         .join(PuntoVenta)
         .filter(
-            PuntoVenta.numero == int(punto_venta),
-            Venta.numero == int(numero_venta)
+            PuntoVenta.numero == int(punto_venta), Venta.numero == int(numero_venta)
         )
+        .order_by(Venta.id.desc())
         .first()
     )
     if not venta:
         return jsonify({"error": "Venta no encontrada"}), 404
-    
+
     items = db.session.query(VentaItem).filter_by(venta_id=venta.id).all()
-    
+
+    return jsonify({"items": venta_item_schema.dump(items, many=True)}), 200
+
+
+@venta_bp.route("/ventas/get-items-by-id/<int:pk>", methods=["GET"])
+@jwt_required()
+@permission_required(["venta.view", "venta.create", "venta.update"])
+@error_handler()
+def get_items_by_id(pk):
+    venta: Venta = db.session.query(Venta).get_or_404(pk, "Venta no encontrada")
+    items = db.session.query(VentaItem).filter_by(venta_id=venta.id).all()
     return jsonify({"items": venta_item_schema.dump(items, many=True)}), 200
