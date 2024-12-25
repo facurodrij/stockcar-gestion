@@ -311,7 +311,7 @@ class A4PDFGenerator(BasePDFGenerator):
         self.venta = venta
         self.venta_items = venta.items
         self.setTitle(
-            f"A4 {self.venta.tipo_comprobante.descripcion}, N° {self.venta.nro_comprobante()}"
+            f"A4 {self.venta.tipo_comprobante.nombre}, N° {self.venta.nro_comprobante()}"
         )
         if len(self.venta_items) > 20:
             "If the sale has more than 20 items, create multiple pages"
@@ -348,7 +348,7 @@ class TicketPDFGenerator(BasePDFGenerator):
         )
         self.line(10, 770, 200, 770)
         self.setFont("Helvetica", 14)
-        self.drawCentredString(110, 750, f"{self.venta.tipo_comprobante.descripcion}")
+        self.drawCentredString(110, 750, f"{self.venta.tipo_comprobante.nombre} {self.venta.tipo_comprobante.letra}")
         self.setFontSize(6)
         if self.venta.tipo_comprobante.codigo_afip:
             self.drawCentredString(
