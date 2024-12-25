@@ -243,10 +243,10 @@ export default function VentaDetail({ pk }) {
 
     return (
         <>
-            {venta.estado === 'Anulado' && (
+            {venta.estado === 'anulado' && (
                 <Alert severity="warning">Esta venta actualmente se encuentra anulada</Alert>
             )}
-            {venta.estado === 'Orden' && (
+            {venta.estado === 'orden' && (
                 <Alert severity="info">
                     Esta venta actualmente se encuentra en estado de orden.
                     Para facturarla, debe ir a Editar en Ventas y guardarla.
@@ -260,7 +260,7 @@ export default function VentaDetail({ pk }) {
 
                     <Box>
                         {
-                            (venta.estado === 'Facturado' || venta.estado === 'Ticket')
+                            (venta.estado === 'facturado' || venta.estado === 'ticket')
                             && venta.tipo_comprobante
                             && venta.tipo_comprobante['es_anulable']
                             && (
@@ -283,10 +283,10 @@ export default function VentaDetail({ pk }) {
                         >
                             Editar
                         </Button>
-                        {venta.estado !== 'Orden' && (
+                        {venta.estado !== 'orden' && (
                             <PaperSizeButton handlePrint={handlePrint} />
                         )}
-                        {venta.estado === 'Orden' && (
+                        {venta.estado === 'orden' && (
                             <Button
                                 startIcon={<Delete />}
                                 variant="contained"
@@ -306,7 +306,7 @@ export default function VentaDetail({ pk }) {
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={10}>
                                         <Typography variant="h6" gutterBottom>
-                                            Renglones de Venta
+                                            Items
                                         </Typography>
                                         <TableContainer component={Paper} sx={{ mt: 3 }}>
                                             <Table size='small'>
@@ -485,11 +485,11 @@ export default function VentaDetail({ pk }) {
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText primary="Usuario de creación"
-                                            secondary={venta.created_by && venta.created_by.username} />
+                                            secondary={venta.created_by_user && venta.created_by_user.username} />
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText primary="Usuario de actualización"
-                                            secondary={venta.updated_by && venta.updated_by.username} />
+                                            secondary={venta.updated_by_user && venta.updated_by_user.username} />
                                     </ListItem>
                                 </List>
                             </CardContent>

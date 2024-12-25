@@ -2,6 +2,7 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, fields
 from marshmallow import pre_load
 from server.core.models import Cliente
 from server.core.schemas.parametros_schema import (
+    ProvinciaSchema,
     TipoDocumentoSchema,
     TipoResponsableSchema,
 )
@@ -30,6 +31,16 @@ class ClienteIndexSchema(SQLAlchemyAutoSchema):
 
     tipo_documento = fields.Nested(TipoDocumentoSchema(only=("id", "descripcion")))
     tipo_responsable = fields.Nested(TipoResponsableSchema, only=("id", "descripcion"))
+
+
+class ClienteDetailSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Cliente
+        load_instance = True
+
+    tipo_documento = fields.Nested(TipoDocumentoSchema(only=("id", "descripcion")))
+    tipo_responsable = fields.Nested(TipoResponsableSchema, only=("id", "descripcion"))
+    provincia = fields.Nested(ProvinciaSchema, only=("id", "nombre"))
 
 
 class ClienteFormSchema(SQLAlchemyAutoSchema):

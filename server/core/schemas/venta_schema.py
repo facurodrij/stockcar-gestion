@@ -12,7 +12,9 @@ from marshmallow import (
 )
 from server.core.models import Venta, VentaItem, Cliente
 from sqlalchemy.sql import func
-
+from server.auth.schemas import UsuarioSchema
+from server.core.schemas import ClienteDetailSchema
+from server.core.schemas.parametros_schema import TipoComprobanteSchema
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
@@ -93,10 +95,13 @@ class VentaDetailSchema(VentaSchema):
         load_instance = True
 
     items = fields.Nested(VentaItemSchema, many=True)
-    # TODO: cliente = fields.fields.Nested(ClienteSchema)
+    cliente = fields.Nested(ClienteDetailSchema)
+    tipo_comprobante = fields.Nested(TipoComprobanteSchema)
     nro_comprobante = fields.fields.Function(
         lambda obj: f"{obj.punto_venta.numero:04d}-{obj.numero:08d}"
     )
+    created_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
+    updated_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
 
 
 class VentaFormSchema(VentaSchema):
