@@ -135,37 +135,37 @@ class VentaController:
         return instance.id
 
     @staticmethod
-    def anular(venta: Venta):
-        try:
-            if venta.estado.value == "Facturado":
-                if venta.tipo_comprobante.letra == "A":
+    def anular(instance: Venta) -> tuple:
+        match instance.estado.value:
+            case "Facturado":
+                if instance.tipo_comprobante.letra == "A":
                     tipo_comprobante = TipoComprobante.query.filter_by(
                         letra="A", codigo_afip=3
                     ).first()  # Nota de crédito A
-                elif venta.tipo_comprobante.letra == "B":
+                elif instance.tipo_comprobante.letra == "B":
                     tipo_comprobante = TipoComprobante.query.filter_by(
                         letra="B", codigo_afip=8
                     ).first()  # Nota de crédito B
                 nota_credito = Venta(
-                    cliente_id=venta.cliente_id,
-                    punto_venta_id=venta.punto_venta_id,
+                    cliente_id=instance.cliente_id,
+                    punto_venta_id=instance.punto_venta_id,
                     tipo_comprobante_id=tipo_comprobante.id,
                     fecha_hora=datetime.now().astimezone(local_tz),
-                    total=venta.total,
-                    total_iva=venta.total_iva,
-                    total_tributos=venta.total_tributos,
-                    gravado=venta.gravado,
-                    nombre_cliente=venta.nombre_cliente,
-                    moneda_id=venta.moneda_id,
-                    moneda_cotizacion=venta.moneda_cotizacion,
-                    venta_asociada_id=venta.id,
-                    created_by=venta.updated_by,  # Es creado por el usuario que anula la venta
-                    updated_by=venta.updated_by,
+                    total=instance.total,
+                    total_iva=instance.total_iva,
+                    total_tributos=instance.total_tributos,
+                    gravado=instance.gravado,
+                    nombre_cliente=instance.nombre_cliente,
+                    moneda_id=instance.moneda_id,
+                    moneda_cotizacion=instance.moneda_cotizacion,
+                    venta_asociada_id=instance.id,
+                    created_by=instance.updated_by,  # Es creado por el usuario que anula la venta
+                    updated_by=instance.updated_by,
                 )
                 nota_credito.numero = nota_credito.get_last_number() + 1
                 db.session.add(nota_credito)
                 db.session.flush()
-                for item in venta.items:
+                for item in instance.items:
                     venta_item = VentaItem(
                         venta_id=nota_credito.id,
                         articulo_id=item.articulo_id,
@@ -186,42 +186,18 @@ class VentaController:
                     res["vencimiento_cae"]
                 )
                 nota_credito.estado = "facturado"
-                venta.estado = "anulado"
+                instance.estado = "anulado"
                 # Generar movimiento de stock inverso
-                MovimientoStockController.create_movimiento_from_devolucion(venta)
+                MovimientoStockController.create_movimiento_from_devolucion(instance)
                 db.session.commit()
-                return (
-                    jsonify(
-                        {
-                            "venta_id": nota_credito.id,
-                            "message": "Nota de crédito generada correctamente",
-                        }
-                    ),
-                    201,
-                )
-            elif venta.estado.value == "Ticket":
-                venta.estado = "anulado"
+                return nota_credito.id, "Nota de crédito generada correctamente"
+            case "Ticket":
+                instance.estado = "anulado"
                 # Generar movimiento de stock inverso
-                MovimientoStockController.create_movimiento_from_devolucion(venta)
+                MovimientoStockController.create_movimiento_from_devolucion(instance)
                 db.session.commit()
-                return (
-                    jsonify(
-                        {
-                            "venta_id": venta.id,
-                            "message": "Venta anulada correctamente",
-                        }
-                    ),
-                    201,
-                )
-            elif venta.estado.value == "Orden":
+                return instance.id, "Venta anulada correctamente"
+            case "Orden":
                 raise Exception("No se puede anular una orden de venta")
-            elif venta.estado.value == "Anulado":
+            case "Anulado":
                 raise Exception("La venta ya fue anulada")
-        except Exception as e:
-            db.session.rollback()
-            print(e)
-            return jsonify({"error": str(e)}), 400
-        finally:
-            db.session.remove()
-            db.session.configure(bind=db.engine)
-            db.session.close()
