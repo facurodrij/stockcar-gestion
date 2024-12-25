@@ -149,19 +149,19 @@ class VentaFormSchema(VentaSchema):
 
     @pre_load
     def set_numero(self, data, **kwargs):
-        # TODO: Revisar funcionamiento en update de venta
-        last_number = (
-            self.session.query(func.max(Venta.numero))
-            .filter(
-                Venta.tipo_comprobante_id == data.get("tipo_comprobante"),
-                Venta.punto_venta_id == data.get("punto_venta"),
+        # El número de comprobante se asigna automáticamente solo en la creación de la venta
+        if not self.instance:
+            last_number = (
+                self.session.query(func.max(Venta.numero))
+                .filter(
+                    Venta.tipo_comprobante_id == data.get("tipo_comprobante"),
+                    Venta.punto_venta_id == data.get("punto_venta"),
+                )
+                .scalar()
             )
-            .scalar()
-        )
-        if last_number:
-            data["numero"] = last_number + 1
+            data["numero"] = 1 if not last_number else last_number + 1
         else:
-            data["numero"] = 1
+            data["numero"] = self.instance.numero
         return data
 
     @post_load
