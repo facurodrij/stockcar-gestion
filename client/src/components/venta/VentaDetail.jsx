@@ -22,7 +22,7 @@ import {
     Alert
 } from "@mui/material";
 import { Block, Edit, Print, KeyboardArrowDown, Delete } from '@mui/icons-material';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useConfirm } from 'material-ui-confirm';
@@ -81,6 +81,7 @@ export default function VentaDetail({ pk }) {
     });
     const confirm = useConfirm();
     const { withLoading } = useLoading();
+    const navigate = useNavigate();
 
     const handleCloseSnackbar = (redirect, url = '/ventas') => {
         setOpenSnackbar(false);
@@ -241,6 +242,10 @@ export default function VentaDetail({ pk }) {
             });
     }
 
+    const handleNewSaleWithItems = () => {
+        navigate(`/ventas/form?itemsByVentaId=${pk}`);
+    };
+
     return (
         <>
             {venta.estado === 'anulado' && (
@@ -305,9 +310,18 @@ export default function VentaDetail({ pk }) {
                             <CardContent>
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={10}>
-                                        <Typography variant="h6" gutterBottom>
-                                            Items
-                                        </Typography>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Typography variant="h6" gutterBottom>
+                                                Items
+                                            </Typography>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={handleNewSaleWithItems}
+                                            >
+                                                Nueva Venta manteniendo Items
+                                            </Button>
+                                        </Box>
                                         <TableContainer component={Paper} sx={{ mt: 3 }}>
                                             <Table size='small'>
                                                 <TableHead>
