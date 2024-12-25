@@ -117,8 +117,9 @@ class TipoComprobante(db.Model):
     es_anulable = Column(
         Boolean, default=False
     )  # Indica si el comprobante puede ser anulado con Nota de Crédito
-    estado_venta = Column(Enum(EstadoVenta), nullable=True) # Estado de la venta por defecto
-
+    estado_venta = Column(
+        Enum(EstadoVenta), nullable=True
+    )  # Estado de la venta por defecto
 
     # Relación muchos a muchos con TipoResponsable
     responsables = relationship(
@@ -146,7 +147,11 @@ class TipoComprobante(db.Model):
         }
 
     def to_select_dict(self) -> dict:
-        return {"value": self.id, "label": f"{self.descripcion} ({self.letra})"}
+        return {
+            "value": self.id,
+            "label": f"{self.descripcion} ({self.letra})",
+            "descontar_stock": self.descontar_stock,
+        }
 
 
 class TipoConcepto(db.Model):

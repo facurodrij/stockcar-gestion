@@ -5,6 +5,7 @@ import 'dayjs/locale/es';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import {
+    Alert,
     Autocomplete,
     Box,
     Button,
@@ -111,6 +112,7 @@ export default function VentaForm({ pk, itemsByVentaId }) {
     const [ventaItems, setVentaItems] = useState([]);
     const { withLoading } = useLoading();
     const hasFetchedItems = useRef(false);
+    const [alertMessage, setAlertMessage] = useState('');
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -335,6 +337,16 @@ export default function VentaForm({ pk, itemsByVentaId }) {
         return totalTributos
     }
 
+    const handleTipoComprobanteChange = (value) => {
+        const selectedComprobante = selectOptions.tipo_comprobante.find(item => item.value === value);
+        if (selectedComprobante && !selectedComprobante.descontar_stock) {
+            setAlertMessage(`El tipo de comprobante "${selectedComprobante.label}" no descontará stock de los artículos seleccionados.`);
+        } else {
+            setAlertMessage('');
+        }
+        setValue('tipo_comprobante', value);
+    };
+
     return (
         <>
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
@@ -431,6 +443,7 @@ export default function VentaForm({ pk, itemsByVentaId }) {
                                             id="tipo_comprobante"
                                             labelId="tipo_comprobante_label"
                                             label="Tipo de Comprobante"
+                                            onChange={(event) => handleTipoComprobanteChange(event.target.value)}
                                         >
                                             {selectOptions.tipo_comprobante.map((item) => (
                                                 <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
@@ -461,6 +474,11 @@ export default function VentaForm({ pk, itemsByVentaId }) {
                             </FormControl>
                         </Grid>
                     </Grid>
+                    {alertMessage && (
+                        <Alert severity="warning" sx={{ mt: 2 }}>
+                            {alertMessage}
+                        </Alert>
+                    )}
                     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Items de Venta</Typography>
                     <Box sx={{
                         height: 500,
