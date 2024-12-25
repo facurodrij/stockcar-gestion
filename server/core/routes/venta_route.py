@@ -156,26 +156,28 @@ def detail(pk):
         )
     if request.method == "POST":
         data = request.json
-        if data["action"] == "print":
-            size = data["size"]
-            buffer = BytesIO()
-            if size == "A4":
-                c = A4PDFGenerator(buffer)
-                c.generate_pdf(venta)
-                buffer.seek(0)
-            else:
-                c = TicketPDFGenerator(buffer)
-                c.generate_pdf(venta)
-                buffer.seek(0)
-            return send_file(
-                buffer,
-                as_attachment=True,
-                download_name=f"venta_{venta.numero}.pdf",
-                mimetype="application/pdf",
-            )
-        elif data["action"] == "anular":
-            venta.updated_by = current_user.id
-            return VentaController.anular_venta(venta)
+        match data["action"]:
+            case "print":
+                size = data["size"]
+                buffer = BytesIO()
+                if size == "A4":
+                    c = A4PDFGenerator(buffer)
+                    c.generate_pdf(venta)
+                    buffer.seek(0)
+                else:
+                    c = TicketPDFGenerator(buffer)
+                    c.generate_pdf(venta)
+                    buffer.seek(0)
+                return send_file(
+                    buffer,
+                    as_attachment=True,
+                    download_name=f"venta_{venta.numero}.pdf",
+                    mimetype="application/pdf",
+                )
+            case "anular":
+                venta.updated_by = current_user.id
+                venta_id, message = VentaController.anular(venta)
+                return jsonify({"venta_id": venta_id, "message": message}), 201
 
 
 @venta_bp.route("/ventas-orden", methods=["GET"])
