@@ -1,6 +1,7 @@
 import importlib
 import click
 import pandas as pd
+from faker import Faker
 
 from server.config import db, app
 from server.core.models import (
@@ -16,7 +17,8 @@ from server.core.models import (
     TipoUnidad,
     TipoTributo,
     Tributo,
-    Comercio
+    Comercio,
+    Articulo
 )
 from server.auth.models import Usuario, Rol, Permiso
 
@@ -161,3 +163,34 @@ def create_permissions():
                 db.session.add(permission)
     db.session.commit()
     click.echo("Permissions created successfully!")
+
+
+@app.cli.command("generate_fake_articles")
+def generate_fake_articles():
+    """Generate 1000 fake articles and save them to the database."""
+    fake = Faker()
+    fake_articles = []
+    for _ in range(5):
+        for _ in range(1000):
+            fake_article = Articulo(
+                codigo_principal=fake.unique.ean13(),
+                codigo_secundario=fake.ean13(),
+                codigo_terciario=fake.ean13(),
+                codigo_cuaternario=fake.ean13(),
+                codigo_adicional=[fake.ean13() for _ in range(3)],
+                descripcion=fake.text(max_nb_chars=50),
+                linea_factura=fake.word(),
+                stock_actual=fake.random_number(digits=5, fix_len=True),
+                stock_minimo=fake.random_number(digits=3, fix_len=True),
+                stock_maximo=fake.random_number(digits=5, fix_len=True),
+                observacion=fake.sentence(),
+                tipo_articulo_id=1,
+                tipo_unidad_id=1,
+                alicuota_iva_id=1,
+                created_by=1,
+                updated_by=1,
+            )
+            fake_articles.append(fake_article)
+        db.session.bulk_save_objects(fake_articles)
+        db.session.commit()
+        click.echo("1000 fake articles generated successfully!")
