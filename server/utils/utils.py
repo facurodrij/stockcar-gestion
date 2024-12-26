@@ -1,7 +1,8 @@
 import pytz
 from sqlalchemy import Column, func, DateTime, Boolean, Integer, ForeignKey
-from sqlalchemy.orm import relationship, Query
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
+from flask_sqlalchemy.query import Query
 from server.auth.models import Usuario
 
 
