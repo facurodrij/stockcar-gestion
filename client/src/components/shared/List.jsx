@@ -17,11 +17,12 @@ const List = ({
     allowDelete,
     columns,
     rowHeight = 30,
-    pageSizeOptions = [25, 50, 100],
+    pageSizeOptions = [50],
     initialSortField = 'id',
     initialSortOrder = 'desc',
     toolbarProps,
-    mapDataToRows
+    mapDataToRows,
+    serverSide = false // New prop to enable server-side rendering
 }) => {
     const [list, setList] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -32,6 +33,11 @@ const List = ({
         onClose: () => handleCloseSnackbar(false)
     });
     const [loading, setLoading] = useState(false);
+    const [rowCount, setRowCount] = useState(0); // New state for total row count
+    const [paginationModel, setPaginationModel] = React.useState({
+        pageSize: 50,
+        page: 0,
+    });
 
     const confirm = useConfirm();
 
@@ -39,32 +45,38 @@ const List = ({
         setOpenSnackbar(false);
     }, []);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const res = await fetchWithAuth(apiUrl);
-                const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data['error']);
-                }
-                setList(mapDataToRows(data));
-            } catch (e) {
-                console.error(e);
-                setSnackbar({
-                    message: `Error al obtener los registros: ${e.message}`,
-                    severity: 'error',
-                    autoHideDuration: null,
-                    onClose: handleCloseSnackbar
-                });
-                setOpenSnackbar(true);
-            } finally {
-                setLoading(false);
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const url = serverSide 
+                ? `${apiUrl}?page=${paginationModel.page + 1}&page_size=${paginationModel.pageSize}`
+                : apiUrl;
+            const res = await fetchWithAuth(url);
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data['error']);
             }
-        };
+            setList(mapDataToRows(data));
+            if (serverSide) {
+                setRowCount(data.total); // Assuming the API returns the total count
+            }
+        } catch (e) {
+            console.error(e);
+            setSnackbar({
+                message: `Error al obtener los registros: ${e.message}`,
+                severity: 'error',
+                autoHideDuration: null,
+                onClose: handleCloseSnackbar
+            });
+            setOpenSnackbar(true);
+        } finally {
+            setLoading(false);
+        }
+    }, [apiUrl, mapDataToRows, handleCloseSnackbar, paginationModel, serverSide]);
 
+    useEffect(() => {
         fetchData();
-    }, [apiUrl, mapDataToRows, handleCloseSnackbar]);
+    }, [fetchData, paginationModel]);
 
     const handleDelete = useCallback(async (pk) => {
         confirm({
@@ -152,12 +164,21 @@ const List = ({
                     disableRowSelectionOnClick
                     rowHeight={rowHeight}
                     pageSizeOptions={pageSizeOptions}
-                    initialState={{ sorting: { sortModel: [{ field: initialSortField, sort: initialSortOrder }] } }}
+                    initialState={{
+                        pagination: {
+                            paginationModel: { pageSize: 50, page: 0 },
+                        },
+                        sorting: { sortModel: [{ field: initialSortField, sort: initialSortOrder }] }
+                    }}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{
                         toolbar: () => <ListToolbar {...toolbarProps} />
                     }}
                     ignoreDiacritics
+                    paginationMode={serverSide ? 'server' : 'client'} // Enable server-side pagination
+                    rowCount={serverSide ? rowCount : undefined} // Set total row count for server-side pagination
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
                 />
             </div>
             <SnackbarAlert

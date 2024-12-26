@@ -30,8 +30,15 @@ articulo_detail_schema = ArticuloDetailSchema()
 @permission_required(["articulo.view_all"])
 @error_handler()
 def index():
-    articulos = Articulo.query.all()
-    return jsonify({"articulos": articulo_index_schema.dump(articulos, many=True)}), 200
+    page = request.args.get('page', 1, type=int)
+    page_size = request.args.get('pageSize', 25, type=int)
+
+    articulos = db.paginate(db.select(Articulo), page=page, per_page=page_size)
+    total = db.session.query(Articulo).count()
+    return jsonify({
+        "articulos": articulo_index_schema.dump(articulos, many=True),
+        "total": total
+    }), 200
 
 
 @articulo_bp.route("/articulos/create", methods=["GET", "POST"])

@@ -49,6 +49,7 @@ export default function ArticuloList({
             columns={columns}
             mapDataToRows={mapDataToRows}
             toolbarProps={toolbarProps}
+            serverSide={true}
         />
     );
 }
