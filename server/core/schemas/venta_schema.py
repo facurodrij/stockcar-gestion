@@ -70,25 +70,27 @@ class VentaItemFormSchema(SQLAlchemyAutoSchema):
         return data
 
 
-class VentaSchema(SQLAlchemyAutoSchema):
+class VentaIndexSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Venta
         load_instance = True
+        fields = (
+            "id",
+            "fecha_hora",
+            "tipo_comprobante",
+            "nro_comprobante",
+            "nombre_cliente",
+            "total",
+            "estado",
+        )
 
-
-class VentaIndexSchema(VentaSchema):
-    class Meta:
-        model = Venta
-        include_relationships = True
-        load_instance = True
-        exclude = ("items",)
-
+    tipo_comprobante = fields.Nested(TipoComprobanteSchema(only=("id", "descripcion")))
     nro_comprobante = fields.fields.Function(
         lambda obj: f"{obj.punto_venta.numero:04d}-{obj.numero:08d}"
     )
 
 
-class VentaDetailSchema(VentaSchema):
+class VentaDetailSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Venta
         include_relationships = True
@@ -104,7 +106,7 @@ class VentaDetailSchema(VentaSchema):
     updated_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
 
 
-class VentaFormSchema(VentaSchema):
+class VentaFormSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Venta
         include_relationships = True
