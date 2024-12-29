@@ -128,9 +128,25 @@ class QueryWithSoftDelete(Query):
         return super(QueryWithSoftDelete, self).first()
 
     def all(self):
+        # Para evitar el error: Query.filter() being called on a Query which already has LIMIT or OFFSET applied.  Call filter() before limit() or offset() are applied.
+        # Se verifica si la query no posee limit o offset clauses antes de agregar la cláusula where deleted = false
+        if not self._limit_clause is not None or not self._offset_clause is not None:
+            if not self._with_deleted:
+                self = self.filter_by(deleted=False)
+        return super(QueryWithSoftDelete, self).all()
+
+    def paginate(
+        self, *, page=None, per_page=None, max_per_page=None, error_out=True, count=True
+    ):
         if not self._with_deleted:
             self = self.filter_by(deleted=False)
-        return super(QueryWithSoftDelete, self).all()
+        return super(QueryWithSoftDelete, self).paginate(
+            page=page,
+            per_page=per_page,
+            max_per_page=max_per_page,
+            error_out=error_out,
+            count=count,
+        )
 
 
 def get_select_options(models: list = []) -> dict:
