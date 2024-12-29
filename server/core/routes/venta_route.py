@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import jwt_required, current_user
 from flask_sqlalchemy.query import Query
+from flask_sqlalchemy.pagination import Pagination
 
 from server.core.models import (
     Venta,
@@ -41,36 +42,41 @@ venta_item_schema = VentaItemSchema()
 @permission_required("venta.view_all")
 @error_handler()
 def index():
-    fecha_desde = request.args.get("desde")
-    fecha_hasta = request.args.get("hasta")
+    fecha_desde = request.args.get("desde", None, type=str)
+    fecha_hasta = request.args.get("hasta", None, type=str)
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("pageSize", 25, type=int)
+
+    query = Venta.query
 
     if fecha_desde and fecha_hasta:
-        ventas = Venta.query.filter(
+        query = query.filter(
             Venta.fecha_hora.between(
                 datetime.fromisoformat(fecha_desde),
                 (datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)),
             )
         )
     elif fecha_desde:
-        ventas = Venta.query.filter(
-            Venta.fecha_hora >= datetime.fromisoformat(fecha_desde)
-        )
+        query = query.filter(Venta.fecha_hora >= datetime.fromisoformat(fecha_desde))
     elif fecha_hasta:
-        ventas = Venta.query.filter(
+        query = query.filter(
             Venta.fecha_hora
             <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)
         )
-    else:
-        ventas = Venta.query.all()
 
-    if type(ventas) == Query:
-        ventas = list(ventas)
+    query = query.order_by(Venta.fecha_hora.desc())
 
-    if len(ventas) == 0:
-        return jsonify({"error": "No se encontraron ventas"}), 404
+    ventas: Pagination = query.paginate(page=page, per_page=page_size)
 
-    ventas_json = list(map(lambda x: x.to_json_min(), ventas))
-    return jsonify({"ventas": ventas_json}), 200
+    return (
+        jsonify(
+            {
+                "ventas": venta_index_schema.dump(ventas.items, many=True),
+                "total": ventas.total,
+            }
+        ),
+        200,
+    )
 
 
 @venta_bp.route("/ventas/create", methods=["GET", "POST"])
@@ -187,7 +193,7 @@ def index_orden():
     fecha_desde = request.args.get("desde")
     fecha_hasta = request.args.get("hasta")
 
-    if fecha_desde and fecha_hasta:
+    if (fecha_desde and fecha_hasta):
         ventas = Venta.query.filter(
             Venta.fecha_hora.between(
                 datetime.fromisoformat(fecha_desde),

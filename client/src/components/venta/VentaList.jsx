@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     DataGrid,
     GridActionsCellItem,
@@ -18,10 +18,9 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Button, Box, Chip } from "@mui/material";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
-import { Search, Add, Visibility, Edit, Done, Block, Info, Delete } from '@mui/icons-material';
+import { Add, Visibility, Edit, Done, Block, Info, Delete } from '@mui/icons-material';
 import { useLoading } from '../../utils/loadingContext';
 import { useConfirm } from 'material-ui-confirm';
-
 
 export default function VentaList({ onlyOrders }) {
     const [list, setList] = useState([]);
@@ -36,6 +35,11 @@ export default function VentaList({ onlyOrders }) {
     });
     const { withLoading } = useLoading();
     const [loading, setLoading] = useState(false);
+    const [rowCount, setRowCount] = useState(0);
+    const [paginationModel, setPaginationModel] = useState({
+        pageSize: 50,
+        page: 0,
+    });
 
     const confirm = useConfirm();
 
@@ -43,12 +47,13 @@ export default function VentaList({ onlyOrders }) {
         setOpenSnackbar(false);
     }
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         const fromStr = from ? from.toISOString() : '';
         const toStr = to ? to.toISOString() : '';
         let url = onlyOrders ? `${API}/ventas-orden` : `${API}/ventas`;
-        url = (from || to) ? `${url}?desde=${fromStr}&hasta=${toStr}` : url;
+        url = `${url}?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}`;
+        url = (from || to) ? `${url}&desde=${fromStr}&hasta=${toStr}` : url;
         try {
             const res = await fetchWithAuth(url);
             const data = await res.json();
@@ -56,6 +61,7 @@ export default function VentaList({ onlyOrders }) {
                 throw new Error(data['error']);
             }
             setList(data['ventas']);
+            setRowCount(data.total);
         } catch (error) {
             console.error(error);
             setSnackbar({
@@ -68,7 +74,11 @@ export default function VentaList({ onlyOrders }) {
         } finally {
             setLoading(false);
         }
-    }
+    }, [onlyOrders, from, to, paginationModel]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData, paginationModel]);
 
     const CustomToolbar = () => {
         return (
@@ -140,28 +150,39 @@ export default function VentaList({ onlyOrders }) {
             renderCell: (params) => {
                 let color;
                 let icon;
+                let text;
                 switch (params.value) {
-                    case 'Ticket':
+                    case 'ticket':
                         color = 'success';
                         icon = <Done />;
+                        text = 'Ticket';
                         break;
-                    case 'Facturado':
+                    case 'facturado':
                         color = 'success';
                         icon = <Done />;
+                        text = 'Facturado';
                         break;
-                    case 'Anulado':
+                    case 'anulado':
                         color = 'error';
                         icon = <Block />;
+                        text = 'Anulado';
                         break;
-                    case 'Orden':
+                    case 'orden':
                         color = 'info';
                         icon = <Info />;
+                        text = 'Orden';
+                        break;
+                    case 'presupuesto':
+                        color = 'default';
+                        icon = null;
+                        text = 'Presupuesto';
                         break;
                     default:
                         color = 'default';
                         icon = null;
+                        text = params.value;
                 }
-                return <Chip variant='outlined' label={params.value} color={color} size='small' icon={icon} />;
+                return <Chip variant='outlined' label={text} color={color} size='small' icon={icon} />;
             },
         },
         {
@@ -227,7 +248,6 @@ export default function VentaList({ onlyOrders }) {
             description: '¿Está seguro que desea eliminar la orden de venta?',
             cancellationText: 'Cancelar',
             confirmationText: 'Confirmar'
-
         })
             .then(() => {
                 withLoading(async () => {
@@ -299,16 +319,6 @@ export default function VentaList({ onlyOrders }) {
                         sx={{ mr: 2 }}
                     />
                 </LocalizationProvider>
-
-                <Button
-                    startIcon={<Search />}
-                    variant="contained"
-                    color="primary"
-                    sx={{ mt: 2 }}
-                    onClick={fetchData}
-                >
-                    Buscar
-                </Button>
             </Box>
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
@@ -317,15 +327,21 @@ export default function VentaList({ onlyOrders }) {
                     rows={rows}
                     disableRowSelectionOnClick
                     rowHeight={30}
-                    pageSize={5}
-                    rowsPerPageOptions={[5, 10, 20]}
+                    pageSizeOptions={[50]}
                     initialState={{
-                        sorting: {
-                            sortModel: [{ field: 'fecha_hora', sort: 'desc' }]
+                        pagination: {
+                            paginationModel: {
+                                pageSize: 50,
+                                page: 0
+                            }
                         }
                     }}
                     localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     slots={{ toolbar: CustomToolbar }}
+                    paginationMode={'server'}
+                    rowCount={rowCount}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
                 />
             </div>
             <SnackbarAlert
@@ -337,4 +353,4 @@ export default function VentaList({ onlyOrders }) {
             />
         </>
     );
-};
+}
