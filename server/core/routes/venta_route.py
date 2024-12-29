@@ -68,6 +68,9 @@ def index():
 
     ventas: Pagination = query.paginate(page=page, per_page=page_size)
 
+    if not ventas.items:
+        return jsonify({"error": "No se encontraron ventas"}), 404
+
     return (
         jsonify(
             {
@@ -192,37 +195,42 @@ def detail(pk):
 def index_orden():
     fecha_desde = request.args.get("desde")
     fecha_hasta = request.args.get("hasta")
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("pageSize", 25, type=int)
 
-    if (fecha_desde and fecha_hasta):
-        ventas = Venta.query.filter(
+    query = Venta.query.filter_by(estado="orden")
+
+    if fecha_desde and fecha_hasta:
+        query = query.filter(
             Venta.fecha_hora.between(
                 datetime.fromisoformat(fecha_desde),
                 (datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)),
             )
         )
-        ventas = ventas.filter_by(estado="orden")
     elif fecha_desde:
-        ventas = Venta.query.filter(
-            Venta.fecha_hora >= datetime.fromisoformat(fecha_desde)
-        )
-        ventas = ventas.filter_by(estado="orden")
+        query = query.filter(Venta.fecha_hora >= datetime.fromisoformat(fecha_desde))
     elif fecha_hasta:
-        ventas = Venta.query.filter(
+        query = query.filter(
             Venta.fecha_hora
             <= datetime.fromisoformat(fecha_hasta) + timedelta(days=1, seconds=-1)
         )
-        ventas = ventas.filter_by(estado="orden")
-    else:
-        ventas = Venta.query.filter_by(estado="orden").all()
 
-    if type(ventas) == Query:
-        ventas = list(ventas)
+    query = query.order_by(Venta.fecha_hora.desc())
 
-    if len(ventas) == 0:
+    ventas: Pagination = query.paginate(page=page, per_page=page_size)
+
+    if not ventas.items:
         return jsonify({"error": "No se encontraron ordenes"}), 404
 
-    ventas_json = list(map(lambda x: x.to_json_min(), ventas))
-    return jsonify({"ventas": ventas_json}), 200
+    return (
+        jsonify(
+            {
+                "ventas": venta_index_schema.dump(ventas.items, many=True),
+                "total": ventas.total,
+            }
+        ),
+        200,
+    )
 
 
 @venta_bp.route("/ventas-orden/create", methods=["GET", "POST"])
