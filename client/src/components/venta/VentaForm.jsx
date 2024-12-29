@@ -458,7 +458,7 @@ export default function VentaForm({ pk, itemsByVentaId }) {
                                 <Controller
                                     name="fecha_hora"
                                     control={control}
-                                    defaultValue={dayjs()}
+                                    defaultValue=""
                                     render={({ field }) => (
                                         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'es'}>
                                             <DateTimePicker
