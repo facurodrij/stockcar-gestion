@@ -21,7 +21,7 @@ import {
     CardContent,
     Alert
 } from "@mui/material";
-import { Block, Edit, Print, KeyboardArrowDown, Delete } from '@mui/icons-material';
+import { Block, Edit, Print, KeyboardArrowDown, Delete, Add } from '@mui/icons-material';
 import { Link, useNavigate } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import fetchWithAuth from '../../utils/fetchWithAuth';
@@ -315,8 +315,9 @@ export default function VentaDetail({ pk }) {
                                                 Items
                                             </Typography>
                                             <Button
+                                                startIcon={<Add />}
                                                 variant="contained"
-                                                color="primary"
+                                                color="success"
                                                 onClick={handleNewSaleWithItems}
                                             >
                                                 Nueva Venta manteniendo Items
