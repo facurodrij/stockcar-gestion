@@ -22,6 +22,7 @@ class ArticuloIndexSchema(SQLAlchemyAutoSchema):
             "codigo_cuaternario",
             "codigo_adicional",
             "descripcion",
+            "linea_factura",
             "alicuota_iva",
         )
 
