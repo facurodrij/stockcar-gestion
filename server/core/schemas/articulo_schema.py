@@ -13,19 +13,21 @@ class ArticuloIndexSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Articulo
         load_instance = True
-        exclude = (
-            "stock_minimo",
-            "stock_maximo",
-            "observacion",
-            "deleted",
-            "deleted_at",
-            "created_by",
-            "updated_by",
-            "created_at",
-            "updated_at",
+        fields = (
+            "id",
+            "stock_actual",
+            "codigo_principal",
+            "codigo_secundario",
+            "codigo_terciario",
+            "codigo_cuaternario",
+            "codigo_adicional",
+            "descripcion",
+            "alicuota_iva",
         )
 
-    alicuota_iva = fields.Nested(AlicuotaIvaSchema, only=("id", "descripcion", "porcentaje"))
+    alicuota_iva = fields.Nested(
+        AlicuotaIvaSchema, only=("id", "descripcion", "porcentaje")
+    )
 
 
 class ArticuloDetailSchema(SQLAlchemyAutoSchema):
