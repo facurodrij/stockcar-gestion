@@ -41,6 +41,15 @@ def index():
     }), 200
 
 
+@articulo_bp.route("/articulos/selector", methods=["GET"])
+@jwt_required()
+@permission_required(["articulo.view_all"])
+@error_handler()
+def selector():
+    articulos = Articulo.query.all()
+    return jsonify(articulo_index_schema.dump(articulos, many=True)), 200
+
+
 @articulo_bp.route("/articulos/create", methods=["GET", "POST"])
 @jwt_required()
 @permission_required(["articulo.create"])

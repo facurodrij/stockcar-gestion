@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { Link } from "react-router-dom";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from "@mui/material";
+import { Add, Checklist, Refresh } from '@mui/icons-material';
 import {
     DataGrid,
     GridToolbarColumnsButton,
     GridToolbarContainer,
-    GridToolbarFilterButton,
     GridToolbarQuickFilter
 } from '@mui/x-data-grid';
-import { API } from "../../App";
 import { esES } from "@mui/x-data-grid/locales";
-import Box from "@mui/material/Box";
-import IconButton from '@mui/material/IconButton';
-import { Link } from "react-router-dom";
-import AddIcon from '@mui/icons-material/Add';
-import ChecklistIcon from '@mui/icons-material/Checklist';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import { API } from "../../App";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { checkPermissions } from '../../utils/checkAuth';
 
@@ -26,9 +21,8 @@ const SelectorToolbar = ({ showSelected, setShowSelected }) => {
         <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
             <GridToolbarQuickFilter size={'small'} />
             <GridToolbarColumnsButton />
-            <GridToolbarFilterButton />
             <Button
-                startIcon={<ChecklistIcon />}
+                startIcon={<Checklist />}
                 size="small"
                 onClick={() => {
                     setShowSelected(!showSelected);
@@ -39,7 +33,7 @@ const SelectorToolbar = ({ showSelected, setShowSelected }) => {
             <Box sx={{ flexGrow: 1 }} />
             {allowCreate && (
                 <Button
-                    startIcon={<AddIcon />}
+                    startIcon={<Add />}
                     component={Link}
                     to="/articulos/form"
                     target='_blank'
@@ -60,27 +54,51 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
     const [showSelected, setShowSelected] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const columns = [
+        { field: 'stock_actual', headerName: 'Stock', flex: 0.5 },
+        { field: 'descripcion', headerName: 'Descripción', flex: 2 },
+        { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
+        { field: 'codigo_secundario', headerName: 'Código secundario', flex: 1 },
+        { field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75 },
+        { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
+        { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
+    ];
+
     const filteredArticulo = showSelected
         ? listArticulo.filter((item) => selectedArticulo.includes(item.id))
         : listArticulo;
 
+    const rows = filteredArticulo.map((item) => {
+        return {
+            id: item.id,
+            stock_actual: item.stock_actual,
+            descripcion: item.descripcion,
+            codigo_principal: item.codigo_principal,
+            codigo_secundario: item.codigo_secundario,
+            codigo_terciario: item.codigo_terciario,
+            codigo_cuaternario: item.codigo_cuaternario,
+            codigo_adicional: item.codigo_adicional,
+            linea_factura: item.linea_factura,
+        }
+    });
+
     const fetchData = async () => {
         setLoading(true);
-        const url = `${API}/articulos`;
         try {
+            const url = `${API}/articulos/selector`;
             const res = await fetchWithAuth(url);
             const data = await res.json();
             if (!res.ok) {
-                throw new Error(`${res.status} (${res.statusText})`);
+                throw new Error(data['error']);
             }
-            setListArticulo(data['articulos']);
-        } catch (error) {
-            console.error(error);
-            alert('Error al cargar los datos');
+            setListArticulo(data);
+        } catch (e) {
+            console.error(e);
+            alert(e.message);
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         fetchData();
@@ -105,39 +123,17 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                     top: 8,
                 }}
             >
-                <RefreshIcon />
+                <Refresh />
             </IconButton>
             <DialogContent dividers>
                 <div style={{ height: 400, width: '100%' }}>
                     <DataGrid
-                        loading={loading}
-                        columns={[
-                            { field: 'stock_actual', headerName: 'Stock', flex: 0.5 },
-                            { field: 'descripcion', headerName: 'Descripción', flex: 2 },
-                            { field: 'codigo_principal', headerName: 'Código principal', flex: 1 },
-                            { field: 'codigo_secundario', headerName: 'Código secundario', flex: 1 },
-                            { field: 'codigo_terciario', headerName: 'Código terciario', flex: 0.75 },
-                            { field: 'codigo_cuaternario', headerName: 'Código cuaternario', flex: 0.75 },
-                            { field: 'codigo_adicional', headerName: 'Código adicional', flex: 0.75 },
-                        ]}
-                        rows={filteredArticulo.map((item) => {
-                            return {
-                                id: item.id,
-                                stock_actual: item.stock_actual,
-                                descripcion: item.descripcion,
-                                codigo_principal: item.codigo_principal,
-                                codigo_secundario: item.codigo_secundario,
-                                codigo_terciario: item.codigo_terciario,
-                                codigo_cuaternario: item.codigo_cuaternario,
-                                codigo_adicional: item.codigo_adicional,
-                                linea_factura: item.linea_factura,
-                            }
-                        })}
-                        rowHeight={30}
-                        pageSize={5}
-                        rowsPerPageOptions={[5, 10, 20]}
                         checkboxSelection
+                        columns={columns}
                         disableRowSelectionOnClick
+                        hideFooter
+                        loading={loading}
+                        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                         onRowSelectionModelChange={(newSelection) => {
                             if (listArticulo.length === 0) {
                                 // Importante condicion para que no resetee los items
@@ -164,7 +160,9 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                             setItems(newItems);
                             setSelectedArticulo(newSelection);
                         }}
+                        rowHeight={30}
                         rowSelectionModel={selectedArticulo}
+                        rows={rows}
                         slots={{
                             toolbar: (props) => <SelectorToolbar
                                 {...props}
@@ -172,7 +170,6 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                                 setShowSelected={setShowSelected}
                             />
                         }}
-                        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     />
                 </div>
             </DialogContent>
