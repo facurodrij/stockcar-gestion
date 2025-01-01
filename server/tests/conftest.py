@@ -6,7 +6,6 @@ from server.config import db
 @pytest.fixture(scope="module")
 def test_app():
     app = create_app(testing=True)
-
     db.init_app(app)
 
     with app.app_context():
