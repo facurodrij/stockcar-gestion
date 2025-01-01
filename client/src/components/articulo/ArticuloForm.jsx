@@ -231,6 +231,7 @@ export default function ArticuloForm({ pk }) {
                                         <TextField
                                             {...field}
                                             required
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             id="codigo_principal"
                                             label="Código principal"
                                             variant="outlined"
@@ -264,8 +265,7 @@ export default function ArticuloForm({ pk }) {
                                             rows={4}
                                             value={descripcion}
                                             onChange={(e) => {
-                                                setDescripcion(e.target.value);
-                                                field.onChange(e);
+                                                setDescripcion(e.target.value.toUpperCase());
                                             }}
                                             error={Boolean(errors.descripcion)}
                                             helperText={errors.descripcion && errors.descripcion.message}
@@ -290,7 +290,7 @@ export default function ArticuloForm({ pk }) {
                                             variant="outlined"
                                             value={lineaFactura}
                                             onChange={(e) => {
-                                                const value = e.target.value.substring(0, 30);
+                                                const value = e.target.value.substring(0, 30).toUpperCase();
                                                 setLineaFactura(value);
                                                 field.onChange(value);
                                             }}
@@ -381,6 +381,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_secundario"
                                             label="Código secundario"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                         />
                                     )}
@@ -398,6 +399,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_terciario"
                                             label="Código terciario"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                         />
                                     )}
@@ -415,6 +417,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_cuaternario"
                                             label="Código cuaternario"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                         />
                                     )}
@@ -432,6 +435,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_adicional"
                                             label="Códigos adicionales"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                             helperText={"(Opcional) Ingrese los códigos adicionales separados por comas. Ej: ABC123, XYZ789"}
                                         />
