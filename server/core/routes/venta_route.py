@@ -31,7 +31,7 @@ from server.core.schemas import (
 from server.core.decorators import error_handler
 
 venta_bp = Blueprint("venta_bp", __name__)
-venta_index_schema = VentaIndexSchema()  # TODO: Usarlo en lugar de venta_json
+venta_index_schema = VentaIndexSchema()
 venta_form_schema = VentaFormSchema()
 venta_detail_schema = VentaDetailSchema()
 venta_item_schema = VentaItemSchema()
