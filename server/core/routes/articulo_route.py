@@ -30,15 +30,26 @@ articulo_detail_schema = ArticuloDetailSchema()
 @permission_required(["articulo.view_all"])
 @error_handler()
 def index():
-    page = request.args.get('page', 1, type=int)
-    page_size = request.args.get('pageSize', 25, type=int)
+    query = request.args.get("query", None, type=str)
+    articulos = []
+    if query:
+        articulos = (
+            Articulo.query.filter(
+                Articulo.codigo_principal.ilike(f"%{query}%")
+                | Articulo.codigo_secundario.ilike(f"%{query}%")
+                | Articulo.codigo_terciario.ilike(f"%{query}%")
+                | Articulo.codigo_cuaternario.ilike(f"%{query}%")
+                | Articulo.codigo_adicional.ilike(f"%{query}%")
+                | Articulo.descripcion.ilike(f"%{query}%")
+            )
+            .order_by(Articulo.id.desc())
+            .all()
+        )
 
-    articulos = db.paginate(db.select(Articulo), page=page, per_page=page_size)
-    total = db.session.query(Articulo).count()
-    return jsonify({
-        "articulos": articulo_index_schema.dump(articulos, many=True),
-        "total": total
-    }), 200
+    return (
+        jsonify({"articulos": articulo_index_schema.dump(articulos, many=True)}),
+        200,
+    )
 
 
 @articulo_bp.route("/articulos/selector", methods=["GET"])

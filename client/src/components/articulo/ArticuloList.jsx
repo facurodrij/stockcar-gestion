@@ -178,7 +178,7 @@ export default function ArticuloList({
     const fetchData = useCallback(async (query = '') => {
         setLoading(true);
         try {
-            const url = query ? `${apiUrl}?search=${query}` : apiUrl;
+            const url = `${apiUrl}?query=${query}`;
             const res = await fetchWithAuth(url);
             const data = await res.json();
             if (!res.ok) {
