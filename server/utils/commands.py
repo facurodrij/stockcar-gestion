@@ -28,19 +28,19 @@ def load_fixtures():
     """Load data from JSON files into the database."""
     # Load data for each model
     for model, filename in [
-        (Genero, "genero.json"),
-        (Provincia, "provincia.json"),
-        (TipoDocumento, "tipo_documento.json"),
-        (TipoResponsable, "tipo_responsable.json"),
-        (TipoComprobante, "tipo_comprobante.json"),
-        (Moneda, "moneda.json"),
-        (TipoPago, "tipo_pago.json"),
         (AlicuotaIVA, "tipo_alicuota_iva.json"),
-        (TipoArticulo, "tipo_articulo.json"),
-        (TipoUnidad, "tipo_unidad.json"),
-        (TipoTributo, "tipo_tributo.json"),
-        (Tributo, "tributo.json"),
         (Comercio, "comercio.json"),
+        (Genero, "genero.json"),
+        (Moneda, "moneda.json"),
+        (Provincia, "provincia.json"),
+        (TipoArticulo, "tipo_articulo.json"),
+        (TipoComprobante, "tipo_comprobante.json"),
+        (TipoDocumento, "tipo_documento.json"),
+        (TipoPago, "tipo_pago.json"),
+        (TipoResponsable, "tipo_responsable.json"),
+        (TipoTributo, "tipo_tributo.json"),
+        (TipoUnidad, "tipo_unidad.json"),
+        (Tributo, "tributo.json"),
     ]:
         filepath = f"fixtures/{filename}"
         df = pd.read_json(filepath)
