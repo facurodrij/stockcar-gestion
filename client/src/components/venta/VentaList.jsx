@@ -4,9 +4,7 @@ import {
     GridActionsCellItem,
     GridToolbarColumnsButton,
     GridToolbarContainer,
-    GridToolbarDensitySelector,
-    GridToolbarExport,
-    GridToolbarFilterButton, GridToolbarQuickFilter
+    GridToolbarQuickFilter
 } from '@mui/x-data-grid';
 import dayjs from "dayjs";
 import { API } from "../../App";
@@ -101,9 +99,6 @@ export default function VentaList({ onlyOrders }) {
                     <>
                         <GridToolbarQuickFilter size={'small'} />
                         <GridToolbarColumnsButton />
-                        <GridToolbarFilterButton />
-                        <GridToolbarDensitySelector />
-                        <GridToolbarExport />
                         <Box sx={{ flexGrow: 1 }} />
                         <Button
                             startIcon={<Add />}

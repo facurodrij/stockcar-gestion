@@ -24,14 +24,14 @@ const ArticuloListToolbar = ({ show_btn_add, txt_btn_add, url_btn_add, onSearch 
     return (
         <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
             <TextField
-                label="Buscar"
+                label="Buscar..."
                 variant="outlined"
                 size="small"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearch}
                 onBlur={handleSearch}
-                sx={{ mr: 2 }}
+                sx={{ width: 350 }}
             />
             <GridToolbarColumnsButton />
             <Box sx={{ flexGrow: 1 }} />
