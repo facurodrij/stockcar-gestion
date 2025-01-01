@@ -265,7 +265,9 @@ export default function ArticuloForm({ pk }) {
                                             rows={4}
                                             value={descripcion}
                                             onChange={(e) => {
-                                                setDescripcion(e.target.value.toUpperCase());
+                                                const value = e.target.value.toUpperCase();
+                                                setDescripcion(value);
+                                                field.onChange(value);
                                             }}
                                             error={Boolean(errors.descripcion)}
                                             helperText={errors.descripcion && errors.descripcion.message}
