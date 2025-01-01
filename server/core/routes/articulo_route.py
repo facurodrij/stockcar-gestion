@@ -81,9 +81,7 @@ def create():
 @permission_required(["articulo.update"])
 @error_handler(session_rollback=True)
 def update(pk):
-    articulo: Articulo = db.session.query(Articulo).get_or_404(
-        pk, "Artículo no encontrado"
-    )
+    articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
     if request.method == "GET":
         return (
             jsonify(
@@ -107,12 +105,9 @@ def update(pk):
 @permission_required(["articulo.view"])
 @error_handler()
 def detail(pk):
-    articulo: Articulo = db.session.query(Articulo).get_or_404(
-        pk, "Artículo no encontrado"
-    )
+    articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
     movimientos = (
-        db.session.query(MovimientoStockItem)
-        .join(MovimientoStock)
+        MovimientoStock.query.join(MovimientoStockItem)
         .filter(MovimientoStockItem.articulo_id == pk)
         .order_by(MovimientoStock.fecha_hora.desc())
         .limit(20)
@@ -136,11 +131,7 @@ def detail(pk):
 @permission_required(["articulo.delete"])
 @error_handler(session_rollback=True)
 def delete(pk):
-    articulo: Articulo = db.session.query(Articulo).get_or_404(
-        pk, "Artículo no encontrado"
-    )
-    if articulo.is_deleted():
-        abort(404, "Artículo no encontrado")
+    articulo: Articulo = Articulo.query.get_or_404(pk, "Artículo no encontrado")
     articulo.delete()
     db.session.commit()
     return jsonify({"message": "Artículo eliminado correctamente"}), 200
