@@ -99,22 +99,22 @@ export default function ClienteForm({ pk }) {
                 if (Boolean(pk)) {
                     const cliente = data['cliente'];
                     const tributos = cliente['tributos'];
-                    setValue('tipo_responsable_id', cliente.tipo_responsable.id);
+                    setValue('tipo_responsable_id', cliente.tipo_responsable_id);
                     setValue('razon_social', cliente.razon_social);
-                    setValue('tipo_documento_id', cliente.tipo_documento.id);
+                    setValue('tipo_documento_id', cliente.tipo_documento_id);
                     setValue('nro_documento', cliente.nro_documento);
                     setValue('direccion', cliente.direccion);
                     setValue('localidad', cliente.localidad);
                     setValue('codigo_postal', cliente.codigo_postal);
-                    setValue('provincia_id', cliente.provincia.id);
+                    setValue('provincia_id', cliente.provincia_id);
                     if (cliente.fecha_nacimiento) setValue('fecha_nacimiento', dayjs(cliente.fecha_nacimiento));
-                    if (cliente.genero) setValue('genero_id', cliente.genero.id);
+                    if (cliente.genero_id) setValue('genero_id', cliente.genero_id);
                     if (cliente.telefono) setValue('telefono', cliente.telefono);
                     if (cliente.email) setValue('email', cliente.email);
                     setValue('descuento', cliente.descuento);
                     setValue('recargo', cliente.recargo);
-                    setValue('tipo_pago_id', cliente.tipo_pago.id);
-                    setValue('moneda_id', cliente.moneda.id);
+                    setValue('tipo_pago_id', cliente.tipo_pago_id);
+                    setValue('moneda_id', cliente.moneda_id);
                     setValue('limite_credito', cliente.limite_credito);
                     setValue('exento_iva', cliente.exento_iva);
                     setValue('duplicado_factura', cliente.duplicado_factura);

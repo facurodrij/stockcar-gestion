@@ -1,4 +1,4 @@
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, fields
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, fields, auto_field
 from marshmallow import pre_load
 from server.core.models import Cliente
 from server.core.schemas.parametros_schema import (
@@ -50,6 +50,7 @@ class ClienteFormSchema(SQLAlchemyAutoSchema):
         load_instance = True
 
     fecha_nacimiento = fields.fields.DateTime(format="iso", allow_none=True)
+    tributos = auto_field()
 
     @pre_load
     def convert_empty_strings_to_none(self, data, **kwargs):
