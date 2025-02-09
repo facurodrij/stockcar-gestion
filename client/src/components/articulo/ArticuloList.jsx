@@ -16,7 +16,9 @@ const ArticuloListToolbar = ({ show_btn_add, txt_btn_add, url_btn_add, onSearch 
     const handleSearch = (event) => {
         if (event.key === 'Enter' || event.type === 'blur') {
             if (searchQuery.length >= 3) {
-                onSearch(searchQuery);
+                // Si hay un + en la búsqueda, se reemplaza por %2B
+                const searchQueryFixed = searchQuery.replace('+', '%2B');
+                onSearch(searchQueryFixed);
             }
         }
     };
