@@ -1,7 +1,9 @@
-from server.core.models import Articulo
-from server.core.controllers import MovimientoStockController
+import pytz
+from datetime import datetime
+from server.core.models import MovimientoStock, Articulo, MovimientoStockItem
 from server.core.schemas import ArticuloFormSchema
 
+local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 articulo_form_schema = ArticuloFormSchema()
 
 
@@ -19,9 +21,27 @@ class ArticuloController:
 
         if new_articulo.stock_actual != 0:
             cantidad = float(new_articulo.stock_actual)
-            MovimientoStockController.create_movimiento_from_articulo(
-                articulo=new_articulo, cantidad=cantidad
+            tipo_movimiento = "egreso" if cantidad < 0 else "ingreso"
+            movimiento = MovimientoStock(
+                tipo_movimiento=tipo_movimiento,
+                origen="ajuste",
+                fecha_hora=datetime.now(tz=local_tz),
+                observacion="Ajuste de stock desde formulario de artículo",
+                created_by=new_articulo.updated_by,
+                updated_by=new_articulo.updated_by,
             )
+            session.add(movimiento)
+
+            stock_posterior = float(new_articulo.stock_actual)
+
+            movimiento_item = MovimientoStockItem(
+                articulo=new_articulo,
+                movimiento_stock=movimiento,
+                codigo_principal=new_articulo.codigo_principal,
+                cantidad=cantidad,
+                stock_posterior=stock_posterior,
+            )
+            session.add(movimiento_item)
 
         session.commit()
         return new_articulo.id
@@ -45,9 +65,27 @@ class ArticuloController:
 
         if stock_anterior != stock_actual:
             cantidad = stock_actual - stock_anterior
-            MovimientoStockController.create_movimiento_from_articulo(
-                articulo=instance, cantidad=cantidad
+            tipo_movimiento = "egreso" if cantidad < 0 else "ingreso"
+            movimiento = MovimientoStock(
+                tipo_movimiento=tipo_movimiento,
+                origen="ajuste",
+                fecha_hora=datetime.now(tz=local_tz),
+                observacion="Ajuste de stock desde formulario de artículo",
+                created_by=updated_articulo.updated_by,
+                updated_by=updated_articulo.updated_by,
             )
+            session.add(movimiento)
+
+            stock_posterior = float(updated_articulo.stock_actual)
+
+            movimiento_item = MovimientoStockItem(
+                articulo=updated_articulo,
+                movimiento_stock=movimiento,
+                codigo_principal=updated_articulo.codigo_principal,
+                cantidad=cantidad,
+                stock_posterior=stock_posterior,
+            )
+            session.add(movimiento_item)
 
         session.commit()
         return updated_articulo.id
