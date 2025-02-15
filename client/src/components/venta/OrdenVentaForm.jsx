@@ -60,7 +60,7 @@ export default function OrdenVentaForm({ pk }) {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openArticuloDialog, setOpenArticuloDialog] = useState(false);
     const [selectedArticulo, setSelectedArticulo] = useState([]);
-    const [ventaRenglones, setVentaRenglones] = useState([]);
+    const [ventaItems, setVentaItems] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { withLoading } = useLoading();
 
@@ -89,19 +89,18 @@ export default function OrdenVentaForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    cliente: selectOptions.cliente,
-                    alicuota_iva: selectOptions.alicuota_iva
+                    cliente: data.clientes,
+                    alicuota_iva: data.alicuota_iva
                 });
-                setValue('cliente_id', selectOptions.cliente[0].id);
+                setValue('cliente', data.clientes[0].value);
                 if (Boolean(pk)) {
                     const venta = data['venta'];
-                    setValue('cliente_id', venta.cliente.id);
+                    setValue('cliente', venta.cliente);
                     if (venta.observacion) setValue('observacion', venta.observacion);
 
                     // Cargar renglones de venta
-                    const renglonesArray = data['renglones'].map((r) => {
+                    const renglonesArray = venta['items'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
                             descripcion: r.descripcion,
@@ -114,7 +113,7 @@ export default function OrdenVentaForm({ pk }) {
                         };
                     });
                     const articuloArray = renglonesArray.map((r) => r.articulo_id);
-                    setVentaRenglones(renglonesArray);
+                    setVentaItems(renglonesArray);
                     setSelectedArticulo(articuloArray);
                 }
             } catch (e) {
@@ -122,6 +121,7 @@ export default function OrdenVentaForm({ pk }) {
                 setSnackbar({
                     message: e.message,
                     severity: 'error',
+                    autoHideDuration: null,
                     onClose: () => handleCloseSnackbar(false)
                 });
                 setOpenSnackbar(true);
@@ -136,15 +136,17 @@ export default function OrdenVentaForm({ pk }) {
         const url = Boolean(pk) ? `${API}/ventas-orden/${pk}/update` : `${API}/ventas-orden/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            if (ventaRenglones.length === 0) {
+            if (ventaItems.length === 0) {
                 throw new Error('No se ha seleccionado ningún artículo');
             }
-            const res = await fetchWithAuth(url, method, {
-                venta: data, renglones: ventaRenglones
-            });
+            data['items'] = ventaItems;
+            const res = await fetchWithAuth(url, method, data);
             const resJson = await res.json();
             if (!res.ok) {
-                throw new Error(`${resJson['error']}`);
+                if (res.status === 409) {
+                    throw new Error(JSON.stringify(resJson));
+                }
+                throw new Error(resJson['error']);
             }
             setSnackbar({
                 message: 'Orden de Venta guardada correctamente',
@@ -167,7 +169,7 @@ export default function OrdenVentaForm({ pk }) {
     }
 
     const onError = (errors) => {
-        if (errors['cliente_id']) {
+        if (errors['cliente']) {
             setTabValue(0);
             return;
         }
@@ -195,7 +197,7 @@ export default function OrdenVentaForm({ pk }) {
                         <Grid item xs={12}>
                             <FormControl fullWidth>
                                 <Controller
-                                    name="cliente_id"
+                                    name="cliente"
                                     control={control}
                                     defaultValue=""
                                     rules={{ required: "Este campo es requerido" }}
@@ -208,19 +210,19 @@ export default function OrdenVentaForm({ pk }) {
                                                     required
                                                     label="Seleccionar Cliente"
                                                     variant="outlined"
-                                                    error={Boolean(errors.cliente_id)}
-                                                    helperText={errors.cliente_id && errors.cliente_id.message}
+                                                    error={Boolean(errors.cliente)}
+                                                    helperText={errors.cliente && errors.cliente.message}
                                                 />
                                             )}
                                             options={selectOptions.cliente}
-                                            getOptionLabel={(option) => option.razon_social ? option.razon_social : ''}
-                                            getOptionKey={(option) => option.id}
-                                            value={selectOptions.cliente.find((c) => c.id === field.value) || ""}
+                                            getOptionLabel={(option) => option.label ? option.label : ''}
+                                            getOptionKey={(option) => option.value}
+                                            value={selectOptions.cliente.find((c) => c.value === field.value) || ""}
                                             isOptionEqualToValue={(option, value) =>
-                                                value === undefined || value === "" || option.id === value.id
+                                                value === undefined || value === "" || option.value === value.value
                                             }
                                             onChange={(event, value) => {
-                                                field.onChange(value ? value.id : "");
+                                                field.onChange(value ? value.value : "");
                                             }}
                                         />
                                     )}
@@ -328,14 +330,14 @@ export default function OrdenVentaForm({ pk }) {
                                     }
                                 },
                             ]}
-                            rows={ventaRenglones}
+                            rows={ventaItems}
                             getRowId={(row) => row.articulo_id}
                             disableRowSelectionOnClick
                             slots={{
                                 toolbar: () => <CustomToolbar onOpen={setOpenArticuloDialog} />,
                             }}
                             processRowUpdate={(newRow, oldRow) => {
-                                const updatedRows = ventaRenglones.map((row) => {
+                                const updatedRows = ventaItems.map((row) => {
                                     if (row.articulo_id === oldRow.articulo_id) {
                                         const iva = parseFloat(newRow.alicuota_iva);
                                         newRow.subtotal = newRow.cantidad * newRow.precio_unidad;
@@ -345,7 +347,7 @@ export default function OrdenVentaForm({ pk }) {
                                     }
                                     return row;
                                 });
-                                setVentaRenglones(updatedRows);
+                                setVentaItems(updatedRows);
                                 return newRow;
                             }}
                             localeText={esES.components.MuiDataGrid.defaultProps.localeText}
@@ -380,10 +382,10 @@ export default function OrdenVentaForm({ pk }) {
                         <Typography variant="h6" gutterBottom>Totales</Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={6}>
-                                <Typography>Artículos: {ventaRenglones.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
-                                <Typography>Importe de IVA: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_iva), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography>Importe Gravado: {ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
-                                <Typography fontWeight={700}>Importe Total: {(ventaRenglones.reduce((acc, row) => acc + Number(row.subtotal), 0)).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography>Artículos: {ventaItems.reduce((acc, row) => acc + Number(row.cantidad), 0)}</Typography>
+                                <Typography>Importe de IVA: {ventaItems.reduce((acc, row) => acc + Number(row.subtotal_iva), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography>Importe Gravado: {ventaItems.reduce((acc, row) => acc + Number(row.subtotal_gravado), 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
+                                <Typography fontWeight={700}>Importe Total: {(ventaItems.reduce((acc, row) => acc + Number(row.subtotal), 0)).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</Typography>
                             </Grid>
                         </Grid>
                     </Box>
@@ -407,9 +409,8 @@ export default function OrdenVentaForm({ pk }) {
                 onClose={() => setOpenArticuloDialog(false)}
                 selectedArticulo={selectedArticulo}
                 setSelectedArticulo={setSelectedArticulo}
-                renglones={ventaRenglones}
-                setRenglones={setVentaRenglones}
-                allowCreate={true}
+                items={ventaItems}
+                setItems={setVentaItems}
             />
             <SnackbarAlert
                 open={openSnackbar}

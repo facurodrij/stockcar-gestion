@@ -3,8 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 from server.config import db, app
-from server.models.cliente import Cliente
-from server.models.parametros import TipoDocumento, Provincia, Genero, \
+from server.core.models.cliente import Cliente
+from server.core.models.parametros import TipoDocumento, Provincia, Genero, \
     TipoResponsable
 
 basedir = os.path.abspath(os.path.dirname(__file__))

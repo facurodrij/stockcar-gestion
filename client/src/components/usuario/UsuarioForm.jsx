@@ -50,17 +50,17 @@ export default function UsuarioForm({ pk }) {
         const fetchData = async () => {
             const url = Boolean(pk) ? `${API}/usuarios/${pk}/update` : `${API}/usuarios/create`;
             const res = await fetchWithAuth(url);
+            const data = await res.json();
             if (!res.ok) {
-                const message = Boolean(pk) ? 'Error al obtener la venta' : 'Error al obtener los datos';
+                const message = `Error al obtener datos: ${data['error']}`
                 throw new Error(message);
             }
-            return await res.json();
+            return data;
         }
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
-                setAvailablePermissions(selectOptions['permisos']);
+                setAvailablePermissions(data['permisos']);
                 if (Boolean(pk)) {
                     const usuario = data['usuario'];
                     const permisos = usuario['permisos']
@@ -70,15 +70,18 @@ export default function UsuarioForm({ pk }) {
                     setValue('is_superuser', usuario['is_superuser']);
                     if (usuario['nombre']) setValue('nombre', usuario['nombre']);
                     if (usuario['apellido']) setValue('apellido', usuario['apellido']);
+
+                    // Cargar permisos seleccionados
                     setSelectedPermissions([]);
                     permisos.forEach((p) => {
                         setSelectedPermissions(selectedPermissions => [...selectedPermissions, p.id]);
                     });
                 }
-            } catch (e) {
+            }
+            catch (e) {
                 console.error('Error en la carga de datos:', e);
                 setSnackbar({
-                    message: 'Error al cargar los datos',
+                    message: e.message,
                     severity: 'error',
                     onClose: () => handleCloseSnackbar(false)
                 });
@@ -94,12 +97,11 @@ export default function UsuarioForm({ pk }) {
         const url = Boolean(pk) ? `${API}/usuarios/${pk}/update` : `${API}/usuarios/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            const response = await fetchWithAuth(url, method, {
-                usuario: data, permisos: selectedPermissions
-            });
-            const responseJson = await response.json();
-            if (!response.ok) {
-                throw new Error(`${responseJson['error']}`);
+            data['permisos'] = selectedPermissions;
+            const res = await fetchWithAuth(url, method, data);
+            const resJson = await res.json();
+            if (!res.ok) {
+                throw new Error(`${resJson['error']}`);
             }
             setSnackbar({
                 message: 'Usuario guardado correctamente',

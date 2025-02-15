@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from server.config import db
-from server.models import Venta, PuntoVenta, TipoComprobante
+from server.core.models import Venta, PuntoVenta, TipoComprobante
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 

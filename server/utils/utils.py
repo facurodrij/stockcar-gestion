@@ -1,8 +1,9 @@
 import pytz
 from sqlalchemy import Column, func, DateTime, Boolean, Integer, ForeignKey
-from sqlalchemy.orm import relationship, Query
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
-from server.config import db
+from flask_sqlalchemy.query import Query
+from server.auth.models import Usuario
 
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
@@ -31,11 +32,11 @@ class AuditMixin:
 
     @declared_attr
     def created_by_user(cls):
-        return relationship("Usuario", foreign_keys=[cls.created_by])
+        return relationship(Usuario, foreign_keys=[cls.created_by])
 
     @declared_attr
     def updated_by_user(cls):
-        return relationship("Usuario", foreign_keys=[cls.updated_by])
+        return relationship(Usuario, foreign_keys=[cls.updated_by])
 
     def __init__(self, *args, **kwargs):
         super(AuditMixin, self).__init__(*args, **kwargs)
@@ -51,8 +52,8 @@ class AuditMixin:
             "updated_at": self.updated_at.replace(tzinfo=pytz.utc)
             .astimezone(local_tz)
             .isoformat(),
-            "created_by": self.created_by_user.to_json(),
-            "updated_by": self.updated_by_user.to_json(),
+            "created_by": self.created_by_user.to_dict(),
+            "updated_by": self.updated_by_user.to_dict(),
         }
 
 
@@ -127,6 +128,52 @@ class QueryWithSoftDelete(Query):
         return super(QueryWithSoftDelete, self).first()
 
     def all(self):
+        # Para evitar el error: Query.filter() being called on a Query which already has LIMIT or OFFSET applied.  Call filter() before limit() or offset() are applied.
+        # Se verifica si la query no posee limit o offset clauses antes de agregar la cláusula where deleted = false
+        if not self._limit_clause is not None or not self._offset_clause is not None:
+            if not self._with_deleted:
+                self = self.filter_by(deleted=False)
+        return super(QueryWithSoftDelete, self).all()
+
+    def paginate(
+        self, *, page=None, per_page=None, max_per_page=None, error_out=True, count=True
+    ):
         if not self._with_deleted:
             self = self.filter_by(deleted=False)
-        return super(QueryWithSoftDelete, self).all()
+        return super(QueryWithSoftDelete, self).paginate(
+            page=page,
+            per_page=per_page,
+            max_per_page=max_per_page,
+            error_out=error_out,
+            count=count,
+        )
+
+
+def get_select_options(models: list = []) -> dict:
+    """
+    Obtiene los datos necesarios para los campos select de los formularios de usuarios.
+    """
+    select_options = {}
+
+    for model in models:
+        model_name = model.__pluralname__
+        records = model.query.all()
+        select_options[model_name] = list(map(lambda x: x.to_select_dict(), records))
+
+    return select_options
+
+
+def get_datagrid_options(models: list = []) -> dict:
+    """
+    Obtiene los datos necesarios para las columnas de los datagrid en los formularios de usuarios.
+    """
+    datagrid_options = {}
+
+    for model in models:
+        model_name = model.__pluralname__
+        records = model.query.all()
+        datagrid_options[model_name] = list(
+            map(lambda x: x.to_datagrid_dict(), records)
+        )
+
+    return datagrid_options

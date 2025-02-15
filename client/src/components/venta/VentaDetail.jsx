@@ -21,8 +21,8 @@ import {
     CardContent,
     Alert
 } from "@mui/material";
-import { Block, Edit, Print, KeyboardArrowDown, Delete } from '@mui/icons-material';
-import { Link } from "react-router-dom";
+import { Block, Edit, Print, KeyboardArrowDown, Delete, Add } from '@mui/icons-material';
+import { Link, useNavigate } from "react-router-dom";
 import SnackbarAlert from "../shared/SnackbarAlert";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import { useConfirm } from 'material-ui-confirm';
@@ -71,7 +71,7 @@ const PaperSizeButton = ({ handlePrint }) => {
 
 export default function VentaDetail({ pk }) {
     const [venta, setVenta] = useState({});
-    const [renglones, setRenglones] = useState([]);
+    const [items, setItems] = useState([]);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbar, setSnackbar] = useState({
         message: '',
@@ -81,6 +81,7 @@ export default function VentaDetail({ pk }) {
     });
     const confirm = useConfirm();
     const { withLoading } = useLoading();
+    const navigate = useNavigate();
 
     const handleCloseSnackbar = (redirect, url = '/ventas') => {
         setOpenSnackbar(false);
@@ -103,7 +104,7 @@ export default function VentaDetail({ pk }) {
             try {
                 const data = await fetchData();
                 setVenta(data['venta']);
-                setRenglones(data['renglones']);
+                setItems(data['venta']['items']);
             }
             catch (error) {
                 setSnackbar({
@@ -241,12 +242,16 @@ export default function VentaDetail({ pk }) {
             });
     }
 
+    const handleNewSaleWithItems = () => {
+        navigate(`/ventas/form?itemsByVentaId=${pk}`);
+    };
+
     return (
         <>
-            {venta.estado === 'Anulado' && (
+            {venta.estado === 'anulado' && (
                 <Alert severity="warning">Esta venta actualmente se encuentra anulada</Alert>
             )}
-            {venta.estado === 'Orden' && (
+            {venta.estado === 'orden' && (
                 <Alert severity="info">
                     Esta venta actualmente se encuentra en estado de orden.
                     Para facturarla, debe ir a Editar en Ventas y guardarla.
@@ -260,7 +265,7 @@ export default function VentaDetail({ pk }) {
 
                     <Box>
                         {
-                            (venta.estado === 'Facturado' || venta.estado === 'Ticket')
+                            (venta.estado === 'facturado' || venta.estado === 'ticket')
                             && venta.tipo_comprobante
                             && venta.tipo_comprobante['es_anulable']
                             && (
@@ -283,10 +288,10 @@ export default function VentaDetail({ pk }) {
                         >
                             Editar
                         </Button>
-                        {venta.estado !== 'Orden' && (
+                        {venta.estado !== 'orden' && (
                             <PaperSizeButton handlePrint={handlePrint} />
                         )}
-                        {venta.estado === 'Orden' && (
+                        {venta.estado === 'orden' && (
                             <Button
                                 startIcon={<Delete />}
                                 variant="contained"
@@ -305,9 +310,19 @@ export default function VentaDetail({ pk }) {
                             <CardContent>
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={10}>
-                                        <Typography variant="h6" gutterBottom>
-                                            Renglones de Venta
-                                        </Typography>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Typography variant="h6" gutterBottom>
+                                                Items
+                                            </Typography>
+                                            <Button
+                                                startIcon={<Add />}
+                                                variant="contained"
+                                                color="success"
+                                                onClick={handleNewSaleWithItems}
+                                            >
+                                                Nueva Venta manteniendo Items
+                                            </Button>
+                                        </Box>
                                         <TableContainer component={Paper} sx={{ mt: 3 }}>
                                             <Table size='small'>
                                                 <TableHead>
@@ -320,17 +335,17 @@ export default function VentaDetail({ pk }) {
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
-                                                    {renglones.map((renglon, index) => (
+                                                    {items.map((item, index) => (
                                                         <TableRow key={index}>
-                                                            <TableCell>{renglon.codigo_principal}</TableCell>
-                                                            <TableCell>{renglon.descripcion}</TableCell>
-                                                            <TableCell align='right'>{renglon.cantidad}</TableCell>
-                                                            <TableCell align='right'>{renglon.precio_unidad
-                                                                ? Number(renglon.precio_unidad).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                            <TableCell>{item.codigo_principal}</TableCell>
+                                                            <TableCell>{item.descripcion}</TableCell>
+                                                            <TableCell align='right'>{item.cantidad}</TableCell>
+                                                            <TableCell align='right'>{item.precio_unidad
+                                                                ? Number(item.precio_unidad).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
                                                                 : 'N/A'}
                                                             </TableCell>
-                                                            <TableCell align='right'>{renglon.subtotal
-                                                                ? Number(renglon.subtotal).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
+                                                            <TableCell align='right'>{item.subtotal
+                                                                ? Number(item.subtotal).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
                                                                 : 'N/A'}
                                                             </TableCell>
                                                         </TableRow>
@@ -485,11 +500,11 @@ export default function VentaDetail({ pk }) {
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText primary="Usuario de creación"
-                                            secondary={venta.created_by && venta.created_by.username} />
+                                            secondary={venta.created_by_user && venta.created_by_user.username} />
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText primary="Usuario de actualización"
-                                            secondary={venta.updated_by && venta.updated_by.username} />
+                                            secondary={venta.updated_by_user && venta.updated_by_user.username} />
                                     </ListItem>
                                 </List>
                             </CardContent>

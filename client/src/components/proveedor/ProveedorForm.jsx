@@ -76,11 +76,10 @@ export default function ProveedorForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    tipo_documento: selectOptions.tipo_documento,
-                    tipo_responsable: selectOptions.tipo_responsable,
-                    provincia: selectOptions.provincia
+                    tipo_documento: data.tipo_documento,
+                    tipo_responsable: data.tipo_responsable,
+                    provincia: data.provincia
                 });
                 if (Boolean(pk)) {
                     const proveedor = data['proveedor'];
@@ -156,9 +155,7 @@ export default function ProveedorForm({ pk }) {
         const url = Boolean(pk) ? `${API}/proveedores/${pk}/update` : `${API}/proveedores/create`;
         const method = Boolean(pk) ? 'PUT' : 'POST';
         try {
-            const res = await fetchWithAuth(url, method, {
-                proveedor: data
-            });
+            const res = await fetchWithAuth(url, method, data);
             const resJson = await res.json();
             if (!res.ok) {
                 throw new Error(resJson['error']);
@@ -232,7 +229,7 @@ export default function ProveedorForm({ pk }) {
                                             }
                                         >
                                             {selectOptions.tipo_documento.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -294,7 +291,7 @@ export default function ProveedorForm({ pk }) {
                                             label="Tipo de Responsable IVA"
                                         >
                                             {selectOptions.tipo_responsable.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.descripcion}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />
@@ -404,7 +401,7 @@ export default function ProveedorForm({ pk }) {
                                             label="Provincia"
                                         >
                                             {selectOptions.provincia.map((item) => (
-                                                <MenuItem key={item.id} value={item.id}>{item.nombre}</MenuItem>))}
+                                                <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>))}
                                         </Select>
                                     )}
                                 />

@@ -338,7 +338,6 @@ export default function MovStockForm() {
                 setSelectedArticulo={setSelectedArticulo}
                 renglones={movimientoRenlones}
                 setRenglones={setMovimientoRenglones}
-                allowCreate={true}
             />
             <SnackbarAlert
                 open={openSnackbar}

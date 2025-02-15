@@ -207,7 +207,7 @@ export default function ArticuloDetail({ pk }) {
                                         <ListItemText primary="Código cuaternario" secondary={articulo.codigo_cuaternario} />
                                     </ListItem>
                                     <ListItem>
-                                        <ListItemText primary="Código adicional" secondary={articulo.codigo_adicional} />
+                                        <ListItemText primary="Código adicional" secondary={articulo.codigo_adicional && articulo.codigo_adicional.join(', ')} />
                                     </ListItem>
                                 </List>
                             </CardContent>
@@ -227,7 +227,7 @@ export default function ArticuloDetail({ pk }) {
                                         <ListItemText primary="Tipo de unidad" secondary={articulo.tipo_unidad && articulo.tipo_unidad.nombre} />
                                     </ListItem>
                                     <ListItem>
-                                        <ListItemText primary="Alícuota IVA" secondary={articulo.alicuota_iva && articulo.alicuota_iva.porcentaje + " %"} />
+                                        <ListItemText primary="Alícuota IVA" secondary={articulo.alicuota_iva && articulo.alicuota_iva.descripcion} />
                                     </ListItem>
                                 </List>
                             </CardContent>
@@ -290,11 +290,11 @@ export default function ArticuloDetail({ pk }) {
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText primary="Usuario de creación"
-                                            secondary={articulo.created_by && articulo.created_by.username} />
+                                            secondary={articulo.created_by_user && articulo.created_by_user.username} />
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText primary="Usuario de actualización"
-                                            secondary={articulo.updated_by && articulo.updated_by.username} />
+                                            secondary={articulo.updated_by_user && articulo.updated_by_user.username} />
                                     </ListItem>
                                 </List>
                             </CardContent>

@@ -18,7 +18,6 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import SimpleTabPanel from "../shared/SimpleTabPanel";
 import { API } from "../../App";
-import TributoDataGrid from "../tributo/TributoDataGrid";
 import fetchWithAuth from '../../utils/fetchWithAuth';
 import SnackbarAlert from '../shared/SnackbarAlert';
 import { useLoading } from '../../utils/loadingContext';
@@ -34,9 +33,7 @@ export default function ArticuloForm({ pk }) {
     } = useForm();
     const [selectOptions, setSelectOptions] = useState({
         tipo_articulo: [],
-        tipo_unidad: [],
-        alicuota_iva: [],
-        tributo: []
+        tipo_unidad: []
     });
     const [tabValue, setTabValue] = useState(0);
     const [snackbar, setSnackbar] = useState({
@@ -46,7 +43,6 @@ export default function ArticuloForm({ pk }) {
         onClose: () => handleCloseSnackbar(false)
     });
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [selectedTributo, setSelectedTributo] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { withLoading } = useLoading();
     const confirm = useConfirm();
@@ -76,16 +72,12 @@ export default function ArticuloForm({ pk }) {
         const loadData = async () => {
             try {
                 const data = await fetchData();
-                const selectOptions = data['select_options'];
                 setSelectOptions({
-                    tipo_articulo: selectOptions.tipo_articulo,
-                    tipo_unidad: selectOptions.tipo_unidad,
-                    alicuota_iva: selectOptions.alicuota_iva,
-                    tributo: selectOptions.tributo
+                    tipo_articulo: data.tipo_articulo,
+                    tipo_unidad: data.tipo_unidad
                 });
                 if (Boolean(pk)) {
                     const articulo = data['articulo'];
-                    const tributos = articulo['tributos'];
                     setValue('codigo_principal', articulo.codigo_principal);
                     if (articulo.codigo_secundario) setValue('codigo_secundario', articulo.codigo_secundario);
                     if (articulo.codigo_terciario) setValue('codigo_terciario', articulo.codigo_terciario);
@@ -96,19 +88,12 @@ export default function ArticuloForm({ pk }) {
                     setLineaFactura(articulo.linea_factura);
                     setValue('descripcion', articulo.descripcion);
                     setValue('linea_factura', articulo.linea_factura);
-                    setValue('tipo_articulo_id', articulo.tipo_articulo.id);
-                    setValue('tipo_unidad_id', articulo.tipo_unidad.id);
-                    setValue('alicuota_iva_id', articulo.alicuota_iva.id);
+                    setValue('tipo_articulo_id', articulo.tipo_articulo_id);
+                    setValue('tipo_unidad_id', articulo.tipo_unidad_id);
                     setValue('stock_actual', articulo.stock_actual);
                     if (articulo.stock_minimo) setValue('stock_minimo', articulo.stock_minimo);
                     if (articulo.stock_maximo) setValue('stock_maximo', articulo.stock_maximo);
                     if (articulo.observacion) setValue('observacion', articulo.observacion);
-
-                    // Cargar los tributos seleccionados
-                    setSelectedTributo([])
-                    tributos.forEach((t) => {
-                        setSelectedTributo(selectedTributo => [...selectedTributo, t.id]);
-                    });
                 }
             }
             catch (e) {
@@ -133,13 +118,11 @@ export default function ArticuloForm({ pk }) {
             if (data['codigo_adicional']) {
                 data['codigo_adicional'] = data['codigo_adicional'].split(',').map((c) => c.trim());
             }
-            let res = await fetchWithAuth(url, method, {
-                articulo: data, tributos: selectedTributo
-            });
+            let res = await fetchWithAuth(url, method, data);
             let resJson = await res.json();
-            if (res.status === 409 && resJson['warning']) {
-                const existingArticlesLinks = resJson.ids.map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
-                const description = `${resJson.warning}. Son los siguientes: ${existingArticlesLinks}.`;
+            if (res.status === 409 && resJson['codigo_principal']['warning']) {
+                const existingArticlesLinks = resJson['codigo_principal']['ids'].map(id => `<a href="/articulos/form/${id}" target="_blank">Artículo ${id}</a>`).join(', ');
+                const description = `${resJson['codigo_principal']['warning']}. Son los siguientes: ${existingArticlesLinks}.`;
                 confirm({
                     title: 'Advertencia',
                     description: <span dangerouslySetInnerHTML={{ __html: description }} />,
@@ -147,9 +130,8 @@ export default function ArticuloForm({ pk }) {
                     cancellationText: 'Cancelar'
                 })
                     .then(async () => {
-                        res = await fetchWithAuth(url, method, {
-                            articulo: data, tributos: selectedTributo, force: true
-                        });
+                        data['force'] = true;
+                        res = await fetchWithAuth(url, method, data);
                         resJson = await res.json();
                         if (!res.ok) {
                             throw new Error(resJson['error']);
@@ -167,6 +149,9 @@ export default function ArticuloForm({ pk }) {
                         return;
                     });
             } else if (!res.ok) {
+                if (res.status === 409) {
+                    throw new Error(JSON.stringify(resJson));
+                }
                 throw new Error(resJson['error']);
             } else {
                 setSnackbar({
@@ -195,7 +180,7 @@ export default function ArticuloForm({ pk }) {
             setTabValue(0);
             return;
         }
-        if (errors['tipo_articulo_id'] || errors['tipo_unidad_id'] || errors['alicuota_iva_id']) {
+        if (errors['tipo_articulo_id'] || errors['tipo_unidad_id']) {
             setTabValue(2);
         }
     }
@@ -246,6 +231,7 @@ export default function ArticuloForm({ pk }) {
                                         <TextField
                                             {...field}
                                             required
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             id="codigo_principal"
                                             label="Código principal"
                                             variant="outlined"
@@ -279,8 +265,9 @@ export default function ArticuloForm({ pk }) {
                                             rows={4}
                                             value={descripcion}
                                             onChange={(e) => {
-                                                setDescripcion(e.target.value);
-                                                field.onChange(e);
+                                                const value = e.target.value.toUpperCase();
+                                                setDescripcion(value);
+                                                field.onChange(value);
                                             }}
                                             error={Boolean(errors.descripcion)}
                                             helperText={errors.descripcion && errors.descripcion.message}
@@ -305,7 +292,7 @@ export default function ArticuloForm({ pk }) {
                                             variant="outlined"
                                             value={lineaFactura}
                                             onChange={(e) => {
-                                                const value = e.target.value.substring(0, 30);
+                                                const value = e.target.value.substring(0, 30).toUpperCase();
                                                 setLineaFactura(value);
                                                 field.onChange(value);
                                             }}
@@ -396,6 +383,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_secundario"
                                             label="Código secundario"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                         />
                                     )}
@@ -413,6 +401,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_terciario"
                                             label="Código terciario"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                         />
                                     )}
@@ -430,6 +419,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_cuaternario"
                                             label="Código cuaternario"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                         />
                                     )}
@@ -447,6 +437,7 @@ export default function ArticuloForm({ pk }) {
                                             {...field}
                                             id="codigo_adicional"
                                             label="Códigos adicionales"
+                                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                             variant="outlined"
                                             helperText={"(Opcional) Ingrese los códigos adicionales separados por comas. Ej: ABC123, XYZ789"}
                                         />
@@ -459,7 +450,7 @@ export default function ArticuloForm({ pk }) {
                 <SimpleTabPanel value={tabValue} index={2}>
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_articulo)}>
+                            <FormControl fullWidth required error={Boolean(errors.tipo_articulo_id)}>
                                 <InputLabel id="tipo_articulo_label">Tipo de artículo</InputLabel>
                                 <Controller
                                     name="tipo_articulo_id"
@@ -469,21 +460,21 @@ export default function ArticuloForm({ pk }) {
                                     render={({ field }) => (
                                         <Select
                                             {...field}
-                                            id="tipo_articulo"
+                                            id="tipo_articulo_id"
                                             labelId="tipo_articulo_label"
                                             label="Tipo de artículo"
                                         >
                                             {selectOptions.tipo_articulo.map((option) => (
-                                                <MenuItem key={option.id} value={option.id}>{option.nombre}</MenuItem>
+                                                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                             ))}
                                         </Select>
                                     )}
                                 />
-                                <FormHelperText>{errors.tipo_articulo && errors.tipo_articulo.message}</FormHelperText>
+                                <FormHelperText>{errors.tipo_articulo_id && errors.tipo_articulo_id.message}</FormHelperText>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6}>
-                            <FormControl fullWidth required error={Boolean(errors.tipo_unidad)}>
+                            <FormControl fullWidth required error={Boolean(errors.tipo_unidad_id)}>
                                 <InputLabel id="tipo_unidad_label">Tipo de unidad</InputLabel>
                                 <Controller
                                     name="tipo_unidad_id"
@@ -493,53 +484,18 @@ export default function ArticuloForm({ pk }) {
                                     render={({ field }) => (
                                         <Select
                                             {...field}
-                                            id="tipo_unidad"
+                                            id="tipo_unidad_id"
                                             labelId="tipo_unidad_label"
                                             label="Tipo de unidad"
                                         >
                                             {selectOptions.tipo_unidad.map((option) => (
-                                                <MenuItem key={option.id} value={option.id}>{option.nombre}</MenuItem>
+                                                <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                             ))}
                                         </Select>
                                     )}
                                 />
-                                <FormHelperText>{errors.tipo_unidad && errors.tipo_unidad.message}</FormHelperText>
+                                <FormHelperText>{errors.tipo_unidad_id && errors.tipo_unidad_id.message}</FormHelperText>
                             </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth required error={Boolean(errors.alicuota_iva)}>
-                                <InputLabel id="alicuota_iva_label">Alícuota de IVA</InputLabel>
-                                <Controller
-                                    name="alicuota_iva_id"
-                                    control={control}
-                                    defaultValue="1"
-                                    rules={{ required: "Este campo es requerido" }}
-                                    render={({ field }) => (
-                                        <Select
-                                            {...field}
-                                            id="alicuota_iva"
-                                            label="Alícuota de IVA"
-                                            labelId="alicuota_iva_label"
-                                        >
-                                            {selectOptions.alicuota_iva.map((option) => (
-                                                <MenuItem key={option.id}
-                                                    value={option.id}>{option.descripcion}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    )}
-                                />
-                                <FormHelperText>{errors.alicuota_iva && errors.alicuota_iva.message}</FormHelperText>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-                    <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Tributos adicionales</Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TributoDataGrid
-                                tributos={selectOptions.tributo}
-                                selectedTributo={selectedTributo}
-                                setSelectedTributo={setSelectedTributo}
-                            />
                         </Grid>
                     </Grid>
                 </SimpleTabPanel>

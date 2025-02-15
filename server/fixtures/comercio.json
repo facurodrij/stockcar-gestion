@@ -10,6 +10,8 @@
         "codigo_postal": "3300",
         "telefono": "3764-123456",
         "tipo_responsable_id": 1,
-        "provincia_id": 1
+        "provincia_id": 1,
+        "created_by": "1",
+        "updated_by": "1"
     }
 ]

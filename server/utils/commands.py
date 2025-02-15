@@ -1,9 +1,10 @@
 import importlib
 import click
 import pandas as pd
+from faker import Faker
 
 from server.config import db, app
-from server.models import (
+from server.core.models import (
     Genero,
     Provincia,
     TipoDocumento,
@@ -17,9 +18,9 @@ from server.models import (
     TipoTributo,
     Tributo,
     Comercio,
-    Usuario,
-    Rol,
+    Articulo
 )
+from server.auth.models import Usuario, Rol, Permiso
 
 
 @app.cli.command("load_fixtures")
@@ -27,19 +28,19 @@ def load_fixtures():
     """Load data from JSON files into the database."""
     # Load data for each model
     for model, filename in [
-        (Genero, "genero.json"),
-        (Provincia, "provincia.json"),
-        (TipoDocumento, "tipo_documento.json"),
-        (TipoResponsable, "tipo_responsable.json"),
-        (TipoComprobante, "tipo_comprobante.json"),
-        (Moneda, "moneda.json"),
-        (TipoPago, "tipo_pago.json"),
         (AlicuotaIVA, "tipo_alicuota_iva.json"),
-        (TipoArticulo, "tipo_articulo.json"),
-        (TipoUnidad, "tipo_unidad.json"),
-        (TipoTributo, "tipo_tributo.json"),
-        (Tributo, "tributo.json"),
         (Comercio, "comercio.json"),
+        (Genero, "genero.json"),
+        (Moneda, "moneda.json"),
+        (Provincia, "provincia.json"),
+        (TipoArticulo, "tipo_articulo.json"),
+        (TipoComprobante, "tipo_comprobante.json"),
+        (TipoDocumento, "tipo_documento.json"),
+        (TipoPago, "tipo_pago.json"),
+        (TipoResponsable, "tipo_responsable.json"),
+        (TipoTributo, "tipo_tributo.json"),
+        (TipoUnidad, "tipo_unidad.json"),
+        (Tributo, "tributo.json"),
     ]:
         filepath = f"fixtures/{filename}"
         df = pd.read_json(filepath)
@@ -111,8 +112,6 @@ def create_roles():
 @app.cli.command("create_permissions")
 def create_permissions():
     """Create the default permissions in the database."""
-    from server.models import Permiso
-
     # Get all models from the models package
     models = importlib.import_module("server.core.models")
     # Add CRUD permissions for each model
@@ -164,3 +163,34 @@ def create_permissions():
                 db.session.add(permission)
     db.session.commit()
     click.echo("Permissions created successfully!")
+
+
+@app.cli.command("generate_fake_articles")
+def generate_fake_articles():
+    """Generate 1000 fake articles and save them to the database."""
+    fake = Faker()
+    fake_articles = []
+    for _ in range(5):
+        for _ in range(1000):
+            fake_article = Articulo(
+                codigo_principal=fake.unique.ean13(),
+                codigo_secundario=fake.ean13(),
+                codigo_terciario=fake.ean13(),
+                codigo_cuaternario=fake.ean13(),
+                codigo_adicional=[fake.ean13() for _ in range(3)],
+                descripcion=fake.text(max_nb_chars=50),
+                linea_factura=fake.word(),
+                stock_actual=fake.random_number(digits=5, fix_len=True),
+                stock_minimo=fake.random_number(digits=3, fix_len=True),
+                stock_maximo=fake.random_number(digits=5, fix_len=True),
+                observacion=fake.sentence(),
+                tipo_articulo_id=1,
+                tipo_unidad_id=1,
+                alicuota_iva_id=1,
+                created_by=1,
+                updated_by=1,
+            )
+            fake_articles.append(fake_article)
+        db.session.bulk_save_objects(fake_articles)
+        db.session.commit()
+        click.echo("1000 fake articles generated successfully!")
