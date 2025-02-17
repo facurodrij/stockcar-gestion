@@ -6,7 +6,9 @@ import ArticuloForm from "../../../pages/core/articulo/components/form";
 import ClienteList from "../../../pages/core/cliente/components/list";
 // Cliente detail
 import ClienteForm from "../../../pages/core/cliente/components/form";
-
+import ComercioList from "../../../pages/core/comercio/components/list";
+// Comercio detail
+import ComercioForm from "../../../pages/core/comercio/components/form";
 
 export default function CoreRoutes() {
     return (
@@ -18,6 +20,9 @@ export default function CoreRoutes() {
             <Route path="/clientes" element={<ClienteList permissions={['cliente.view_all']} />}></Route>
             <Route path="/clientes/form" element={<ClienteForm permissions={['cliente.create']} />}></Route>
             <Route path="/clientes/form/:pk" element={<ClienteForm permissions={['cliente.update']} />}></Route>
+            <Route path="/comercios" element={<ComercioList permissions={['comercio.view_all']} />}></Route>
+            <Route path="/comercios/form" element={<ComercioForm permissions={['comercio.create']} />}></Route>
+            <Route path="/comercios/form/:pk" element={<ComercioForm permissions={['comercio.update']} />}></Route>           
         </Routes>
     )
 }
