@@ -9,8 +9,8 @@ export default function ClienteList({ permissions }) {
     const editUrl = '/clientes/form';
     const detailUrl = null; // Aun no se implementa la vista de detalle
     const allowView = false; // Aun no se implementa la vista de detalle
-    const allowCreate = checkPermissions(['articulo.create'], false);
-    const allowUpdate = checkPermissions(['articulo.update'], false);
+    const allowCreate = checkPermissions(['cliente.create'], false);
+    const allowUpdate = checkPermissions(['cliente.update'], false);
     const allowDelete = false; // Aun no se implementa la eliminación
 
     useEffect(() => {
