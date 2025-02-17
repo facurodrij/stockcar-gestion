@@ -27,7 +27,7 @@ import { Search, Save } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import SimpleTabPanel from '../../../../../common/components/SimpleTabPanel';
 import { API } from '../../../../../App';
-import TributoDataGrid from '../../../../../components/tributo/TributoDataGrid';
+import TributoDataGrid from '../../../../../common/components/TributoDataGrid';
 import fetchWithAuth from '../../../../../utils/fetchWithAuth';
 import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
 import { useLoading } from '../../../../../utils/loadingContext';
