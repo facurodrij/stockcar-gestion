@@ -203,7 +203,7 @@ export default function ArticuloForm({ permissions }) {
 
     return (
         <>
-            <PageTitle heading={pk ? 'Editar Artículo' : 'Agregar Artículo'} />
+            <PageTitle heading={Boolean(pk) ? 'Editar Artículo' : 'Agregar Artículo'} />
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit, onError)} noValidate
                 sx={{ mt: 2, padding: 2 }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', justifyContent: 'center', display: 'flex' }}>
