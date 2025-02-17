@@ -9,9 +9,12 @@ import ClienteForm from "../../../pages/core/cliente/components/form";
 import ComercioList from "../../../pages/core/comercio/components/list";
 // Comercio detail
 import ComercioForm from "../../../pages/core/comercio/components/form";
-import MovimientoStockList from "../../../pages/core/movimiento_stock/list";
-import MovimientoStockDetail from "../../../pages/core/movimiento_stock/detail";
-import MovimientoStockForm from "../../../page/core/movimiento_stock/form";
+import MovimientoStockList from "../../../pages/core/movimiento_stock/components/list";
+import MovimientoStockDetail from "../../../pages/core/movimiento_stock/components/detail";
+import MovimientoStockForm from "../../../pages/core/movimiento_stock/components/form";
+import VentaList from "../../../pages/core/venta/components/list";
+import VentaDetail from "../../../pages/core/venta/components/detail";
+import VentaForm from "../../../pages/core/venta/components/form";
 
 
 export default function CoreRoutes() {
@@ -31,6 +34,10 @@ export default function CoreRoutes() {
             <Route path="/movimientos-stock/:pk" element={<MovimientoStockDetail permissions={['movimiento_stock.view']} />}></Route>
             <Route path="/movimientos-stock/form" element={<MovimientoStockForm permissions={['movimiento_stock.create']} />}></Route>
             <Route path="/movimientos-stock/form/:pk" element={<MovimientoStockForm permissions={['movimiento_stock.update']} />}></Route>
+            <Route path="/ventas" element={<VentaList permissions={['venta.view_all']} onlyOrders={false} />}></Route>
+            <Route path="/ventas/:pk" element={<VentaDetail permissions={['venta.view']} />}></Route>
+            <Route path="/ventas/form" element={<VentaForm permissions={['venta.create']} />}></Route>
+            <Route path="/ventas/form/:pk" element={<VentaForm permissions={['venta.update']} />}></Route>
         </Routes>
     )
 }
