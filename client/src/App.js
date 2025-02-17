@@ -2,7 +2,7 @@ import React from "react";
 import Container from "@mui/material/Container";
 import { BrowserRouter as Router } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Header from "./components/shared/Header";
+import Header from "./common/components/Header";
 import AuthRoutes from "./config/routes/auth";
 import CoreRoutes from "./config/routes/core";
 

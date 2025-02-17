@@ -18,10 +18,10 @@ import {
 } from "@mui/material";
 import SaveIcon from '@mui/icons-material/Save';
 import { useConfirm } from 'material-ui-confirm';
-import SimpleTabPanel from '../../../../../components/shared/SimpleTabPanel';
+import SimpleTabPanel from '../../../../../common/components/SimpleTabPanel';
 import { API } from '../../../../../App';
 import fetchWithAuth from '../../../../../utils/fetchWithAuth';
-import SnackbarAlert from '../../../../../components/shared/SnackbarAlert';
+import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
 import { useLoading } from '../../../../../utils/loadingContext';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import PageTitle from '../../../../../common/components/PageTitle';

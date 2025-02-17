@@ -3,8 +3,7 @@ import Typography from '@mui/material/Typography';
 import { API } from '../../../App';
 import checkAuth from '../../../config/auth/checkAuth';
 import fetchWithAuth from '../../../utils/fetchWithAuth';
-import SnackbarAlert from '../../../components/shared/SnackbarAlert';
-
+import SnackbarAlert from '../../../common/components/SnackbarAlert';
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState({

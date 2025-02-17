@@ -26,7 +26,7 @@ import PageTitle from '../../../../../common/components/PageTitle';
 import { useParams } from 'react-router-dom';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import { API } from '../../../../../App';
-import SnackbarAlert from '../../../../../components/shared/SnackbarAlert';
+import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
 import fetchWithAuth from '../../../../../utils/fetchWithAuth';
 import { useLoading } from '../../../../../utils/loadingContext';
 

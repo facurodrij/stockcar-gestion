@@ -8,7 +8,7 @@ import { esES } from '@mui/x-data-grid/locales';
 import { Delete, Edit, Visibility } from '@mui/icons-material';
 import { useConfirm } from 'material-ui-confirm';
 import fetchWithAuth from '../../../../../utils/fetchWithAuth';
-import SnackbarAlert from '../../../../../components/shared/SnackbarAlert';
+import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
 import PageTitle from '../../../../../common/components/PageTitle';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import { API } from '../../../../../App';

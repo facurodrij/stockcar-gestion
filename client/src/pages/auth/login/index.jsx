@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { API } from '../../../App';
-import SnackbarAlert from '../../../components/shared/SnackbarAlert';
+import SnackbarAlert from '../../../common/components/SnackbarAlert';
 
 
 export default function LoginPage() {
