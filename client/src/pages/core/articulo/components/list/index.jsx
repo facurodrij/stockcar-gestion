@@ -195,7 +195,7 @@ export default function ArticuloList({ permissions }) {
             setList(mapDataToRows(data));
         } catch (e) {
             setSnackbar({
-                message: `Error al cargar los artículos: ${e.message}`,
+                message: `Error al cargar los registros: ${e.message}`,
                 severity: 'error',
                 autoHideDuration: 6000,
                 onClose: handleCloseSnackbar

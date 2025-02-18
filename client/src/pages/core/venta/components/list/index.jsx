@@ -23,7 +23,7 @@ import checkPermissions from '../../../../../config/auth/checkPermissions';
 import PageTitle from '../../../../../common/components/PageTitle';
 
 
-export default function VentaList({ permissions, onlyOrders }) {
+export default function VentaList({ permissions }) {
     const [list, setList] = useState([]);
     const [from, setFrom] = useState(null);
     const [to, setTo] = useState(null);
@@ -51,7 +51,7 @@ export default function VentaList({ permissions, onlyOrders }) {
         setLoading(true);
         const fromStr = from ? from.toISOString() : '';
         const toStr = to ? to.toISOString() : '';
-        let url = onlyOrders ? `${API}/ventas-orden` : `${API}/ventas`;
+        let url = `${API}/ventas`;
         url = `${url}?page=${paginationModel.page + 1}&pageSize=${paginationModel.pageSize}`;
         url = (from || to) ? `${url}&desde=${fromStr}&hasta=${toStr}` : url;
         try {
@@ -65,7 +65,7 @@ export default function VentaList({ permissions, onlyOrders }) {
         } catch (error) {
             console.error(error);
             setSnackbar({
-                message: error.message,
+                message: `Error al obtener los registros: ${error.message}`,
                 severity: 'error',
                 autoHideDuration: null,
                 onClose: handleCloseSnackbar
@@ -74,7 +74,7 @@ export default function VentaList({ permissions, onlyOrders }) {
         } finally {
             setLoading(false);
         }
-    }, [onlyOrders, from, to, paginationModel]);
+    }, [from, to, paginationModel]);
 
     useEffect(() => {
         checkPermissions(permissions);
@@ -87,37 +87,21 @@ export default function VentaList({ permissions, onlyOrders }) {
     const CustomToolbar = () => {
         return (
             <GridToolbarContainer sx={{ borderBottom: 1, borderColor: 'divider', pb: .5 }}>
-                {onlyOrders ? (
-                    <>
-                        <Box sx={{ flexGrow: 1 }} />
-                        <Button
-                            startIcon={<Add />}
-                            component={Link}
-                            to='/ventas-orden/form'
-                            size="small"
-                            variant="contained"
-                            color='success'
-                        >
-                            Nueva orden
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <GridToolbarQuickFilter size={'small'} />
-                        <GridToolbarColumnsButton />
-                        <Box sx={{ flexGrow: 1 }} />
-                        <Button
-                            startIcon={<Add />}
-                            component={Link}
-                            to='/ventas/form'
-                            size="small"
-                            variant="contained"
-                            color='success'
-                        >
-                            Nueva venta
-                        </Button>
-                    </>
-                )}
+                <>
+                    <GridToolbarQuickFilter size={'small'} />
+                    <GridToolbarColumnsButton />
+                    <Box sx={{ flexGrow: 1 }} />
+                    <Button
+                        startIcon={<Add />}
+                        component={Link}
+                        to='/ventas/form'
+                        size="small"
+                        variant="contained"
+                        color='success'
+                    >
+                        Nueva venta
+                    </Button>
+                </>
             </GridToolbarContainer>
         );
     }
@@ -195,23 +179,7 @@ export default function VentaList({ permissions, onlyOrders }) {
                         icon={<Visibility />}
                         component={Link}
                         to={`/ventas/${params.row.id}`}
-                    />
-                );
-                if (onlyOrders) {
-                    actions.push(
-                        <GridActionsCellItem
-                            icon={<Edit />}
-                            component={Link}
-                            to={`/ventas-orden/form/${params.row.id}`}
-                        />,
-                        <GridActionsCellItem
-                            icon={<Delete />}
-                            onClick={() => handleDelete(params.row.id)}
-                        />
-                    );
-                    return actions;
-                }
-                actions.push(
+                    />,
                     <GridActionsCellItem
                         icon={<Edit />}
                         component={Link}

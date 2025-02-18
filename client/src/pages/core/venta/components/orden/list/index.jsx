@@ -63,7 +63,7 @@ export default function VentaOrdenList() {
         } catch (error) {
             console.error(error);
             setSnackbar({
-                message: error.message,
+                message: `Error al obtener los registros: ${error.message}`,
                 severity: 'error',
                 autoHideDuration: null,
                 onClose: handleCloseSnackbar
