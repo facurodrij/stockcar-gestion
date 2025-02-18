@@ -24,7 +24,7 @@ import SnackbarAlert from '../../../../../../common/components/SnackbarAlert';
 import ArticuloSelectorDialog from '../../../../../../common/components/ArticuloSelectorDialog';
 import fetchWithAuth from '../../../../../../utils/fetchWithAuth';
 import { useLoading } from '../../../../../../utils/loadingContext';
-import checkPermissions from '../../../../../../config/auth/checkPermissions';
+import checkAuth from '../../../../../../config/auth/checkAuth';
 import PageTitle from '../../../../../../common/components/PageTitle';
 
 
@@ -42,7 +42,7 @@ const CustomToolbar = ({ onOpen }) => {
     );
 }
 
-export default function OrdenVentaForm({ permissions }) {
+export default function VentaOrdenForm() {
     const pk = useParams().pk;
     const {
         handleSubmit,
@@ -80,8 +80,8 @@ export default function OrdenVentaForm({ permissions }) {
     }
 
     useEffect(() => {
-        checkPermissions(permissions);
-    }, [permissions]);
+        checkAuth();
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {

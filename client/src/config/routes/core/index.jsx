@@ -15,7 +15,8 @@ import MovimientoStockForm from "../../../pages/core/movimiento_stock/components
 import VentaList from "../../../pages/core/venta/components/list";
 import VentaDetail from "../../../pages/core/venta/components/detail";
 import VentaForm from "../../../pages/core/venta/components/form";
-import OrdenVentaForm from "../../../pages/core/venta/components/orden/form";
+import VentaOrdenList from "../../../pages/core/venta/components/orden/list";
+import VentaOrdenForm from "../../../pages/core/venta/components/orden/form";
 
 
 export default function CoreRoutes() {
@@ -39,9 +40,9 @@ export default function CoreRoutes() {
             <Route path="/ventas/:pk" element={<VentaDetail permissions={['venta.view']} />}></Route>
             <Route path="/ventas/form" element={<VentaForm permissions={['venta.create']} />}></Route>
             <Route path="/ventas/form/:pk" element={<VentaForm permissions={['venta.update']} />}></Route>
-            <Route path="/ventas-orden" element={<VentaList permissions={[]} onlyOrders={true} />}></Route>
-            <Route path="/ventas-orden/form" element={<OrdenVentaForm permissions={[]} />}></Route>
-            <Route path="/ventas-orden/form/:pk" element={<OrdenVentaForm permissions={[]} />}></Route>
+            <Route path="/ventas-orden" element={<VentaOrdenList />}></Route>
+            <Route path="/ventas-orden/form" element={<VentaOrdenForm />}></Route>
+            <Route path="/ventas-orden/form/:pk" element={<VentaOrdenForm />}></Route>
         </Routes>
     )
 }
