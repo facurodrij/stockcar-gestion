@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import { API } from '../../../App';
 import checkAuth from '../../../config/auth/checkAuth';
-import fetchWithAuth from '../../../utils/fetchWithAuth';
+import fetchWithAuth from '../../../config/auth/fetchWithAuth';
 import SnackbarAlert from '../../../common/components/SnackbarAlert';
 
 export default function ProfilePage() {
@@ -27,8 +27,9 @@ export default function ProfilePage() {
         };
     };
 
-    const fetchData = async () => {
-        try {
+    useEffect(() => {
+        checkAuth();
+        const fetchData = async () => {
             const url = `${API}/profile`;
             const res = await fetchWithAuth(url);
             const data = await res.json();
@@ -36,22 +37,24 @@ export default function ProfilePage() {
                 const message = `Error al obtener datos: ${data['error']}`
                 throw new Error(message);
             };
-            setProfile(data);
-            console.log('Datos cargados:', data);
-        } catch (e) {
-            console.error('Error en la carga de datos:', e);
-            setSnackbar({
-                message: e.message,
-                severity: 'error',
-                onClose: () => handleCloseSnackbar(false)
-            });
-            setOpenSnackbar(true);
+            return data;
+        }
+        const loadData = async () => {
+            try {
+                const data = await fetchData();
+                setProfile(data);
+            } catch (e) {
+                console.error('Error en la carga de datos:', e);
+                setSnackbar({
+                    message: e.message,
+                    severity: 'error',
+                    onClose: () => handleCloseSnackbar(false)
+                });
+                setOpenSnackbar(true);
+            };
         };
-    };
-
-    useEffect(() => {
-        checkAuth();
-        fetchData();
+        
+        loadData();
     }, []);
 
     return (

@@ -19,7 +19,7 @@ import { esES } from "@mui/x-data-grid/locales";
 import SaveIcon from '@mui/icons-material/Save';
 import { API } from '../../../../../App';
 import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
-import fetchWithAuth from '../../../../../utils/fetchWithAuth';
+import fetchWithAuth from '../../../../../config/auth/fetchWithAuth';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import PageTitle from '../../../../../common/components/PageTitle';
 

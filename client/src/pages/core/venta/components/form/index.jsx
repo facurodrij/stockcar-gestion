@@ -39,8 +39,8 @@ import ArticuloSelectorDialog from '../../../../../common/components/ArticuloSel
 import SimpleTabPanel from '../../../../../common/components/SimpleTabPanel';
 import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
 import TributoDataGrid from '../../../../../common/components/TributoDataGrid';
-import fetchWithAuth from '../../../../../utils/fetchWithAuth';
-import { useLoading } from '../../../../../utils/loadingContext';
+import fetchWithAuth from '../../../../../config/auth/fetchWithAuth';
+import { useLoading } from '../../../../../common/contexts/LoadingContext';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import PageTitle from '../../../../../common/components/PageTitle';
 

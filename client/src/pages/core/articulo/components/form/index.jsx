@@ -20,9 +20,9 @@ import SaveIcon from '@mui/icons-material/Save';
 import { useConfirm } from 'material-ui-confirm';
 import SimpleTabPanel from '../../../../../common/components/SimpleTabPanel';
 import { API } from '../../../../../App';
-import fetchWithAuth from '../../../../../utils/fetchWithAuth';
+import fetchWithAuth from '../../../../../config/auth/fetchWithAuth';
 import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
-import { useLoading } from '../../../../../utils/loadingContext';
+import { useLoading } from '../../../../../common/contexts/LoadingContext';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import PageTitle from '../../../../../common/components/PageTitle';
 

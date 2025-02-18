@@ -27,11 +27,11 @@ import { API } from '../../../../../App';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
-import fetchWithAuth from '../../../../../utils/fetchWithAuth';
+import fetchWithAuth from '../../../../../config/auth/fetchWithAuth';
 import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
 import ArticuloSelectorDialog from '../../../../../common/components/ArticuloSelectorDialog';
 import { esES } from "@mui/x-data-grid/locales";
-import { useLoading } from '../../../../../utils/loadingContext';
+import { useLoading } from '../../../../../common/contexts/LoadingContext';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import PageTitle from '../../../../../common/components/PageTitle';
 

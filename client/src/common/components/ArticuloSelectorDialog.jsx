@@ -10,8 +10,8 @@ import {
 } from '@mui/x-data-grid';
 import { esES } from "@mui/x-data-grid/locales";
 import { API } from "../../App";
-import fetchWithAuth from '../../utils/fetchWithAuth';
-import { checkPermissions } from '../../utils/checkAuth';
+import fetchWithAuth from '../../config/auth/fetchWithAuth';
+import checkPermissions from '../../config/auth/checkPermissions';
 
 
 const SelectorToolbar = ({ showSelected, setShowSelected }) => {

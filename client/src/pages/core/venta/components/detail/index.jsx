@@ -27,8 +27,8 @@ import PageTitle from '../../../../../common/components/PageTitle';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
 import { API } from '../../../../../App';
 import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
-import fetchWithAuth from '../../../../../utils/fetchWithAuth';
-import { useLoading } from '../../../../../utils/loadingContext';
+import fetchWithAuth from '../../../../../config/auth/fetchWithAuth';
+import { useLoading } from '../../../../../common/contexts/LoadingContext';
 import dayjs from 'dayjs';
 
 const PaperSizeButton = ({ handlePrint }) => {

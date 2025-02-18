@@ -22,8 +22,8 @@ import { API } from '../../../../../../App';
 import SimpleTabPanel from '../../../../../../common/components/SimpleTabPanel';
 import SnackbarAlert from '../../../../../../common/components/SnackbarAlert';
 import ArticuloSelectorDialog from '../../../../../../common/components/ArticuloSelectorDialog';
-import fetchWithAuth from '../../../../../../utils/fetchWithAuth';
-import { useLoading } from '../../../../../../utils/loadingContext';
+import fetchWithAuth from '../../../../../../config/auth/fetchWithAuth';
+import { useLoading } from '../../../../../../common/contexts/LoadingContext';
 import checkAuth from '../../../../../../config/auth/checkAuth';
 import PageTitle from '../../../../../../common/components/PageTitle';
 

@@ -7,7 +7,7 @@ import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { esES } from '@mui/x-data-grid/locales';
 import { Delete, Edit, Visibility } from '@mui/icons-material';
 import { useConfirm } from 'material-ui-confirm';
-import fetchWithAuth from '../../../../../utils/fetchWithAuth';
+import fetchWithAuth from '../../../../../config/auth/fetchWithAuth';
 import SnackbarAlert from '../../../../../common/components/SnackbarAlert';
 import PageTitle from '../../../../../common/components/PageTitle';
 import checkPermissions from '../../../../../config/auth/checkPermissions';
