@@ -132,7 +132,7 @@ export default function UsuarioForm({ permissions }) {
 
     return (
         <>
-            <PageTitle heading={Boolean(pk) ? 'Editar' : 'Agregar'} title="Usuario" />
+            <PageTitle heading={Boolean(pk) ? 'Editar Usuario' : 'Agregar Usuario'} />
             <Paper elevation={3} component="form" onSubmit={handleSubmit(onSubmit)} noValidate
                 sx={{ mt: 2, padding: 2 }}>
                 <Grid container spacing={2}>
