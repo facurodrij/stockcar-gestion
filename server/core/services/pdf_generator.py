@@ -17,6 +17,15 @@ from server.core.models import Venta, EstadoVenta
 
 
 locale.setlocale(locale.LC_ALL, "es_AR.UTF-8")
+"""
+Run following commands if locale not working:
+
+export LC_ALL="es_AR.UTF-8"
+export LC_CTYPE="es_AR.UTF-8"
+sudo dpkg-reconfigure locales
+
+Then run `locale -a` to check if locale is installed
+"""
 
 
 class BasePDFGenerator(canvas.Canvas):
