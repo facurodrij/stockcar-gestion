@@ -10,7 +10,7 @@ import ThemeProvider from "@mui/material/styles/ThemeProvider";
 import {theme} from "./theme";
 import 'dayjs/locale/es';
 import { ConfirmProvider } from 'material-ui-confirm';
-import { LoadingProvider } from './utils/loadingContext';
+import { LoadingProvider } from './common/contexts/LoadingContext';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
