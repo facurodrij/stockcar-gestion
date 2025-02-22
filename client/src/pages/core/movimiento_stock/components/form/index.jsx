@@ -344,8 +344,8 @@ export default function MovimientoStockForm({ permissions }) {
                 onClose={() => setOpenArticuloDialog(false)}
                 selectedArticulo={selectedArticulo}
                 setSelectedArticulo={setSelectedArticulo}
-                renglones={movimientoRenlones}
-                setRenglones={setMovimientoRenglones}
+                items={movimientoRenlones}
+                setItems={setMovimientoRenglones}
             />
             <SnackbarAlert
                 open={openSnackbar}
