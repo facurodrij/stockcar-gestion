@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 
 import email
 import os
-import time
 import zeep
 import xml.etree.ElementTree as ET
 
@@ -20,62 +19,21 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
 
+from .utils.date_utils import date
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-def date(fmt=None, timestamp=None):
-    "Manejo de fechas (simil PHP)"
-    if fmt == "U":  # return timestamp
-        # use localtime to later convert to UTC timezone
-        t = datetime.now()
-        return int(time.mktime(t.timetuple()))
-    if fmt == "c":  # return isoformat
-        # use universal standard time to avoid timezone differences
-        d = datetime.fromtimestamp(timestamp, timezone.utc)
-        return d.isoformat()
-    if fmt == "Ymd":
-        d = datetime.now()
-        return d.strftime("%Y%m%d")
-
-
-class WSAA:
-    "Clase para obtener un ticket de autorización del web service WSAA de AFIP"
-    WSDL_TEST = "https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl"  # Homologación
-    URL_TEST = "https://wsaahomo.afip.gov.ar/ws/services/LoginCms"  # Homologación
-    WSDL = "https://wsaa.afip.gov.ar/ws/services/LoginCms?wsdl"  # Producción
-    URL = "https://wsaa.afip.gov.ar/ws/services/LoginCms"  # Producción
-
-    def __init__(self, options: dict):
-        "Inicializar el objeto WSAA"
-        self._validate_options(options)
-        self.service: str = options.get("service")
-        self.cert: str = options.get("cert")
-        self.key: str = options.get("key")
-        self.passphrase: str = options.get("passphrase", "")
-        self.production: bool = options.get("production", False)
-
-        if self.production:
-            self.client = zeep.Client(wsdl=self.WSDL)
-        else:
-            self.client = zeep.Client(wsdl=self.WSDL_TEST)
-
-    def _validate_options(self, options: dict):
-        """
-        Valida que las opciones mínimas estén presentes
-        """
-        required_keys = ["service", "cert", "key"]
-        for key in required_keys:
-            if not options.get(key):
-                raise Exception(
-                    f"Faltan datos de configuración ({', '.join(required_keys)})"
-                )
-
-    def create_tra(self, ttl=2400):
+class TraGenerator:
+    "Clase para generar un Ticket de Requerimiento de Acceso (TRA)"
+    def __init__(self, service: str):
+        "Inicializar el objeto TraGenerator"
+        self.service = service
+    
+    def create_tra(self, ttl: int = 2400) -> ET.Element:
         """
         Crear un Ticket de Requerimiento de Acceso (TRA)
-        self: objeto WSAA
         ttl: tiempo de vida del TRA en minutos, por defecto 2400 (24hs)
+        return: Ticket de Requerimiento de Acceso (TRA)
         """
         root = ET.Element("loginTicketRequest", {"version": "1.0"})
 
@@ -95,11 +53,18 @@ class WSAA:
 
         return ET.tostring(root, encoding="utf-8", method="xml")
 
-    def sign_tra(self, tra):
+class TraSigner:
+    "Clase para firmar un Ticket de Requerimiento de Acceso (TRA)"
+    def __init__(self, cert: str, key: str, passphrase: str = ""):
+        "Inicializar el objeto TraSigner"
+        self.cert = cert
+        self.key = key
+        self.passphrase = passphrase
+
+    def sign_tra(self, tra: ET.Element) -> str:
         """
         Firmar el Ticket de Requerimiento de Acceso (TRA).
 
-        self: objeto WSAA
         tra: Ticket de Requerimiento de Acceso (TRA) a firmar
         return: CMS (Cryptographic Message Syntax), firmado con el certificado y clave privada
         """
@@ -140,11 +105,17 @@ class WSAA:
         except Exception as e:
             raise RuntimeError(f"Error al firmar el TRA: {e}")
 
-    def login_cms(self, cms):
+class TaRequester:
+    "Clase para solicitar un Ticket de Autorización (TA) al WSAA"
+    def __init__(self, wsaa_url: str):
+        "Inicializar el objeto TaRequester"
+        self.wsaa_url = wsaa_url
+        self.client = zeep.Client(wsdl=wsaa_url)
+
+    def login_cms(self, cms: str) -> ET.Element:
         """
         Solicitar el Ticket de Autorización (TA) al WSAA.
 
-        self: objeto WSAA
         cms: Cryptographic Message Syntax (CMS) firmado con el certificado y clave privada
         return: Ticket de Autorización (TA) del WSAA
         """
@@ -155,7 +126,14 @@ class WSAA:
         except Exception as e:
             raise RuntimeError(f"Error en login_cms: {e}")
 
-    def load_ta_from_file(self):
+
+class TaManager:
+    "Clase para manejar el Ticket de Autorización (TA) del WSAA"
+    def __init__(self, service: str):
+        "Inicializar el objeto TaManager"
+        self.service = service
+
+    def load_ta_from_file(self) -> ET.Element:
         """
         Cargar el Ticket de Autorización (TA) desde un archivo XML.
 
@@ -196,16 +174,48 @@ class WSAA:
         except Exception as e:
             raise RuntimeError(f"Error al guardar el TA en el archivo: {e}")
 
+class WSAA:
+    "Clase para obtener un ticket de autorización del web service WSAA de AFIP"
+    WSDL_TEST = "https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl"  # Homologación
+    URL_TEST = "https://wsaahomo.afip.gov.ar/ws/services/LoginCms"  # Homologación
+    WSDL = "https://wsaa.afip.gov.ar/ws/services/LoginCms?wsdl"  # Producción
+    URL = "https://wsaa.afip.gov.ar/ws/services/LoginCms"  # Producción
+
+    def __init__(self, options: dict):
+        "Inicializar el objeto WSAA"
+        self._validate_options(options)
+        self.service: str = options.get("service")
+        self.cert: str = options.get("cert")
+        self.key: str = options.get("key")
+        self.passphrase: str = options.get("passphrase", "")
+        self.production: bool = options.get("production", False)
+
+        self.tra_generator = TraGenerator(self.service)
+        self.tra_signer = TraSigner(self.cert, self.key, self.passphrase)
+        self.ta_requester = TaRequester(self.WSDL if self.production else self.WSDL_TEST)
+        self.ta_manager = TaManager(self.service)
+
+    def _validate_options(self, options: dict):
+        """
+        Valida que las opciones mínimas estén presentes
+        """
+        required_keys = ["service", "cert", "key"]
+        for key in required_keys:
+            if not options.get(key):
+                raise Exception(
+                    f"Faltan datos de configuración ({', '.join(required_keys)})"
+                )
+
     def get_ticket_access(self) -> ET.Element:
         """
         Obtener un Ticket de Autorización (TA) del WSAA.
 
         return: Ticket de Autorización (TA) del WSAA
         """
-        ta_xml = self.load_ta_from_file()
+        ta_xml = self.ta_manager.load_ta_from_file()
         if ta_xml is None or ta_xml is False:
-            tra = self.create_tra()
-            cms = self.sign_tra(tra)
-            ta_xml = self.login_cms(cms)
-            self.save_ta_to_file(ta_xml)
+            tra = self.tra_generator.create_tra()
+            cms = self.tra_signer.sign_tra(tra)
+            ta_xml = self.ta_requester.login_cms(cms)
+            self.ta_manager.save_ta_to_file(ta_xml)
         return ta_xml
