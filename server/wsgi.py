@@ -26,6 +26,7 @@ app.register_blueprint(usuario_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(movimiento_stock_bp)
 app.register_blueprint(proveedor_bp)
+app.register_blueprint(venta_reports_bp)
 
 
 @app.route("/")

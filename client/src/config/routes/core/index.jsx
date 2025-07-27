@@ -17,6 +17,7 @@ import VentaDetail from "../../../pages/core/venta/components/detail";
 import VentaForm from "../../../pages/core/venta/components/form";
 import VentaOrdenList from "../../../pages/core/venta/components/orden/list";
 import VentaOrdenForm from "../../../pages/core/venta/components/orden/form";
+import VentaReporteVendedor from "../../../pages/core/venta_reports/components/por_vendedor";
 
 
 export default function CoreRoutes() {
@@ -43,6 +44,7 @@ export default function CoreRoutes() {
             <Route path="/ventas-orden" element={<VentaOrdenList />}></Route>
             <Route path="/ventas-orden/form" element={<VentaOrdenForm />}></Route>
             <Route path="/ventas-orden/form/:pk" element={<VentaOrdenForm />}></Route>
+            <Route path="/ventas/reporte-ventas/por-vendedor" element={<VentaReporteVendedor permissions={['venta.view_all']} />}></Route>
         </Routes>
     )
 }

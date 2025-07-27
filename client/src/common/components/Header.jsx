@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { styled, useTheme } from '@mui/material/styles';
-import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button, Typography } from '@mui/material';
-import { AccountCircle, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, ReceiptLong, Inventory2, PointOfSale, Store, SwapHoriz, LocalShipping } from '@mui/icons-material';
+import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button, Typography, Collapse } from '@mui/material';
+import { AccountCircle, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, ReceiptLong, Inventory2, PointOfSale, Store, SwapHoriz, LocalShipping, ExpandLess, ExpandMore, Assessment } from '@mui/icons-material';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 const openedMixin = (theme) => ({
     width: drawerWidth,
@@ -121,10 +121,16 @@ const pagesList = [
         required_permissions: ['comercio.view_all'],
     },
     {
-        title: 'Configuración',
-        icon: <Settings />,
-        path: '/config',
-        required_permissions: ['configuracion.view_all'],
+        title: 'Reportes de Ventas',
+        icon: <Assessment />,
+        required_permissions: ['venta.view_all'],
+        subItems: [
+            {
+                title: 'Por Vendedor',
+                path: '/ventas/reporte-ventas/por-vendedor',
+                required_permissions: ['venta.view_all'],
+            },
+        ],
     },
 ];
 
@@ -134,6 +140,7 @@ export default function Header() {
     const [auth, setAuth] = React.useState(false);
     const [user, setUser] = React.useState({});
     const [permissions, setPermissions] = React.useState([]);
+    const [expandedItems, setExpandedItems] = React.useState({});
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -141,6 +148,13 @@ export default function Header() {
 
     const handleDrawerClose = () => {
         setOpen(false);
+    };
+
+    const handleExpandClick = (itemTitle) => {
+        setExpandedItems(prev => ({
+            ...prev,
+            [itemTitle]: !prev[itemTitle]
+        }));
     };
 
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -159,6 +173,84 @@ export default function Header() {
         localStorage.removeItem('permissions');
         window.location.href = '/login';
     }
+
+    const hasPermission = (requiredPermissions) => {
+        return requiredPermissions.length === 0 || 
+               requiredPermissions.some(permission => permissions.includes(permission));
+    };
+
+    const renderMenuItem = (page, index) => {
+        if (!hasPermission(page.required_permissions)) {
+            return null;
+        }
+
+        const hasSubItems = page.subItems && page.subItems.length > 0;
+        const isExpanded = expandedItems[page.title];
+
+        return (
+            <React.Fragment key={page.title}>
+                <ListItem disablePadding sx={{ display: 'block' }}>
+                    <ListItemButton
+                        component={hasSubItems ? 'div' : Link}
+                        to={hasSubItems ? undefined : page.path}
+                        onClick={hasSubItems ? () => handleExpandClick(page.title) : undefined}
+                        sx={{
+                            minHeight: 48,
+                            justifyContent: open ? 'initial' : 'center',
+                            px: 2.5,
+                        }}
+                    >
+                        <ListItemIcon
+                            sx={{
+                                minWidth: 0,
+                                mr: open ? 3 : 'auto',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            {page.icon}
+                        </ListItemIcon>
+                        <ListItemText primary={page.title} sx={{ opacity: open ? 1 : 0 }} />
+                        {hasSubItems && open && (
+                            isExpanded ? <ExpandLess /> : <ExpandMore />
+                        )}
+                    </ListItemButton>
+                </ListItem>
+                {hasSubItems && (
+                    <Collapse in={isExpanded && open} timeout="auto" unmountOnExit>
+                        <List component="div" disablePadding>
+                            {page.subItems.map((subItem, subIndex) => (
+                                hasPermission(subItem.required_permissions) ? (
+                                    <ListItem key={subItem.title} disablePadding sx={{ display: 'block' }}>
+                                        <ListItemButton
+                                            component={Link}
+                                            to={subItem.path}
+                                            sx={{
+                                                minHeight: 48,
+                                                justifyContent: open ? 'initial' : 'center',
+                                                px: 2.5,
+                                                pl: 4,
+                                            }}
+                                        >
+                                            <ListItemIcon
+                                                sx={{
+                                                    minWidth: 0,
+                                                    mr: open ? 3 : 'auto',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                <Settings />
+                                            </ListItemIcon>
+                                            <ListItemText primary={subItem.title} sx={{ opacity: open ? 1 : 0 }} />
+                                        </ListItemButton>
+                                    </ListItem>
+                                ) : null
+                            ))}
+                        </List>
+                    </Collapse>
+                )}
+            </React.Fragment>
+        );
+    };
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -245,32 +337,7 @@ export default function Header() {
                     </DrawerHeader>
                     <Divider />
                     <List>
-                        {pagesList.map((page, index) => (
-                            page.required_permissions.length === 0 ||
-                                page.required_permissions.some(permission => permissions.includes(permission)) ? (
-                                <ListItem key={page.title} disablePadding sx={{ display: 'block' }}>
-                                    <ListItemButton
-                                        component={Link} to={page.path}
-                                        sx={{
-                                            minHeight: 48,
-                                            justifyContent: open ? 'initial' : 'center',
-                                            px: 2.5,
-                                        }}
-                                    >
-                                        <ListItemIcon
-                                            sx={{
-                                                minWidth: 0,
-                                                mr: open ? 3 : 'auto',
-                                                justifyContent: 'center',
-                                            }}
-                                        >
-                                            {page.icon}
-                                        </ListItemIcon>
-                                        <ListItemText primary={page.title} sx={{ opacity: open ? 1 : 0 }} />
-                                    </ListItemButton>
-                                </ListItem>
-                            ) : null
-                        ))}
+                        {pagesList.map((page, index) => renderMenuItem(page, index))}
                     </List>
                 </Drawer>
             )}
