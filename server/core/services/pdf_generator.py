@@ -35,7 +35,7 @@ class BasePDFGenerator(canvas.Canvas):
         self.header_image = os.path.join(
             STATIC_DIR, "pdf_images", "logocabecerafactura.png"
         )
-        self.afip_logo = os.path.join(STATIC_DIR, "pdf_images", "afip-logo.png")
+        self.afip_logo = os.path.join(STATIC_DIR, "pdf_images", "arca-logo.jpg")
 
     def truncate_text(self, text, max_length):
         if len(text) > max_length:
