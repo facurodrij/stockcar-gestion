@@ -54,6 +54,7 @@ def index():
 
 @articulo_bp.route("/articulos/selector", methods=["GET"])
 @jwt_required()
+@permission_required(["articulo.view_all"])
 @error_handler()
 def selector():
     articulos = Articulo.query.all()
