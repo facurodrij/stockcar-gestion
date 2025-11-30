@@ -7,6 +7,9 @@
             "label": "Run Flask",
             "type": "shell",
             "command": "cd server && flask run",
+            "linux": {
+                "command": "cd server && ../.venv/bin/flask run"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -39,6 +42,9 @@
             "label": "Run Debug Flask",
             "type": "shell",
             "command": "cd server && flask --debug run",
+            "linux": {
+                "command": "cd server && ../.venv/bin/flask --debug run"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -55,6 +61,9 @@
             "label": "Run Waitress Server",
             "type": "shell",
             "command": "cd server && waitress-serve --host=192.168.0.19 --port=8080 --call wsgi:create_app",
+            "linux": {
+                "command": "cd server && ../.venv/bin/waitress-serve --host=192.168.0.19 --port=8080 --call wsgi:create_app"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
