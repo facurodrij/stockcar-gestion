@@ -12,3 +12,13 @@ class EstadoVenta(enum.Enum):
     facturado = "Facturado"
     anulado = "Anulado"
     ticket_mecanico = "Ticket Mecánico"
+
+
+class EstadoCompra(enum.Enum):
+    """
+    Enumeración para los estados de una compra.
+    """
+
+    orden = "Orden"
+    confirmada = "Confirmada"
+    anulada = "Anulada"

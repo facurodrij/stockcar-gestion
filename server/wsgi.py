@@ -19,6 +19,7 @@ logger = logging.getLogger("waitress")
 logger.setLevel(logging.INFO)
 
 app.register_blueprint(venta_bp)
+app.register_blueprint(compra_bp)
 app.register_blueprint(cliente_bp)
 app.register_blueprint(articulo_bp)
 app.register_blueprint(comercio_bp)

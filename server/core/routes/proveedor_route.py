@@ -6,9 +6,11 @@ from server.core.models import Proveedor, TipoDocumento, TipoResponsable, Provin
 from server.auth.decorators import permission_required
 from server.core.services import AfipService
 from server.utils.utils import get_select_options
-from server.core.schemas import proveedor_schema
+from server.core.schemas import ProveedorSchema, ProveedorFormSchema
 
 proveedor_bp = Blueprint("proveedor_bp", __name__)
+proveedor_schema = ProveedorSchema()
+proveedor_form_schema = ProveedorFormSchema()
 
 
 @proveedor_bp.route("/proveedores", methods=["GET"])
@@ -44,7 +46,7 @@ def create():
         try:
             data["created_by"] = current_user.id
             data["updated_by"] = current_user.id
-            new_proveedor = proveedor_schema.load(data, session=db.session)
+            new_proveedor = proveedor_form_schema.load(data, session=db.session)
             db.session.add(new_proveedor)
             db.session.commit()
             return jsonify({"proveedor_id": new_proveedor.id}), 201
@@ -73,7 +75,7 @@ def update(pk):
             jsonify(
                 {
                     **get_select_options([TipoDocumento, TipoResponsable, Provincia]),
-                    "proveedor": proveedor_schema.dump(proveedor),
+                    "proveedor": proveedor_form_schema.dump(proveedor),
                 }
             ),
             200,
@@ -83,7 +85,7 @@ def update(pk):
         try:
             data["created_by"] = proveedor.created_by
             data["updated_by"] = current_user.id
-            updated_proveedor = proveedor_schema.load(
+            updated_proveedor = proveedor_form_schema.load(
                 data, instance=proveedor, session=db.session
             )
             db.session.commit()

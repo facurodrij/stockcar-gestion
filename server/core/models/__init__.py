@@ -1,6 +1,8 @@
 from .cliente import Cliente
 from .venta import Venta, EstadoVenta
 from .venta_item import VentaItem
+from .compra import Compra, EstadoCompra
+from .compra_item import CompraItem
 from .articulo import Articulo
 from .tributo import Tributo
 from .comercio import Comercio, PuntoVenta

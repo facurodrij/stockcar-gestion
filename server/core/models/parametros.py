@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Numeric, Boolean, Enum
 from sqlalchemy.orm import relationship
-from server.core.models.enums import EstadoVenta
+from server.core.models.enums import EstadoVenta, EstadoCompra
 
 from server.config import db
 
@@ -120,6 +120,9 @@ class TipoComprobante(db.Model):
     estado_venta = Column(
         Enum(EstadoVenta), nullable=True
     )  # Estado de la venta por defecto
+    estado_compra = Column(
+        Enum(EstadoCompra), nullable=True
+    )  # Estado de la compra por defecto
 
     # Relación muchos a muchos con TipoResponsable
     responsables = relationship(

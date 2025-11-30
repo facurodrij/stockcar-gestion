@@ -1,3 +1,4 @@
+from marshmallow import pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, fields, auto_field
 from server.core.models import Proveedor
 from server.core.schemas.parametros_schema import (
@@ -30,4 +31,15 @@ class ProveedorSchema(SQLAlchemyAutoSchema):
     updated_by_user = fields.Nested(UsuarioSchema, only=("id", "username"))
 
 
-proveedor_schema = ProveedorSchema()
+class ProveedorFormSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Proveedor
+        include_fk = True
+        load_instance = True
+    
+    @pre_load
+    def convert_empty_strings_to_none(self, data, **kwargs):
+        for key, value in data.items():
+            if value == "":
+                data[key] = None
+        return data

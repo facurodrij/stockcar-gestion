@@ -18,6 +18,8 @@ import VentaForm from "../../../pages/core/venta/components/form";
 import VentaOrdenList from "../../../pages/core/venta/components/orden/list";
 import VentaOrdenForm from "../../../pages/core/venta/components/orden/form";
 import VentaReporteVendedor from "../../../pages/core/venta_reports/components/por_vendedor";
+import ProveedorList from "../../../pages/core/proveedor/components/list";
+import ProveedorForm from "../../../pages/core/proveedor/components/form";
 
 
 export default function CoreRoutes() {
@@ -45,6 +47,9 @@ export default function CoreRoutes() {
             <Route path="/ventas-orden/form" element={<VentaOrdenForm />}></Route>
             <Route path="/ventas-orden/form/:pk" element={<VentaOrdenForm />}></Route>
             <Route path="/ventas/reporte-ventas/por-vendedor" element={<VentaReporteVendedor permissions={['venta.view_all']} />}></Route>
+            <Route path="/proveedores" element={<ProveedorList permissions={['proveedor.view_all']} />}></Route>
+            <Route path="/proveedores/form" element={<ProveedorForm permissions={['proveedor.create']} />}></Route>
+            <Route path="/proveedores/form/:pk" element={<ProveedorForm permissions={['proveedor.update']} />}></Route>
         </Routes>
     )
 }

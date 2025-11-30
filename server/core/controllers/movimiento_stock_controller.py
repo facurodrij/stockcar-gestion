@@ -2,7 +2,7 @@ import pytz
 from datetime import datetime
 from flask import jsonify
 from server.config import db
-from server.core.models import MovimientoStock, Articulo, MovimientoStockItem, Venta
+from server.core.models import MovimientoStock, Articulo, MovimientoStockItem, Venta, Compra
 
 local_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
@@ -176,6 +176,80 @@ class MovimientoStockController:
                 stock_posterior=stock_posterior,
             )
             db.session.add(movimiento_item)
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            raise e
+
+    @staticmethod
+    def create_movimiento_from_compra(compra: Compra):
+        """
+        Crea un nuevo movimiento de stock en la base de datos a partir de una compra
+        y actualiza el stock de los artículos involucrados.
+
+        Importante: el `db.session.commit()` debe realizarse dentro de la función
+        que llame a este método.
+        """
+        try:
+            movimiento = MovimientoStock(
+                tipo_movimiento="ingreso",
+                origen="compra",
+                fecha_hora=datetime.now(tz=local_tz),
+                observacion="Compra nro. " + str(compra.id),
+                created_by=compra.created_by,
+                updated_by=compra.updated_by,
+            )
+            db.session.add(movimiento)
+            db.session.flush()
+            for item in compra.items:
+                articulo = Articulo.query.get(item.articulo_id)
+                movimiento_item = MovimientoStockItem(
+                    articulo=articulo,
+                    movimiento_stock_id=movimiento.id,
+                    codigo_principal=articulo.codigo_principal,
+                    cantidad=item.cantidad,
+                )
+                articulo.stock_actual += item.cantidad
+                movimiento_item.stock_posterior = articulo.stock_actual
+                db.session.add(movimiento_item)
+                db.session.add(articulo)
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            raise e
+
+    @staticmethod
+    def create_movimiento_from_devolucion_compra(compra: Compra):
+        """
+        Crea un nuevo movimiento de stock en la base de datos a partir de una devolución de compra
+        y actualiza el stock de los artículos involucrados.
+
+        Importante: el `db.session.commit()` debe realizarse dentro de la función
+        que llame a este método.
+        """
+        try:
+            movimiento = MovimientoStock(
+                tipo_movimiento="egreso",
+                origen="devolucion",
+                fecha_hora=datetime.now(tz=local_tz),
+                observacion="Devolución de compra nro. " + str(compra.id),
+                created_by=compra.updated_by,  # Es creado por el usuario que realiza la devolución
+                updated_by=compra.updated_by,
+            )
+            db.session.add(movimiento)
+            db.session.flush()
+            for item in compra.items:
+                articulo = Articulo.query.get(item.articulo_id)
+                movimiento_item = MovimientoStockItem(
+                    articulo=articulo,
+                    movimiento_stock_id=movimiento.id,
+                    codigo_principal=articulo.codigo_principal,
+                    cantidad=item.cantidad,
+                )
+                articulo.stock_actual -= item.cantidad
+                movimiento_item.stock_posterior = articulo.stock_actual
+                db.session.add(movimiento_item)
+                db.session.add(articulo)
         except Exception as e:
             db.session.rollback()
             print(e)
