@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, abort
 from flask_jwt_extended import jwt_required, current_user
+from sqlalchemy import and_, or_
 
 from server.config import db
 from server.core.models import (
@@ -33,18 +34,26 @@ def index():
     query = request.args.get("query", None, type=str)
     articulos = []
     if query:
-        articulos = (
-            Articulo.query.filter(
-                Articulo.codigo_principal.ilike(f"%{query}%")
-                | Articulo.codigo_secundario.ilike(f"%{query}%")
-                | Articulo.codigo_terciario.ilike(f"%{query}%")
-                | Articulo.codigo_cuaternario.ilike(f"%{query}%")
-                | Articulo.codigo_adicional.ilike(f"%{query}%")
-                | Articulo.descripcion.ilike(f"%{query}%")
+        search_terms = query.split()
+        conditions = []
+        for term in search_terms:
+            conditions.append(
+                or_(
+                    Articulo.codigo_principal.ilike(f"%{term}%"),
+                    Articulo.codigo_secundario.ilike(f"%{term}%"),
+                    Articulo.codigo_terciario.ilike(f"%{term}%"),
+                    Articulo.codigo_cuaternario.ilike(f"%{term}%"),
+                    Articulo.codigo_adicional.ilike(f"%{term}%"),
+                    Articulo.descripcion.ilike(f"%{term}%"),
+                )
             )
-            .order_by(Articulo.id.desc())
-            .all()
-        )
+
+        if conditions:
+            articulos = (
+                Articulo.query.filter(and_(*conditions))
+                .order_by(Articulo.id.desc())
+                .all()
+            )
 
     return (
         jsonify({"articulos": articulo_index_schema.dump(articulos, many=True)}),
