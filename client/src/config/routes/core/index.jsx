@@ -20,6 +20,9 @@ import VentaOrdenForm from "../../../pages/core/venta/components/orden/form";
 import VentaReporteVendedor from "../../../pages/core/venta_reports/components/por_vendedor";
 import ProveedorList from "../../../pages/core/proveedor/components/list";
 import ProveedorForm from "../../../pages/core/proveedor/components/form";
+import CompraList from "../../../pages/core/compra/components/list";
+import CompraDetail from "../../../pages/core/compra/components/detail";
+import CompraForm from "../../../pages/core/compra/components/form";
 
 
 export default function CoreRoutes() {
@@ -50,6 +53,10 @@ export default function CoreRoutes() {
             <Route path="/proveedores" element={<ProveedorList permissions={['proveedor.view_all']} />}></Route>
             <Route path="/proveedores/form" element={<ProveedorForm permissions={['proveedor.create']} />}></Route>
             <Route path="/proveedores/form/:pk" element={<ProveedorForm permissions={['proveedor.update']} />}></Route>
+            <Route path="/compras" element={<CompraList permissions={['compra.view_all']} />}></Route>
+            <Route path="/compras/:pk" element={<CompraDetail permissions={['compra.view']} />}></Route>
+            <Route path="/compras/form" element={<CompraForm permissions={['compra.create']} />}></Route>
+            <Route path="/compras/form/:pk" element={<CompraForm permissions={['compra.update']} />}></Route>
         </Routes>
     )
 }

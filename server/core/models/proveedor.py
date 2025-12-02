@@ -82,3 +82,12 @@ class Proveedor(AuditMixin, SoftDeleteMixin, db.Model):
             "observacion": self.observacion,
             **self.get_audit_fields(),
         }
+    
+    def to_select_dict(self) -> dict:
+        """
+        Convierte los datos del proveedor a formato de diccionario para un select.
+        """
+        return {
+            "value": self.id,
+            "label": f"{self.razon_social} ({self.nro_documento})",
+        }

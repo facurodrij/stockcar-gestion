@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { styled, useTheme } from '@mui/material/styles';
 import { AppBar as MuiAppBar, Box, Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Drawer as MuiDrawer, Button, Typography, Collapse } from '@mui/material';
-import { AccountCircle, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, ReceiptLong, Inventory2, PointOfSale, Store, SwapHoriz, LocalShipping, ExpandLess, ExpandMore, Assessment } from '@mui/icons-material';
+import { AccountCircle, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, People, Person, Settings, ReceiptLong, Inventory2, PointOfSale, Store, SwapHoriz, LocalShipping, ExpandLess, ExpandMore, Assessment, ShoppingCart } from '@mui/icons-material';
 
 const drawerWidth = 260;
 
@@ -83,6 +83,12 @@ const pagesList = [
         icon: <ReceiptLong />,
         path: '/ventas-orden',
         required_permissions: [],
+    },
+    {
+        title: 'Compras',
+        icon: <ShoppingCart />,
+        path: '/compras',
+        required_permissions: ['compra.view_all'],
     },
     {
         title: 'Articulos',

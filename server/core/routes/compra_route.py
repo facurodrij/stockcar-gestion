@@ -66,9 +66,6 @@ def index():
 
     compras: Pagination = query.paginate(page=page, per_page=page_size)
 
-    if not compras.items:
-        return
-
     return (
         jsonify(
             {
@@ -203,9 +200,6 @@ def index_orden():
     query = query.order_by(Compra.fecha_hora.desc())
 
     compras: Pagination = query.paginate(page=page, per_page=page_size)
-
-    if not compras.items:
-        return
 
     return (
         jsonify(
