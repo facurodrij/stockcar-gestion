@@ -136,6 +136,11 @@ const pagesList = [
                 path: '/ventas/reporte-ventas/por-vendedor',
                 required_permissions: ['venta.view_all'],
             },
+            {
+                title: 'Artículos Más Vendidos',
+                path: '/ventas/reporte-ventas/articulos-mas-vendidos',
+                required_permissions: ['venta.view_all'],
+            },
         ],
     },
 ];
