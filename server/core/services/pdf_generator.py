@@ -77,6 +77,10 @@ class BasePDFGenerator(canvas.Canvas):
         qr_code_io.seek(0)
         return qr_code_io
 
+    def is_remito(self):
+        tipo_nombre = (self.venta.tipo_comprobante.nombre or "").lower()
+        return "remito" in tipo_nombre
+
 
 class A4PDFGenerator(BasePDFGenerator):
     def __init__(self, *args, **kwargs):
@@ -162,32 +166,54 @@ class A4PDFGenerator(BasePDFGenerator):
 
     def draw_item_table(self):
         "Draw the table of items"
-        table_data = [
-            [
-                "Código",
-                "Descripción",
-                "Cantidad",
-                "Precio Unitario",
-                "% IVA",
-                "Subtotal",
-            ]
-        ]
-        for item in self.items:
-            table_data.append(
+        if self.is_remito():
+            table_data = [
                 [
-                    item.articulo.codigo_principal,
-                    self.truncate_text(item.descripcion, 33),
-                    item.cantidad,
-                    f"${locale.format_string('%.2f', item.precio_unidad, grouping=True)}",
-                    f"{locale.format_string('%.2f', item.alicuota_iva, grouping=True)}",
-                    f"${locale.format_string('%.2f', item.subtotal, grouping=True)}",
+                    "Código",
+                    "Descripción",
+                    "Cantidad",
+                    "Precio Unitario",
+                    "Subtotal",
                 ]
-            )
+            ]
+            for item in self.items:
+                table_data.append(
+                    [
+                        item.articulo.codigo_principal,
+                        self.truncate_text(item.descripcion, 33),
+                        item.cantidad,
+                        f"${locale.format_string('%.2f', item.precio_unidad, grouping=True)}",
+                        f"${locale.format_string('%.2f', item.subtotal, grouping=True)}",
+                    ]
+                )
+            col_widths = [120, 220, 45, 85, 85]
+        else:
+            table_data = [
+                [
+                    "Código",
+                    "Descripción",
+                    "Cantidad",
+                    "Precio Unitario",
+                    "% IVA",
+                    "Subtotal",
+                ]
+            ]
+            for item in self.items:
+                table_data.append(
+                    [
+                        item.articulo.codigo_principal,
+                        self.truncate_text(item.descripcion, 33),
+                        item.cantidad,
+                        f"${locale.format_string('%.2f', item.precio_unidad, grouping=True)}",
+                        f"{locale.format_string('%.2f', item.alicuota_iva, grouping=True)}",
+                        f"${locale.format_string('%.2f', item.subtotal, grouping=True)}",
+                    ]
+                )
+            col_widths = [120, 185, 45, 85, 35, 85]
+
         table_y_max = 645  # Max Y position for the table
         row_heights = [20] + [17] * (len(table_data) - 1)
-        table = Table(
-            table_data, colWidths=[120, 185, 45, 85, 35, 85], rowHeights=row_heights
-        )
+        table = Table(table_data, colWidths=col_widths, rowHeights=row_heights)
         table.setStyle(
             TableStyle(
                 [
@@ -200,83 +226,94 @@ class A4PDFGenerator(BasePDFGenerator):
         )
         table.wrapOn(self, 0, 0)
         table.drawOn(self, 20, table_y_max - sum(row_heights))
-
     def draw_total(self):
         "Draw Total sections and other taxes"
 
-        "Other taxes section"
         self.rect(20, 140, 555, 130)
-        self.setFont("Helvetica-Bold", 8)
-        self.drawString(30, 255, "Otros Tributos:")
-        table_data = [["Descripción", "Alic. %", "Importe"]]
-        for tributo in self.venta.tributos:
-            table_data.append(
-                [
-                    tributo.descripcion,
-                    f"{locale.format_string('%.2f', tributo.alicuota, grouping=True)}",
-                    f"${locale.format_string('%.2f', self.venta.get_tributo_importe(tributo.id), grouping=True)}",
-                ]
+        if self.is_remito():
+            self.setFont("Helvetica-Bold", 12)
+            self.drawRightString(450, 230, "TOTAL: $")
+            self.drawRightString(
+                570,
+                230,
+                f"{locale.format_string('%.2f', self.venta.total, grouping=True)}",
             )
-        table_y_max = 250  # Max Y position for the table
-        row_heights = [20] + [16] * (len(table_data) - 1)
-        table = Table(table_data, colWidths=[150, 40, 80], rowHeights=row_heights)
-        table.setStyle(
-            TableStyle(
-                [
-                    ("FONTSIZE", (0, 0), (-1, -1), 8),
-                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                    ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
-                    ("GRID", (0, 0), (-1, 0), 1, colors.black),
-                ]
+        else:
+            "Other taxes section"
+            self.setFont("Helvetica-Bold", 8)
+            self.drawString(30, 255, "Otros Tributos:")
+            table_data = [["Descripción", "Alic. %", "Importe"]]
+            for tributo in self.venta.tributos:
+                table_data.append(
+                    [
+                        tributo.descripcion,
+                        f"{locale.format_string('%.2f', tributo.alicuota, grouping=True)}",
+                        f"${locale.format_string('%.2f', self.venta.get_tributo_importe(tributo.id), grouping=True)}",
+                    ]
+                )
+            table_y_max = 250  # Max Y position for the table
+            row_heights = [20] + [16] * (len(table_data) - 1)
+            table = Table(table_data, colWidths=[150, 40, 80], rowHeights=row_heights)
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("FONTSIZE", (0, 0), (-1, -1), 8),
+                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                        ("GRID", (0, 0), (-1, 0), 1, colors.black),
+                    ]
+                )
             )
-        )
-        table.wrapOn(self, 0, 0)
-        table.drawOn(self, 30, table_y_max - sum(row_heights))
+            table.wrapOn(self, 0, 0)
+            table.drawOn(self, 30, table_y_max - sum(row_heights))
 
-        "Total section"
-        self.setFont("Helvetica-Bold", 10)
-        self.drawRightString(450, 250, "Importe neto gravado: $")
-        self.drawRightString(450, 235, "Descuento: $")
-        self.drawRightString(450, 220, "Recargo: $")
-        self.drawRightString(450, 205, "Importe IVA: $")
-        self.drawRightString(450, 190, "Importe otros tributos: $")
-        self.setFont("Helvetica-Bold", 12)
-        self.drawRightString(450, 170, "Importe Total: $")
-        self.setFont("Helvetica", 10)
-        self.drawRightString(
-            570,
-            250,
-            f"{locale.format_string('%.2f', self.venta.gravado, grouping=True)}",
-        )
-        self.drawRightString(
-            570,
-            235,
-            f"{locale.format_string('%.2f', self.venta.descuento, grouping=True)}",
-        )
-        self.drawRightString(
-            570,
-            220,
-            f"{locale.format_string('%.2f', self.venta.recargo, grouping=True)}",
-        )
-        self.drawRightString(
-            570,
-            205,
-            f"{locale.format_string('%.2f', self.venta.total_iva, grouping=True)}",
-        )
-        self.drawRightString(
-            570,
-            190,
-            f"{locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}",
-        )
-        self.setFont("Helvetica-Bold", 12)
-        self.drawRightString(
-            570, 170, f"{locale.format_string('%.2f', self.venta.total, grouping=True)}"
-        )
+            "Total section"
+            self.setFont("Helvetica-Bold", 10)
+            self.drawRightString(450, 250, "Importe neto gravado: $")
+            self.drawRightString(450, 235, "Descuento: $")
+            self.drawRightString(450, 220, "Recargo: $")
+            self.drawRightString(450, 205, "Importe IVA: $")
+            self.drawRightString(450, 190, "Importe otros tributos: $")
+            self.setFont("Helvetica-Bold", 12)
+            self.drawRightString(450, 170, "Importe Total: $")
+            self.setFont("Helvetica", 10)
+            self.drawRightString(
+                570,
+                250,
+                f"{locale.format_string('%.2f', self.venta.gravado, grouping=True)}",
+            )
+            self.drawRightString(
+                570,
+                235,
+                f"{locale.format_string('%.2f', self.venta.descuento, grouping=True)}",
+            )
+            self.drawRightString(
+                570,
+                220,
+                f"{locale.format_string('%.2f', self.venta.recargo, grouping=True)}",
+            )
+            self.drawRightString(
+                570,
+                205,
+                f"{locale.format_string('%.2f', self.venta.total_iva, grouping=True)}",
+            )
+            self.drawRightString(
+                570,
+                190,
+                f"{locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}",
+            )
+            self.setFont("Helvetica-Bold", 12)
+            self.drawRightString(
+                570,
+                170,
+                f"{locale.format_string('%.2f', self.venta.total, grouping=True)}",
+            )
 
         "Total in words"
         self.setFont("Helvetica", 7)
-        total_without_decimals = int(self.venta.total)
-        cents = int((self.venta.total - total_without_decimals) * 100)
+        total_en_letras = self.venta.total
+        total_without_decimals = int(total_en_letras)
+        cents = int((total_en_letras - total_without_decimals) * 100)
         self.drawString(
             30,
             145,
@@ -286,7 +323,6 @@ class A4PDFGenerator(BasePDFGenerator):
                 self.venta.moneda.nombre,
             ),
         )
-
     def draw_CAE(self):
         "Draw CAE section"
 
@@ -380,7 +416,7 @@ class TicketPDFGenerator(BasePDFGenerator):
 
     def draw_item_table(self):
         "Draw the table of items"
-        table_data = [[f"CANT.\nCÓDIGO", f"P. UNIT.\nDESCRIPCIÓN", "SUBTOTAL"]]
+        table_data = [[f"CANT.\nC\u00d3DIGO", f"P. UNIT.\nDESCRIPCI\u00d3N", "SUBTOTAL"]]
         for item in self.items:
             table_data.append(
                 [
@@ -407,41 +443,51 @@ class TicketPDFGenerator(BasePDFGenerator):
         self.total_y_max = (
             self.table_y_max - sum(row_heights) - 5
         )  # Max Y position for the total section
-
     def draw_total(self):
         "Draw Total section"
         self.line(
             10, self.total_y_max, 200, self.total_y_max
         )  # Horizontal line for total section
-        self.setFont("Helvetica", 8)
-        self.drawString(10, self.total_y_max - 10, "Importe neto gravado:")
-        self.drawRightString(
-            200,
-            self.total_y_max - 10,
-            f"$ {locale.format_string('%.2f', self.venta.gravado, grouping=True)}",
-        )
-        self.drawString(10, self.total_y_max - 20, "Importe IVA:")
-        self.drawRightString(
-            200,
-            self.total_y_max - 20,
-            f"$ {locale.format_string('%.2f', self.venta.total_iva, grouping=True)}",
-        )
-        self.drawString(10, self.total_y_max - 30, "Importe otros tributos:")
-        self.drawRightString(
-            200,
-            self.total_y_max - 30,
-            f"$ {locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}",
-        )
-        self.setFont("Helvetica-Bold", 8)
-        self.drawString(10, self.total_y_max - 45, "TOTAL:")
-        self.setFont("Helvetica", 8)
-        self.drawRightString(
-            200,
-            self.total_y_max - 45,
-            f"$ {locale.format_string('%.2f', self.venta.total, grouping=True)}",
-        )
-        self.cae_y_max = self.total_y_max - 60  # Max Y position for the CAE section
 
+        if self.is_remito():
+            self.setFont("Helvetica-Bold", 8)
+            self.drawString(10, self.total_y_max - 10, "TOTAL:")
+            self.setFont("Helvetica", 8)
+            self.drawRightString(
+                200,
+                self.total_y_max - 10,
+                f"$ {locale.format_string('%.2f', self.venta.total, grouping=True)}",
+            )
+            self.cae_y_max = self.total_y_max - 25  # Max Y position for the CAE section
+        else:
+            self.setFont("Helvetica", 8)
+            self.drawString(10, self.total_y_max - 10, "Importe neto gravado:")
+            self.drawRightString(
+                200,
+                self.total_y_max - 10,
+                f"$ {locale.format_string('%.2f', self.venta.gravado, grouping=True)}",
+            )
+            self.drawString(10, self.total_y_max - 20, "Importe IVA:")
+            self.drawRightString(
+                200,
+                self.total_y_max - 20,
+                f"$ {locale.format_string('%.2f', self.venta.total_iva, grouping=True)}",
+            )
+            self.drawString(10, self.total_y_max - 30, "Importe otros tributos:")
+            self.drawRightString(
+                200,
+                self.total_y_max - 30,
+                f"$ {locale.format_string('%.2f', self.venta.total_tributos, grouping=True)}",
+            )
+            self.setFont("Helvetica-Bold", 8)
+            self.drawString(10, self.total_y_max - 45, "TOTAL:")
+            self.setFont("Helvetica", 8)
+            self.drawRightString(
+                200,
+                self.total_y_max - 45,
+                f"$ {locale.format_string('%.2f', self.venta.total, grouping=True)}",
+            )
+            self.cae_y_max = self.total_y_max - 60  # Max Y position for the CAE section
     def draw_CAE(self):
         "Draw CAE section"
         qrcode_io = self.generate_qr_code()  # QR code with AFIP data
@@ -507,3 +553,4 @@ class TicketPDFGenerator(BasePDFGenerator):
                 self.draw_CAE()
             self.showPage()
         self.save()
+
