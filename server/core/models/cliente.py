@@ -90,6 +90,8 @@ class Cliente(AuditMixin, db.Model):
         return {
             "value": self.id,
             "label": f"{self.razon_social} ({self.nro_documento})",
+            "tipo_responsable_abreviatura": self.tipo_responsable.abreviatura,
+            "tipo_responsable_descripcion": self.tipo_responsable.descripcion,
         }
 
     def to_dict(self) -> dict:

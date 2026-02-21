@@ -117,9 +117,51 @@ export default function VentaForm({ permissions }) {
     const [tabValue, setTabValue] = useState(0);
     const [tributos, setTributos] = useState([]);
     const [ventaItems, setVentaItems] = useState([]);
+    const [isClienteExento, setIsClienteExento] = useState(false);
     const { withLoading } = useLoading();
     const hasFetchedItems = useRef(false);
+    const ivaSnapshotRef = useRef(new Map());
     const [alertMessage, setAlertMessage] = useState('');
+
+    const isClienteOptionExento = (clienteOption) => clienteOption?.tipo_responsable_abreviatura === 'E';
+
+    const recalcularItem = (item, ivaObjetivo = item.alicuota_iva) => {
+        const cantidad = Number(item.cantidad) || 0;
+        const precioUnidad = Number(item.precio_unidad) || 0;
+        const iva = Number(ivaObjetivo) || 0;
+        const subtotal = cantidad * precioUnidad;
+        const subtotalIva = iva === 0 ? 0 : subtotal * iva / (100 + iva);
+        const subtotalGravado = subtotal - subtotalIva;
+
+        return {
+            ...item,
+            alicuota_iva: iva,
+            subtotal_iva: subtotalIva,
+            subtotal_gravado: subtotalGravado,
+            subtotal
+        };
+    };
+
+    const forzarIvaCero = (items = []) => {
+        return items.map((item) => {
+            const articuloId = item.articulo_id;
+            if (!ivaSnapshotRef.current.has(articuloId)) {
+                ivaSnapshotRef.current.set(articuloId, Number(item.alicuota_iva) || 0);
+            }
+            return recalcularItem(item, 0);
+        });
+    };
+
+    const restaurarIvaPrevio = (items = []) => {
+        return items.map((item) => {
+            const articuloId = item.articulo_id;
+            if (!ivaSnapshotRef.current.has(articuloId)) {
+                return item;
+            }
+            const ivaPrevio = ivaSnapshotRef.current.get(articuloId);
+            return recalcularItem(item, ivaPrevio);
+        });
+    };
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
@@ -144,7 +186,7 @@ export default function VentaForm({ permissions }) {
                         updatedItems.push(newItem);
                     }
                 });
-                return updatedItems;
+                return isClienteExento ? forzarIvaCero(updatedItems) : updatedItems;
             });
             setSelectedArticulo((prevArticulos) => {
                 const newArticulos = newItems.map((r) => r.articulo_id);
@@ -155,7 +197,7 @@ export default function VentaForm({ permissions }) {
         setNewItems([]);
     }
 
-    const fetchVentaItems = async (ventaNumber) => {
+    const fetchVentaItems = async (ventaNumber, enforceExento = isClienteExento) => {
         const ventaNumberPattern = /^\d{4}-\d{8}$/;
         const ventaIdPattern = /^\d+$/;
         try {
@@ -182,14 +224,15 @@ export default function VentaForm({ permissions }) {
                 subtotal_gravado: r.subtotal_gravado,
                 subtotal: r.subtotal,
             }));
+            const normalizedItemsArray = enforceExento ? forzarIvaCero(itemsArray) : itemsArray;
 
-            const existingItems = itemsArray.filter(newItem => ventaItems.some(item => item.articulo_id === newItem.articulo_id));
+            const existingItems = normalizedItemsArray.filter(newItem => ventaItems.some(item => item.articulo_id === newItem.articulo_id));
             if (existingItems.length > 0) {
-                setNewItems(itemsArray);
+                setNewItems(normalizedItemsArray);
                 setOpenConfirmDialog(true);
             } else {
-                setVentaItems((prevItems) => [...prevItems, ...itemsArray]);
-                setSelectedArticulo((prevArticulos) => [...prevArticulos, ...itemsArray.map((r) => r.articulo_id)]);
+                setVentaItems((prevItems) => [...prevItems, ...normalizedItemsArray]);
+                setSelectedArticulo((prevArticulos) => [...prevArticulos, ...normalizedItemsArray.map((r) => r.articulo_id)]);
             }
         } catch (e) {
             console.error('Error al obtener la venta:', e);
@@ -230,11 +273,11 @@ export default function VentaForm({ permissions }) {
                     alicuota_iva: data.alicuota_iva
                 });
                 setTributos(data.tributos);
-                setValue('cliente', data.clientes[0].value); // Seleccionar el primer cliente por defecto
+                let selectedClienteId = data.clientes[0]?.value || "";
                 if (Boolean(pk)) {
                     const venta = data['venta'];
                     const tributos = venta['tributos'];
-                    setValue('cliente', venta.cliente);
+                    selectedClienteId = venta.cliente;
                     setValue('tipo_comprobante', venta.tipo_comprobante);
                     setValue('punto_venta', venta.punto_venta);
                     setValue('tipo_pago', venta.tipo_pago);
@@ -260,7 +303,13 @@ export default function VentaForm({ permissions }) {
                         };
                     });
                     const articuloArray = itemsArray.map((r) => r.articulo_id);
-                    setVentaItems(itemsArray);
+                    const clienteSeleccionado = data.clientes.find((c) => c.value === selectedClienteId);
+                    const clienteEsExento = isClienteOptionExento(clienteSeleccionado);
+                    setIsClienteExento(clienteEsExento);
+                    if (!clienteEsExento) {
+                        ivaSnapshotRef.current.clear();
+                    }
+                    setVentaItems(clienteEsExento ? forzarIvaCero(itemsArray) : itemsArray);
                     setSelectedArticulo(articuloArray);
 
                     // Cargar tributos seleccionados
@@ -268,9 +317,17 @@ export default function VentaForm({ permissions }) {
                     tributos.forEach((t) => {
                         setSelectedTributo(selectedTributo => [...selectedTributo, t]);
                     });
+                } else {
+                    const clienteSeleccionado = data.clientes.find((c) => c.value === selectedClienteId);
+                    const clienteEsExento = isClienteOptionExento(clienteSeleccionado);
+                    setIsClienteExento(clienteEsExento);
+                    if (!clienteEsExento) {
+                        ivaSnapshotRef.current.clear();
+                    }
                 }
+                setValue('cliente', selectedClienteId);
                 if (Boolean(itemsByVentaId) && !hasFetchedItems.current) {
-                    fetchVentaItems(itemsByVentaId);
+                    fetchVentaItems(itemsByVentaId, isClienteOptionExento(data.clientes.find((c) => c.value === selectedClienteId)));
                     hasFetchedItems.current = true;
                 }
             } catch (e) {
@@ -408,7 +465,24 @@ export default function VentaForm({ permissions }) {
                                                 value === undefined || value === "" || option.value === value.value
                                             }
                                             onChange={(event, value) => {
-                                                field.onChange(value ? value.value : "");
+                                                const clienteValue = value ? value.value : "";
+                                                const nextIsClienteExento = isClienteOptionExento(value);
+                                                field.onChange(clienteValue);
+
+                                                if (nextIsClienteExento === isClienteExento) {
+                                                    return;
+                                                }
+
+                                                setIsClienteExento(nextIsClienteExento);
+                                                if (nextIsClienteExento) {
+                                                    setVentaItems(forzarIvaCero(ventaItems));
+                                                    setNewItems(forzarIvaCero(newItems));
+                                                    return;
+                                                }
+
+                                                setVentaItems(restaurarIvaPrevio(ventaItems));
+                                                setNewItems(restaurarIvaPrevio(newItems));
+                                                ivaSnapshotRef.current.clear();
                                             }}
                                         />
                                     )}
@@ -491,6 +565,11 @@ export default function VentaForm({ permissions }) {
                             {alertMessage}
                         </Alert>
                     )}
+                    {isClienteExento && (
+                        <Alert severity="info" sx={{ mt: 2 }}>
+                            Cliente con condicion IVA Sujeto Exento: el IVA de todos los items se aplica automaticamente en 0%.
+                        </Alert>
+                    )}
                     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>Items de Venta</Typography>
                     <Box sx={{
                         height: 500,
@@ -538,7 +617,7 @@ export default function VentaForm({ permissions }) {
                                     headerName: 'IVA (%)',
                                     flex: 0.5,
                                     type: 'singleSelect',
-                                    editable: true,
+                                    editable: !isClienteExento,
                                     valueOptions: selectOptions.alicuota_iva.map((item) => (
                                         { value: item.value, label: `${item.label}%` }
                                     )),
@@ -600,16 +679,12 @@ export default function VentaForm({ permissions }) {
                             processRowUpdate={(newRow, oldRow) => {
                                 const updatedRows = ventaItems.map((row) => {
                                     if (row.articulo_id === oldRow.articulo_id) {
-                                        const iva = parseFloat(newRow.alicuota_iva);
-                                        newRow.subtotal = newRow.cantidad * newRow.precio_unidad;
-                                        newRow.subtotal_iva = newRow.subtotal * iva / (100 + iva);
-                                        newRow.subtotal_gravado = newRow.subtotal - newRow.subtotal_iva;
-                                        return { ...newRow };
+                                        return recalcularItem(newRow, isClienteExento ? 0 : newRow.alicuota_iva);
                                     }
                                     return row;
                                 });
                                 setVentaItems(updatedRows);
-                                return newRow;
+                                return updatedRows.find((row) => row.articulo_id === oldRow.articulo_id);
                             }}
                             localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                         />
@@ -811,7 +886,14 @@ export default function VentaForm({ permissions }) {
                 selectedArticulo={selectedArticulo}
                 setSelectedArticulo={setSelectedArticulo}
                 items={ventaItems}
-                setItems={setVentaItems}
+                setItems={(itemsOrUpdater) => {
+                    setVentaItems((prevItems) => {
+                        const resolvedItems = typeof itemsOrUpdater === 'function'
+                            ? itemsOrUpdater(prevItems)
+                            : itemsOrUpdater;
+                        return isClienteExento ? forzarIvaCero(resolvedItems) : resolvedItems;
+                    });
+                }}
             />
             <SnackbarAlert
                 open={openSnackbar}
@@ -842,3 +924,4 @@ export default function VentaForm({ permissions }) {
         </>
     );
 }
+
