@@ -58,6 +58,11 @@ class WSFEv1(WSBase):
             },
         }
 
+        if data.get("CondicionIVAReceptorId") is not None:
+            Req["FeDetReq"]["FECAEDetRequest"]["CondicionIVAReceptorId"] = data[
+                "CondicionIVAReceptorId"
+            ]
+
         if data.get("Concepto") == 2 or data.get("Concepto") == 3:
             if (
                 not data.get("FchServDesde")

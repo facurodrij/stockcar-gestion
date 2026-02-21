@@ -41,11 +41,43 @@ class AfipService:
     KEY = os.path.join(BASE_DIR, "instance", "afipws_test.key")
     PASSPHRASE = ""
     PRODUCTION = False
+    AFIP_CONDICION_IVA_POR_ABREVIATURA = {
+        "I": 1,   # IVA Responsable Inscripto
+        "R": 2,   # IVA Responsable no Inscripto
+        "N": 3,   # IVA no Responsable
+        "E": 4,   # IVA Sujeto Exento
+        "F": 5,   # Consumidor Final
+        "M": 6,   # Responsable Monotributo
+        "C": 7,   # Sujeto no Categorizado
+        "P": 8,   # Proveedor del Exterior
+        "X": 9,   # Cliente del Exterior
+        "L": 10,  # IVA Liberado - Ley N 19.640
+        "T": 11,  # IVA Responsable Inscripto - Agente de Percepcion
+        "V": 12,  # Pequeno Contribuyente Eventual
+        "S": 13,  # Monotributista Social
+        "U": 14,  # Pequeno Contribuyente Eventual Social
+    }
 
     def __init__(self):
         "Inicializar los servicios de AFIP."
         self.wsfev1 = None
         self.ws_sr_padron_a13 = None
+
+    def _get_condicion_iva_receptor_id(self, venta: Venta) -> int:
+        """
+        Obtiene el identificador de CondicionIVAReceptor para WSFEv1.
+
+        En este proyecto se utiliza el id local de TipoResponsable, alineado
+        con el catalogo de AFIP en fixtures.
+        """
+        if not venta.cliente or not venta.cliente.tipo_responsable:
+            raise AfipServiceError(
+                "No se pudo determinar la condicion frente al IVA del cliente."
+            )
+        abreviatura = venta.cliente.tipo_responsable.abreviatura
+        if abreviatura in self.AFIP_CONDICION_IVA_POR_ABREVIATURA:
+            return self.AFIP_CONDICION_IVA_POR_ABREVIATURA[abreviatura]
+        return int(venta.cliente.tipo_responsable.id)
 
     def _initialize_wsfev1(self):
         """Inicializar el servicio WSFEv1 si no está ya inicializado."""
@@ -85,6 +117,7 @@ class AfipService:
         "Obtener el CAE para una venta."
         self._initialize_wsfev1()
         try:
+            condicion_iva_receptor_id = self._get_condicion_iva_receptor_id(venta)
             data = {
                 "CantReg": 1,  # Cantidad de facturas a registrar
                 "PtoVta": venta.punto_venta.numero,  # Punto de venta
@@ -124,6 +157,7 @@ class AfipService:
                 "MonId": venta.moneda.codigo_afip,
                 # Cotización de la moneda usada (1 para pesos argentinos)
                 "MonCotiz": float(venta.moneda_cotizacion),
+                "CondicionIVAReceptorId": condicion_iva_receptor_id,
                 "Iva": (
                     [
                         {
@@ -166,6 +200,7 @@ class AfipService:
         "Anular el CAE de una venta con una Nota de Crédito."
         self._initialize_wsfev1()
         try:
+            condicion_iva_receptor_id = self._get_condicion_iva_receptor_id(venta)
             data = {
                 "CantReg": 1,
                 "PtoVta": venta.punto_venta.numero,
@@ -191,6 +226,7 @@ class AfipService:
                 "ImpTrib": float("{:.2f}".format(venta.total_tributos)),
                 "MonId": venta.moneda.codigo_afip,
                 "MonCotiz": float(venta.moneda_cotizacion),
+                "CondicionIVAReceptorId": condicion_iva_receptor_id,
                 "CbtesAsoc": (
                     [
                         {
