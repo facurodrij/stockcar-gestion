@@ -4,15 +4,18 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Flask",
+            "label": "Backend: Flask (local)",
             "type": "shell",
-            "command": "cd server && flask run",
+            "command": "cd server && FLASK_APP=wsgi:app FLASK_RUN_HOST=127.0.0.1 FLASK_RUN_PORT=5000 ../.venv/bin/python -m flask run --host=127.0.0.1 --port=5000",
             "linux": {
-                "command": "cd server && ../.venv/bin/flask run"
+                "command": "cd server && FLASK_APP=wsgi:app FLASK_RUN_HOST=127.0.0.1 FLASK_RUN_PORT=5000 ../.venv/bin/python -m flask run --host=127.0.0.1 --port=5000"
             },
+            "windows": {
+                "command": "cd server && set FLASK_APP=wsgi:app && set FLASK_RUN_HOST=127.0.0.1 && set FLASK_RUN_PORT=5000 && ..\\.venv\\Scripts\\python -m flask run --host=127.0.0.1 --port=5000"
+            },
+            "isBackground": true,
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "presentation": {
                 "echo": true,
@@ -23,12 +26,62 @@
             "problemMatcher": []
         },
         {
-            "label": "Run React",
+            "label": "Backend: Flask (internet)",
             "type": "shell",
-            "command": "cd client && npm start",
+            "command": "cd server && FLASK_APP=wsgi:app FLASK_RUN_HOST=0.0.0.0 FLASK_RUN_PORT=5000 ../.venv/bin/python -m flask run --host=0.0.0.0 --port=5000",
+            "linux": {
+                "command": "cd server && FLASK_APP=wsgi:app FLASK_RUN_HOST=0.0.0.0 FLASK_RUN_PORT=5000 ../.venv/bin/python -m flask run --host=0.0.0.0 --port=5000"
+            },
+            "windows": {
+                "command": "cd server && set FLASK_APP=wsgi:app && set FLASK_RUN_HOST=0.0.0.0 && set FLASK_RUN_PORT=5000 && ..\\.venv\\Scripts\\python -m flask run --host=0.0.0.0 --port=5000"
+            },
+            "isBackground": true,
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend: React (local)",
+            "type": "shell",
+            "command": "cd client && REACT_APP_API_URL=http://127.0.0.1:5000 HOST=127.0.0.1 PORT=3000 npm start",
+            "linux": {
+                "command": "cd client && REACT_APP_API_URL=http://127.0.0.1:5000 HOST=127.0.0.1 PORT=3000 npm start"
+            },
+            "windows": {
+                "command": "cd client && set REACT_APP_API_URL=http://127.0.0.1:5000 && set HOST=127.0.0.1 && set PORT=3000 && npm start"
+            },
+            "isBackground": true,
+            "group": {
+                "kind": "build"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend: React (internet)",
+            "type": "shell",
+            "command": "cd client && PUBLIC_IP=$(curl -fsSL --max-time 5 https://api.ipify.org || true) && [ -z \"$PUBLIC_IP\" ] && PUBLIC_IP=$(hostname -I 2>/dev/null | awk '{print $1}') && [ -z \"$PUBLIC_IP\" ] && PUBLIC_IP=127.0.0.1 && REACT_APP_API_URL=http://${PUBLIC_IP}:5000 HOST=0.0.0.0 PORT=3000 DANGEROUSLY_DISABLE_HOST_CHECK=true npm start -- --host 0.0.0.0 --port 3000",
+            "linux": {
+                "command": "cd client && PUBLIC_IP=$(curl -fsSL --max-time 5 https://api.ipify.org || true) && [ -z \"$PUBLIC_IP\" ] && PUBLIC_IP=$(hostname -I 2>/dev/null | awk '{print $1}') && [ -z \"$PUBLIC_IP\" ] && PUBLIC_IP=127.0.0.1 && REACT_APP_API_URL=http://${PUBLIC_IP}:5000 HOST=0.0.0.0 PORT=3000 DANGEROUSLY_DISABLE_HOST_CHECK=true npm start -- --host 0.0.0.0 --port 3000"
+            },
+            "windows": {
+                "command": "cd client && if not defined PUBLIC_IP set PUBLIC_IP=127.0.0.1 && set REACT_APP_API_URL=http://%PUBLIC_IP%:5000 && set HOST=0.0.0.0 && set PORT=3000 && npm start"
+            },
+            "isBackground": true,
+            "group": {
+                "kind": "build"
             },
             "presentation": {
                 "echo": true,
@@ -41,13 +94,16 @@
         {
             "label": "Run Debug Flask",
             "type": "shell",
-            "command": "cd server && flask --debug run",
+            "command": "cd server && FLASK_APP=wsgi:app ../.venv/bin/python -m flask run --debug --host=127.0.0.1 --port=5000",
             "linux": {
-                "command": "cd server && ../.venv/bin/flask --debug run"
+                "command": "cd server && FLASK_APP=wsgi:app ../.venv/bin/python -m flask run --debug --host=127.0.0.1 --port=5000"
             },
+            "windows": {
+                "command": "cd server && set FLASK_APP=wsgi:app && ..\\.venv\\Scripts\\python -m flask run --debug --host=127.0.0.1 --port=5000"
+            },
+            "isBackground": true,
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "presentation": {
                 "echo": true,
@@ -60,13 +116,16 @@
         {
             "label": "Run Waitress Server",
             "type": "shell",
-            "command": "cd server && waitress-serve --host=192.168.0.19 --port=8080 --call wsgi:create_app",
+            "command": "cd server && ../.venv/bin/python wsgi.py",
             "linux": {
-                "command": "cd server && ../.venv/bin/waitress-serve --host=192.168.0.19 --port=8080 --call wsgi:create_app"
+                "command": "cd server && ../.venv/bin/python wsgi.py"
             },
+            "windows": {
+                "command": "cd server && .venv\\Scripts\\python wsgi.py"
+            },
+            "isBackground": true,
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "presentation": {
                 "echo": true,

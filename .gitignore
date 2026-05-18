@@ -404,6 +404,7 @@ alembic/
 migrations/
 
 ### Others
+.atl/
 *.bak
 dump/
 server_test/
