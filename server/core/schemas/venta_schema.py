@@ -24,7 +24,13 @@ class VentaItemSchema(SQLAlchemyAutoSchema):
         model = VentaItem
         load_instance = True
 
+    stock_actual = fields.fields.Decimal(attribute="articulo.stock_actual", as_string=True)
     codigo_principal = fields.fields.String(attribute="articulo.codigo_principal")
+    codigo_secundario = fields.fields.String(attribute="articulo.codigo_secundario", allow_none=True)
+    codigo_terciario = fields.fields.String(attribute="articulo.codigo_terciario", allow_none=True)
+    codigo_cuaternario = fields.fields.String(attribute="articulo.codigo_cuaternario", allow_none=True)
+    codigo_adicional = fields.fields.Raw(attribute="articulo.codigo_adicional", allow_none=True)
+    linea_factura = fields.fields.String(attribute="articulo.linea_factura")
     articulo_id = auto_field()
 
 
@@ -36,6 +42,20 @@ class VentaItemFormSchema(SQLAlchemyAutoSchema):
 
     codigo_principal = fields.fields.String()
     articulo_id = auto_field()
+
+    @pre_load
+    def remove_articulo_display_fields(self, data, **kwargs):
+        for key in (
+            "stock_actual",
+            "codigo_principal",
+            "codigo_secundario",
+            "codigo_terciario",
+            "codigo_cuaternario",
+            "codigo_adicional",
+            "linea_factura",
+        ):
+            data.pop(key, None)
+        return data
 
     @validates_schema
     def validate_subtotal(self, data, **kwargs):

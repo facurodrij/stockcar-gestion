@@ -95,7 +95,7 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
             codigo_terciario: exist.codigo_terciario,
             codigo_cuaternario: exist.codigo_cuaternario,
             codigo_adicional: exist.codigo_adicional,
-            linea_factura: exist.descripcion,
+            linea_factura: exist.linea_factura || exist.descripcion,
         });
     }).filter(Boolean);
 
@@ -155,19 +155,19 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
         setArticuloCache((prev) => {
             const nextCache = { ...prev };
             items.forEach((item) => {
-                if (!nextCache[item.articulo_id]) {
-                    nextCache[item.articulo_id] = {
-                        id: item.articulo_id,
-                        stock_actual: item.stock_actual,
-                        descripcion: item.descripcion,
-                        codigo_principal: item.codigo_principal,
-                        codigo_secundario: item.codigo_secundario,
-                        codigo_terciario: item.codigo_terciario,
-                        codigo_cuaternario: item.codigo_cuaternario,
-                        codigo_adicional: item.codigo_adicional,
-                        linea_factura: item.descripcion,
-                    };
-                }
+                const cached = nextCache[item.articulo_id] || {};
+                nextCache[item.articulo_id] = {
+                    ...cached,
+                    id: item.articulo_id,
+                    stock_actual: item.stock_actual ?? cached.stock_actual,
+                    descripcion: item.descripcion ?? cached.descripcion,
+                    codigo_principal: item.codigo_principal ?? cached.codigo_principal,
+                    codigo_secundario: item.codigo_secundario ?? cached.codigo_secundario,
+                    codigo_terciario: item.codigo_terciario ?? cached.codigo_terciario,
+                    codigo_cuaternario: item.codigo_cuaternario ?? cached.codigo_cuaternario,
+                    codigo_adicional: item.codigo_adicional ?? cached.codigo_adicional,
+                    linea_factura: item.linea_factura || cached.linea_factura || item.descripcion,
+                };
             });
             return nextCache;
         });
@@ -211,9 +211,14 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                                 const exist = items.find((item) => item.articulo_id === id);
                                 return articuloCache[id] || (exist && {
                                     id: exist.articulo_id,
+                                    stock_actual: exist.stock_actual,
                                     descripcion: exist.descripcion,
                                     codigo_principal: exist.codigo_principal,
-                                    linea_factura: exist.descripcion,
+                                    codigo_secundario: exist.codigo_secundario,
+                                    codigo_terciario: exist.codigo_terciario,
+                                    codigo_cuaternario: exist.codigo_cuaternario,
+                                    codigo_adicional: exist.codigo_adicional,
+                                    linea_factura: exist.linea_factura || exist.descripcion,
                                 });
                             });
                             const newItems = nextSelectionArticulo.map((row) => {
@@ -223,8 +228,14 @@ const ArticuloSelectorDialog = ({ open, onClose, selectedArticulo, setSelectedAr
                                 const exist = items.find((r) => r.articulo_id === row.id);
                                 return exist || {
                                     articulo_id: row.id,
+                                    stock_actual: row.stock_actual,
                                     descripcion: row.linea_factura,
                                     codigo_principal: row.codigo_principal,
+                                    codigo_secundario: row.codigo_secundario,
+                                    codigo_terciario: row.codigo_terciario,
+                                    codigo_cuaternario: row.codigo_cuaternario,
+                                    codigo_adicional: row.codigo_adicional,
+                                    linea_factura: row.linea_factura,
                                     cantidad: 1,
                                     precio_unidad: 0,
                                     alicuota_iva: row.alicuota_iva.porcentaje,

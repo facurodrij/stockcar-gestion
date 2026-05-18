@@ -216,7 +216,14 @@ export default function VentaForm({ permissions }) {
             }
             const itemsArray = data.items.map((r) => ({
                 articulo_id: r.articulo_id,
+                stock_actual: r.stock_actual,
                 descripcion: r.descripcion,
+                codigo_principal: r.codigo_principal,
+                codigo_secundario: r.codigo_secundario,
+                codigo_terciario: r.codigo_terciario,
+                codigo_cuaternario: r.codigo_cuaternario,
+                codigo_adicional: r.codigo_adicional,
+                linea_factura: r.linea_factura,
                 cantidad: r.cantidad,
                 precio_unidad: r.precio_unidad,
                 alicuota_iva: r.alicuota_iva,
@@ -293,7 +300,14 @@ export default function VentaForm({ permissions }) {
                     const itemsArray = venta['items'].map((r) => {
                         return {
                             articulo_id: r.articulo_id,
+                            stock_actual: r.stock_actual,
                             descripcion: r.descripcion,
+                            codigo_principal: r.codigo_principal,
+                            codigo_secundario: r.codigo_secundario,
+                            codigo_terciario: r.codigo_terciario,
+                            codigo_cuaternario: r.codigo_cuaternario,
+                            codigo_adicional: r.codigo_adicional,
+                            linea_factura: r.linea_factura,
                             cantidad: r.cantidad,
                             precio_unidad: r.precio_unidad,
                             alicuota_iva: r.alicuota_iva,
@@ -924,4 +938,3 @@ export default function VentaForm({ permissions }) {
         </>
     );
 }
-
