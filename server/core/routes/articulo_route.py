@@ -66,8 +66,34 @@ def index():
 @permission_required(["articulo.view_all"])
 @error_handler()
 def selector():
-    articulos = Articulo.query.all()
-    return jsonify(articulo_index_schema.dump(articulos, many=True)), 200
+    query = request.args.get("query", "", type=str).strip()
+    limit = request.args.get("limit", 50, type=int)
+    limit = min(max(limit or 50, 1), 100)
+
+    if len(query) < 3:
+        return jsonify({"articulos": []}), 200
+
+    conditions = []
+    for term in query.split():
+        conditions.append(
+            or_(
+                Articulo.codigo_principal.ilike(f"%{term}%"),
+                Articulo.codigo_secundario.ilike(f"%{term}%"),
+                Articulo.codigo_terciario.ilike(f"%{term}%"),
+                Articulo.codigo_cuaternario.ilike(f"%{term}%"),
+                Articulo.codigo_adicional.ilike(f"%{term}%"),
+                Articulo.descripcion.ilike(f"%{term}%"),
+            )
+        )
+
+    articulos = (
+        Articulo.query.with_deleted()
+        .filter(Articulo.deleted.is_(False), and_(*conditions))
+        .order_by(Articulo.id.desc())
+        .limit(limit)
+        .all()
+    )
+    return jsonify({"articulos": articulo_index_schema.dump(articulos, many=True)}), 200
 
 
 @articulo_bp.route("/articulos/create", methods=["GET", "POST"])
